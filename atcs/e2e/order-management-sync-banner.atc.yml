@@ -1,0 +1,89 @@
+# 주문 관리 진입 - SyncResultBanner (먼저 업데이트 / 업데이트 배너) 노출 케이스
+#
+# 시나리오:
+#   주문 관리 페이지 진입 시 OrderManagement hook 이 자동으로 마켓별 주문 sync 를
+#   실행하면서 화면에 두 가지 sync UI 를 노출한다.
+#
+#     (1) SyncStatusCheckRow (회색 배경 row, OrderListHeader 바로 아래)
+#         IN_PROGRESS: 스피너 + 텍스트  YY-MM-DD ~ YY-MM-DD 기간 동안 새로운 주문이 있는지 확인중 ...
+#         COMPLETED:   YY-MM-DD ~ YY-MM-DD 기간의 업데이트 처리가 완료되었어요.  (5초 후 fade-out)
+#
+#     (2) SyncResultBanner (파란 배경 배너, isSyncRunning && changedCount > 0 일 때만)
+#         IN_PROGRESS + changedCount>0:
+#             일부 마켓에서 새롭게 업데이트 된 주문 N건을 찾았어요. 지금 업데이트할까요?
+#             버튼: 먼저 업데이트
+#         COMPLETED + changedCount>0:
+#             모든 마켓 주문 수집 완료! 새롭게 업데이트 된 주문 N건을 찾았어요.
+#             버튼: 업데이트
+#
+#   본 ATC 는 (2) SyncResultBanner 의 두 상태 중 하나라도 나타나면 PASS 로 본다.
+#   배너는 짧은 시간 동안만 노출되므로 진입 직후 최대 60초 polling.
+#
+# 트리거 조건:
+#   - useOrderManagement / useOrderManagementSync hook 이 sync API 를 실제로 돌려
+#     changedCount > 0 인 상태로 도달해야 한다.
+#   - changedCount === 0 (변경된 주문 없음) 이면 배너 자체가 안 뜬다.
+#   - 본 ATC 는 sync 로 잡히는 신규/변경 주문이 있는 환경 전용.
+#
+# 노출 텍스트 (windly-frontend-web/src/features/OrderManagement/Sync/SyncResultBanner.tsx):
+#   - 공통 부분: 새롭게 업데이트 된 주문 (Text size=h4) + N건 (Text color=blue1) + 을 찾았어요
+#   - IN_PROGRESS: 일부 마켓에서 ~  지금 업데이트할까요? / button: 먼저 업데이트
+#   - COMPLETED:   모든 마켓 주문 수집 완료! ~ / button: 업데이트
+#
+# 사전조건: 마켓 sync 가 돌면서 changedCount > 0 도달하는 환경.
+#           sync 가 안 돌거나 변경 없는 환경에서는 본 ATC 가 실패한다 (정상).
+#           그런 환경에서는 order-management-with-orders 또는 order-management-loaded 사용.
+
+title: 주문 관리 진입 - SyncResultBanner (먼저 업데이트/업데이트) 노출 검증
+
+description: |
+  주문 관리 진입 시 자동으로 도는 마켓별 주문 sync 의 SyncResultBanner ("먼저 업데이트" / "업데이트") 가 노출되는지 검증.
+
+  isSyncRunning && changedCount > 0 일 때만 노출되며 짧은 시간 동안만 보이므로 진입 직후 최대 60초 polling.
+
+  changedCount === 0 이면 배너 자체가 안 떠서 fail (= 마켓에 새 주문이 없는 상태).
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: ensure_session
+    do: 로그인 + 해구대 워크스페이스 진입 확인 (loginIfNeeded + enterHaegudaeWorkspace). 둘 다 idempotent fast-pass. 본 spec 은 setup project 의존성 없이 단독 실행 — 그래야 setup 의 hub/main 진입으로 백엔드 sync 가 미리 처리되지 않는다.
+    expect: 로그인 + 해구대 안에 있는 상태.
+
+  - id: open_order_management
+    do: global.windly.cc/view3/order-management?orderStatus=ACCEPT 로 직접 goto. SPA 안정화 후 주문 관리 Layout 타이틀 visible 확인.
+    expect: /view3/order-management 진입 + 주문 관리 타이틀 visible.
+
+  - id: wait_sync_banner_visible
+    do: SyncResultBanner 노출 대기. 페이지를 진입 상태로 유지하면서 최대 3분 polling. 사용자가 그 사이에 새 주문을 넣으면 자동 sync 또는 30초마다 자동 클릭되는 새로고침 버튼이 sync 를 재트리거하여 배너가 뜬다. 매칭 마커는 (a) 텍스트 새롭게 업데이트 된 주문 visible (b) 먼저 업데이트 버튼 visible (c) 모든 마켓 주문 수집 완료 visible. 3분 안 보이면 FAIL.
+    expect: SyncResultBanner 의 메시지 또는 버튼 중 하나가 visible.
+
+  - id: capture_banner_screenshot
+    do: 배너 노출 시점의 전체 화면 PNG 캡쳐해서 리포트에 attach.
+    expect: 스크린샷 정상 attach.
+
+  - id: classify_banner_state
+    do: 배너 상태를 IN_PROGRESS 또는 COMPLETED 로 분류. 버튼 텍스트 먼저 업데이트 가 보이면 IN_PROGRESS, 모든 마켓 주문 수집 완료 텍스트가 보이면 COMPLETED. 그 외엔 일부만 캐치한 상태로 보고만 하고 PASS.
+    expect: 상태 분류 결과를 로그에 출력.
+
+  - id: extract_changed_count
+    do: 배너 안의 N건 정수 부분을 텍스트에서 정규식으로 추출. 1 이상이면 PASS, 추출 실패 또는 0 이면 FAIL.
+    expect: N >= 1 인 changedCount 가 검출된다.
+
+  - id: record_counts_before_click
+    do: 클릭 전 페이지 카운트 기록. 페이지네이션의 총 N개 텍스트에서 N 추출 + 신규주문 탭의 카운트 N 추출. 두 값을 in-memory 에 보관 (다음 step 에서 비교).
+    expect: 두 카운트 모두 정수로 추출된다.
+
+  - id: click_first_update_button
+    do: 배너의 먼저 업데이트 버튼 (IN_PROGRESS) 또는 업데이트 버튼 (COMPLETED) 을 클릭. handleUpdateSyncedOrders 가 호출되어 주문 목록 + 카운트 query 가 refetch 된다.
+    expect: 버튼 클릭 성공.
+
+  - id: verify_orders_added_after_click
+    do: 클릭 후 최대 10초 대기하면서 페이지 카운트가 reflect 되는지 polling. 신규주문 탭 카운트가 클릭 전 값보다 같거나 크면 PASS (작아지면 FAIL). 페이지네이션의 총 N개 도 같거나 큰지 확인. 가장 중요 검증은 신규주문 탭 카운트 증가.
+    expect: 신규주문 탭 카운트 >= 클릭 전 카운트. 클릭 전 0이었다가 후 N (N>=1) 이면 추가 확인됨.
+
+  - id: capture_final_screenshot
+    do: 최종 결과 화면 PNG 캡쳐 후 attach.
+    expect: 스크린샷 attach 정상.
+
+expected: 주문 관리 진입 후 sync 가 돌아 SyncResultBanner 가 노출되며, 먼저 업데이트 버튼 클릭 후 주문 목록이 갱신되어 신규주문 카운트가 줄지 않고 유지/증가한다. unhandled 0건.

@@ -1,0 +1,43 @@
+# 티몰 단건 수집 — 수집상품 검증까지 (UI ATC)
+#
+# 흐름:
+#   (1) 상품 수집 메뉴 이동  →  (2) URL 수집 버튼 클릭  →  (3) URL 입력 및 수집 실행
+#   →  (4) 수집 완료 대기  →  (5) 수집상품 목록에서 해당 상품 확인
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+#
+# 입력 (D8): CLI > fixture > env.
+#   - product_url    : 수집할 상품 URL  (CLI: --product_url=...)
+# 환경변수:
+#   - WINDLY_EXTENSION_PATH : 윈들리 Chrome 확장 경로
+
+title: 티몰 단건 수집 후 수집상품 목록 검증
+
+description: |
+  티몰 단건 수집 시나리오 — URL 입력 → 수집 → 수집상품 목록에서 해당 상품 카드가 보이는지까지 검증하는 단순한 smoke test.
+
+  입력: product_url (티몰/타오바오/라쿠텐 URL — example 는 티몰 ID 865028697626).
+  사전조건: setup project 통과 + WINDLY_EXTENSION_PATH env 설정.
+inputs:
+  product_url:
+    type: string
+    description: 수집할 티몰/타오바오/라쿠텐 상품 URL
+    example: https://detail.tmall.com/item.htm?id=865028697626
+
+steps:
+  - id: open_collect_menu
+    do: 좌측/상단 네비게이션에서 "상품 수집" 메뉴 클릭
+
+  - id: open_url_collect
+    do: 상품 수집 페이지에서 "URL 수집" 버튼/탭 클릭
+
+  - id: submit_url
+    do: URL 입력 필드에 inputs.product_url 입력 후 수집 실행 버튼 클릭
+
+  - id: wait_completion
+    do: 수집 진행 인디케이터가 사라지거나 성공 메시지가 표시될 때까지 대기 (최대 90초)
+
+  - id: verify_in_collected
+    do: 수집상품 목록 페이지로 이동(필요시) 후, 방금 수집한 상품(URL 또는 상품 ID 기준)이 목록에 존재하는지 확인
+
+expected: 5개 step 모두 success, unhandled 0건. 수집상품 목록에서 해당 상품 카드 확인.

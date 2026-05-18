@@ -1,0 +1,37 @@
+# 상품 수집 페이지의 "타오바오" 버튼 클릭 → 새 창으로 타오바오 도메인 열림 검증
+#
+# 흐름:
+#   (1) 상품 수집 메뉴 진입 → (2) 타오바오 버튼 클릭 + 새 창 popup 의 도메인 검증
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/ProductImport/ImportDirect/index.tsx
+#   - src/features/ProductImport/ImportDirect/components/SourcingMallButton.tsx
+#       <div onClick={() => window.open(url)}>
+#         <img alt="sourcing-mall-icon" />
+#         <Text>타오바오</Text>
+#       </div>
+#   - src/features/ProductImport/ImportDirect/constants.ts
+#       타오바오 url = 'https://world.taobao.com/'
+
+title: 상품 수집 - 타오바오 버튼 클릭 시 새 창으로 타오바오 열림 검증
+
+description: |
+  윈들리 "상품 수집" 페이지에서 "타오바오" 직진입 버튼이 정상 동작하는지 검증.
+  버튼을 누르면 새 탭이 열리고 그 탭의 URL 이 taobao.com 도메인인지 확인.
+
+  입력값 없음 — setup project 가 로그인 + 해구대 진입까지 마친 상태에서 바로 실행.
+  새 탭이 안 열리거나 다른 도메인이면 fail.
+
+inputs: {}
+
+steps:
+  - id: open_collect_menu
+    do: 좌측 사이드바 "상품 수집" 메뉴 클릭하여 /view3/product-import 진입
+
+  - id: click_taobao_verify_popup
+    do: 타오바오 SourcingMallButton 클릭하고 새 탭이 열리는지 + URL 도메인이 taobao.com 인지 검증. 새 탭 미열림 또는 다른 도메인이면 fail
+    expect: popup URL 이 taobao.com (world/m 등 서브도메인 허용) 도메인이고 windly 가 아님
+
+expected: 타오바오 버튼 클릭 → 새 탭이 열리고 URL 이 taobao.com 도메인. unhandled 0건.

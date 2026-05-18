@@ -1,0 +1,313 @@
+/* ReportPanel — render <runId>.md inline via react-markdown.
+ * R-U8.2: unhandled-section heading + body get a distinct visual treatment.
+ */
+
+.report-panel {
+  padding: 16px 20px;
+  overflow-y: auto;
+  height: 100%;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.report-panel__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -4px 0 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fafafa;
+}
+.report-panel__runid {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 마크다운 영역에서는 heading 기본 스타일 복원 (main.css 의 글로벌 reset 보정). */
+.report-panel__entry h1 { font-size: 1.5em; font-weight: 700; margin: 0.83em 0 0.4em; }
+.report-panel__entry h2 { font-size: 1.25em; font-weight: 700; margin: 0.83em 0 0.4em; }
+.report-panel__entry h3 { font-size: 1.1em; font-weight: 600; margin: 0.83em 0 0.4em; }
+.report-panel__entry h4 { font-size: 1em; font-weight: 600; margin: 0.7em 0 0.3em; }
+.report-panel__entry h5 { font-size: 0.95em; font-weight: 600; margin: 0.7em 0 0.3em; }
+.report-panel__entry h6 { font-size: 0.9em; font-weight: 600; margin: 0.7em 0 0.3em; }
+.report-panel__entry p  { margin: 0.5em 0; }
+.report-panel__entry ul,
+.report-panel__entry ol { margin: 0.5em 0; padding-left: 1.5em; }
+
+.report-panel__empty {
+  color: #888;
+  padding: 24px;
+}
+
+.report-panel__error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.report-panel__loading {
+  color: #555;
+  padding: 12px;
+}
+
+/* R-U8.2 — visually highlight unhandled sections. */
+.report-panel .unhandled-section {
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+  padding: 8px 14px;
+  margin: 12px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.report-panel .unhandled-section::before {
+  content: '\26A0  '; /* warning sign */
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* 묶음 리포트 헤더 — 상단 sticky, 항목 ToC + 점프 링크. */
+.report-panel__batch-header {
+  position: sticky;
+  top: -16px; /* 컨테이너의 padding-top 만큼 끌어올려 sticky 가 끝까지 붙게 */
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 0 12px;
+  margin: -16px -20px 16px;
+  padding-left: 20px;
+  padding-right: 20px;
+  z-index: 1;
+}
+
+.report-panel__batch-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.report-panel__batch-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.report-panel__batch-toc-item {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 2px 0;
+}
+.report-panel__batch-toc-item:hover { text-decoration: underline; }
+
+.report-panel__batch-toc-idx {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: #6b7280;
+  width: 22px;
+}
+
+.report-panel__batch-toc-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 묶음 안의 각 ATC 섹션 — 구분선 + 헤더. */
+.report-panel__entry--batch {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+.report-panel__entry--batch:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.report-panel__entry-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.report-panel__entry-idx {
+  background: #2563eb;
+  color: white;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.report-panel__entry-title {
+  flex: 1;
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+}
+
+.report-panel__entry-runid {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+}
+
+/* ── 새 묶음 디자인 (Blueprint Section + Card + SegmentedControl) ── */
+
+.report-panel--batch {
+  padding: 12px 16px;
+}
+
+.report-panel__batch-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.report-panel__batch-toolbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.report-panel__batch-meta {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.report-panel__merge-status {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.report-panel__merge-error {
+  font-size: 11px;
+  color: var(--destructive);
+}
+
+.report-panel__summary {
+  margin: 0 0 14px;
+  padding: 12px 14px !important;
+  background: #fafafa !important;
+}
+
+.report-panel__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.report-panel__summary-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.report-panel__summary-sub {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.report-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+.report-panel__stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+.report-panel__stat-value {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.report-panel__stat--success .report-panel__stat-value { color: #15803d; }
+.report-panel__stat--danger  .report-panel__stat-value { color: var(--destructive); }
+.report-panel__stat--warning .report-panel__stat-value { color: #b45309; }
+.report-panel__stat--muted   .report-panel__stat-value { color: var(--muted-foreground); }
+
+/* 통합 마크다운 본문 — 약간 더 넓은 호흡. */
+.report-panel__merged {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+/* TC별 모드의 각 TC Section. */
+.report-panel__per-tc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-panel__tc {
+  margin: 0;
+}
+.report-panel__tc .bp6-section-card,
+.report-panel__tc .bp6-collapse {
+  overflow-x: hidden;
+}
+
+.report-panel__tc-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.report-panel__tc-index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  flex-shrink: 0;
+}
+.report-panel__tc-titletext {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+.report-panel__tc-titleline {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.report-panel__tc-meta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-panel__tc-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.report-panel__tc-stepcount {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}

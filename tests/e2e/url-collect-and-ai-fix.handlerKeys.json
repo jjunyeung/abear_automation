@@ -1,0 +1,15 @@
+[
+  "open_collect_menu",
+  "open_url_collect",
+  "submit_url",
+  "wait_completion",
+  "close_modal_goto_collected",
+  "wait_first_card_ready",
+  "enter_product_detail",
+  "ai_recommend_product_name",
+  "ai_recommend_category",
+  "apply_alphabet_option_names",
+  "error_check_and_verify_clean",
+  "trigger_upload",
+  "wait_upload_complete"
+]

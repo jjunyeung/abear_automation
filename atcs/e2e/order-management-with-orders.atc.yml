@@ -1,0 +1,66 @@
+# 주문 관리 진입 — 주문이 1건 이상 있을 때의 결과 화면 검증
+#
+# 사전조건: 신규주문 탭(orderStatus=ACCEPT) 에 1건 이상의 주문이 존재.
+#           주문이 0건이면 본 ATC 는 실패함 (빈 상태는 order-management-loaded.atc.yml 가 다룸).
+#
+# 흐름:
+#   (1) app.windly.cc/view3/order-management?orderStatus=ACCEPT 직접 goto.
+#   (2) 로딩 인디케이터('상품을 불러오고 있어요')가 노출되면 hidden 까지 대기 (최대 60초).
+#   (3) 페이지 하단 페이지네이션의 '총 N개' 텍스트에서 N 을 추출해 N >= 1 검증.
+#   (4) 주문 목록 컬럼 헤더(상태/주문시간/주문번호/주문자/상품/수량/가격) 가 모두 노출되어
+#       있는지 검증.
+#   (5) 첫 번째 OrderItem 의 가격 ('xxx,xxx원' 형식) 셀이 1개 이상 보이는지 검증.
+#   (6) 결과 스크린샷을 리포트에 attach.
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/OrderManagement/index.tsx
+#       <ListView>
+#         <OrderListHeader />                          ← 헤더는 항상 렌더
+#         {(isLoading || orderList.length <= 0) && <EmptyList ... />}
+#         {!isLoading && orderList.length > 0 && <OrderList list={orderList} />}
+#       </ListView>
+#       <Pagenation showTotalCount totalElements={...} />
+#   - src/features/OrderManagement/List/Header.tsx
+#       헤더 텍스트: '상태' / '주문시간' / '주문번호/주문자' / '상품' / '상세' / '수량' / '가격'
+#   - src/features/OrderManagement/List/Item.tsx
+#       paidAmount.toLocaleString() + '원' 형식 셀.
+#   - src/features/common/components/Pagenation.tsx (line 192)
+#       <Text size="c2">총 {totalElements.toLocaleString()}개</Text>
+
+title: 주문 관리 진입 — 주문 1건 이상일 때 목록·헤더·카운트 검증
+
+description: |
+  주문 관리 진입 — 신규주문 탭에 1+ 주문이 있을 때의 결과 화면 검증.
+
+  흐름: ACCEPT 탭 진입 → 로딩 종료 대기 → 페이지네이션의 "총 N개" 텍스트로 N>=1 확인 → 컬럼 헤더 7개 (상태/주문시간/주문번호/주문자/상품/수량/가격) 모두 visible → 첫 OrderItem 의 가격 셀 (xxx,xxx원 형식) 1+ 확인 → 스크린샷.
+
+  빈 상태 케이스는 order-management-loaded 가 다룸.
+  사전조건: ACCEPT 탭에 주문 1+.
+inputs: {}
+
+steps:
+  - id: open_order_management
+    do: app.windly.cc/view3/order-management?orderStatus=ACCEPT 로 직접 goto. SPA 안정화 후 '주문 관리' Layout 타이틀 visible 확인.
+    expect: /view3/order-management 진입 + '주문 관리' 타이틀 visible.
+
+  - id: wait_loading_finished
+    do: 로딩 인디케이터('상품을 불러오고 있어요') 가 보이면 hidden 까지 최대 60초 대기. 진입 즉시 결과가 떠 있는 경우는 즉시 통과.
+    expect: 로딩 인디케이터가 사라지고 OrderList 또는 EmptyList 가 안정 렌더된다.
+
+  - id: assert_total_count_at_least_one
+    do: 페이지 하단 '총 N개' 텍스트를 찾아 N 을 정수로 파싱. N >= 1 이면 PASS, 0 또는 미발견이면 FAIL (이 케이스는 주문이 있는 상황을 가정).
+    expect: 총 주문 카운트가 1 이상.
+
+  - id: assert_list_headers_visible
+    do: 주문 목록 컬럼 헤더 텍스트들('상태' / '주문시간' / '주문번호/주문자' / '상품' / '수량' / '가격') 이 모두 visible 인지 확인.
+    expect: 7개 컬럼 헤더가 모두 화면에 노출.
+
+  - id: assert_first_order_row_visible
+    do: OrderItem 의 가격 셀 (정수 + '원' 형식, 예 '12,000원') 또는 'YY-MM-DD HH:mm AM/PM' 형식의 주문시간 텍스트가 1개 이상 화면에 보이는지 검증. 빈 상태일 경우 화면에 그런 텍스트가 없으므로 검증 실패.
+    expect: 최소 1개의 주문 row (가격 또는 주문시간 텍스트) 가 visible.
+
+  - id: capture_result_screenshot
+    do: 최종 화면을 PNG 스크린샷으로 캡쳐해 리포트에 attach. 디버깅·증빙용.
+    expect: 스크린샷이 정상 캡쳐되어 attach 된다.
+
+expected: /view3/order-management 진입 후 로딩이 종료되고, '총 N개' >= 1, 컬럼 헤더 7개 visible, 첫 주문 row 의 가격/시간 텍스트 visible. unhandled 0건.

@@ -1,0 +1,66 @@
+# 첫 수집상품의 판매가 탭 마켓별 가중치 가 글로벌 base setting 의 마켓별 판매가 가중치와 일치하는지 검증.
+#
+# 사전조건:
+#   - setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#   - 직전에 base setting 변경 + 기본 설정값 적용 이 첫 카드에 실행되어 있는 것을 권장.
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=MARKET_WEIGHT 진입
+#       → 6개 마켓 input (스마트스토어/쿠팡/11번가/ESM 2.0(옥션, 지마켓)/롯데온/톡스토어) 값 snapshot
+#   (2) /view2/interested-product 수집상품 목록 진입
+#   (3) 첫 카드 클릭 → /view2/interested-product/{id} 상품 상세 진입
+#   (4) 판매가 탭 클릭 + CardLayout (defaultState=collapsed) 펼침
+#   (5) 마켓별 가중치 섹션 텍스트 추출 → 활성 마켓 만 snapshot 과 매치 검증
+#       비활성 마켓은 검증 안 함 (사용자 요구).
+#
+# 비교 형식 (sesame/.../MarketSalesPrice.tsx):
+#   <div>
+#     <Text bold>마켓별 가중치</Text>
+#     {ActiveMarketList.map(...)} → 각 활성 마켓 별 Text: `${label} ${pct}%${comma}`
+#   </div>
+#   → div.textContent = 마켓별 가중치{label1} {pct1}%,{label2} {pct2}%,...
+#
+# 라벨 매핑 (windly base setting 라벨 → sesame 상품 detail 라벨, key 동일):
+#   smartstore: 스마트스토어 ↔ 스마트스토어
+#   coupang:    쿠팡 ↔ 쿠팡
+#   street:     11번가 ↔ 11번가
+#   esm:        ESM 2.0(옥션, 지마켓) ↔ ESM 2.0
+#   lotteOn:    롯데온 ↔ 롯데온
+#   talkstore:  톡스토어 ↔ 톡스토어
+
+title: 첫 수집상품 판매가 탭의 마켓별 가중치 가 글로벌 base setting 과 일치하는지 검증 (활성 마켓만)
+
+description: |
+  첫 수집상품의 판매가 탭 "마켓별 가중치" 가 글로벌 base setting 의 마켓별 판매가 가중치와 일치하는지 검증.
+
+  흐름: /view3/base-setting?category=MARKET_WEIGHT → 6개 마켓 input (스마트스토어/쿠팡/11번가/ESM 2.0(옥션, 지마켓)/롯데온/톡스토어) snapshot → 수집상품 첫 카드 진입 → 판매가 탭 + CardLayout 펼침 → 마켓별 가중치 텍스트 추출 → 활성 마켓만 snapshot 과 매치.
+
+  비활성 마켓은 검증 안 함 (사용자 요구).
+  권장 사전조건: 직전에 base setting 변경 + bulk-apply 가 첫 카드에 적용된 상태.
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: snapshot_market_weights
+    do: app.windly.cc/view3/base-setting?setting=COMMON&category=MARKET_WEIGHT 직접 goto. 6개 마켓 input 모두 현재값 +1 (max 100 이면 -1) 로 변경 + onBlur 저장 → 변경된 값을 snapshot 에 기록.
+    expect: 6개 input 모두 + 1 변동 후 reformat 반영 + snapshot 채워짐
+
+  - id: open_collected_list
+    do: 수집상품 목록 (/view2/interested-product) 진입. 첫 카드 (a 태그) 노출 대기.
+
+  - id: apply_base_setting_to_first
+    do: 첫 카드 1개 체크박스 선택 → 상단 More(...) → 기본 설정값 적용 → 모달 적용 클릭 → success toast (1개 상품이 일괄 업데이트 되었습니다) 대기. 이 step 으로 직전 snapshot 의 base setting 값이 첫 상품에 반영됨.
+    expect: success toast 노출
+
+  - id: enter_first_product
+    do: 수집상품 첫 카드 클릭. /view2/interested-product/{id} URL 도달 + 상세 마운트 확인.
+
+  - id: open_sales_tab
+    do: 상품 상세에서 판매가 탭 클릭. CardLayout (defaultState=true → 기본 collapsed) 의 판매가 헤더 (svg + Text 판매가) 클릭하여 펼침. 마켓별 가중치 Text 노출 대기.
+    expect: 판매가 탭 active + 마켓별 가중치 DOM 마운트
+
+  - id: verify_market_weights_on_product
+    do: 마켓별 가중치 Text 의 부모 div textContent 추출. 활성 마켓 (= 표시되는 라벨) 만 snapshot 과 % 값 매치 비교. 비활성 마켓은 검증 skip. 활성 마켓이 0개면 fail.
+    expect: 활성 마켓 N개 모두 매치 (mismatch 0)
+
+expected: 활성 마켓의 판매가 가중치가 글로벌 base setting 과 정확히 일치. unhandled 0건.

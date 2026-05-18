@@ -1,0 +1,104 @@
+# 주문 관리 - 신규주문 -> 배송준비중 상태 변경 + 탭 간 이동 검증
+#
+# 시나리오:
+#   사용자가 신규 주문 하나를 미리 넣어둔 상태에서 본 ATC 실행.
+#   (1) 세션 확보 (loginIfNeeded + enterHaegudaeWorkspace, fast-pass)
+#   (2) 주문 관리 페이지 진입 (orderStatus=ACCEPT)
+#   (3) SyncResultBanner 노출 대기 (최대 3분, 30초마다 새로고침 자동 클릭)
+#       사용자 주문이 신규주문 카운트에 반영되도록 sync 강제 재트리거.
+#   (4) 먼저 업데이트 / 업데이트 버튼 클릭 -> 신규주문 +1
+#   (5) 맨 위 주문의 marketOrderId 기록
+#   (6) ACCEPT 탭 카운트, INSTRUCT 탭 카운트 기록 (변경 전 baseline)
+#   (7) 맨 위 주문 row 의 체크박스 클릭
+#   (8) 배송준비중으로 변경 버튼 클릭
+#       Controller.tsx 의 handleShippingItems -> postProductOrderShippingInstruct
+#   (9) 토스트 확인 (총 N개의 상품을 배송준비중으로 변경했습니다.)
+#   (10) ACCEPT 탭 검증: 카운트 -1, 기록된 marketOrderId 가 화면에서 사라짐
+#   (11) 배송준비중 탭 클릭 (orderStatus=INSTRUCT)
+#   (12) INSTRUCT 탭 검증: 기록된 marketOrderId 가 visible + 카운트 +1
+#   (13) 최종 스크린샷
+#
+# 사전조건:
+#   - 사용자가 ATC 시작 직전 또는 직후 신규주문을 1개 이상 가지고 있음
+#   - .playwright-userdata 에 로그인 세션 박혀있음 (이전에 한 번이라도 setup 돌린 후)
+#   - windly-e2e-fresh project 에서 실행 (setup project 우회 — sync 미리 처리 방지)
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/OrderManagement/Controller/index.tsx
+#       DEFAULT_STATUS_BUTTON.ACCEPT = 배송준비중으로 변경
+#   - src/features/OrderManagement/Controller/hooks/useController.ts
+#       handleShippingItems -> postProductOrderShippingInstruct, 성공 시 makeToast
+#       (총 N개의 상품을 배송준비중으로 변경했습니다.)
+#   - src/features/OrderManagement/List/Item.tsx
+#       첫 Item = CheckBox, marketOrderId 는 주문번호/주문자 컬럼 Text
+#   - src/features/OrderManagement/Tab/TabItem.tsx
+#       탭 텍스트: 신규주문 / 배송준비중 / 배송중 / 배송완료 + 카운트
+
+title: 주문 관리 - 신규주문에서 배송준비중으로 상태 변경 + 탭 이동 검증
+
+description: |
+  주문 관리 — 신규주문(ACCEPT) → 배송준비중(INSTRUCT) 상태 변경 + 탭 간 이동 검증 e2e.
+
+  흐름: 주문 관리 진입 (orderStatus=ACCEPT) → SyncResultBanner 노출 대기 (최대 3분, sync 강제 재트리거) → 맨 위 주문 marketOrderId 기록 + ACCEPT/INSTRUCT 카운트 baseline → 체크박스 + "배송준비중으로 변경" 버튼 → 토스트 확인 → ACCEPT 탭 카운트 -1 + 주문 사라짐 → INSTRUCT 탭으로 이동 → 같은 주문 visible + 카운트 +1.
+
+  사전조건: 신규주문 1+ 보유. windly-e2e-fresh project 에서 실행 (setup 우회).
+inputs: {}
+
+steps:
+  - id: ensure_session
+    do: 로그인 + 해구대 워크스페이스 진입 확인 (loginIfNeeded + enterHaegudaeWorkspace). 둘 다 idempotent fast-pass.
+    expect: 로그인 + 해구대 안 상태.
+
+  - id: open_order_management
+    do: global.windly.cc/view3/order-management?orderStatus=ACCEPT 로 직접 goto. viewport 1920x1080 으로 키움. 주문 관리 타이틀 visible 확인.
+    expect: /view3/order-management 진입 + 주문 관리 타이틀 visible.
+
+  - id: wait_sync_banner_visible
+    do: SyncResultBanner 노출 optional 대기. 최대 30초 polling. 중간(15초) 에 새로고침 1회 시도. 30초 안에 안 보이면 skip (PASS) — 이미 ACCEPT 탭에 있는 신규주문으로 진행.
+    expect: 배너가 보이면 후속 step 에서 클릭, 안 보이면 skip 으로 PASS.
+
+  - id: click_first_update_button
+    do: 배너가 직전 step 에서 보였다면 먼저 업데이트 또는 업데이트 버튼 클릭. 안 보였다면 skip.
+    expect: 배너 보였으면 클릭 성공, 아니면 skip.
+
+  - id: wait_orderlist_settled
+    do: 클릭 후 신규주문 목록이 안정화될 때까지 짧게 대기. 첫 OrderItem row 의 marketOrderId Text 가 visible 인지 확인.
+    expect: 맨 위 주문 row visible.
+
+  - id: record_first_order_id
+    do: 신규주문 탭에서 맨 위 OrderItem 의 marketOrderId (긴 숫자) 텍스트를 추출해 in-memory 기록. 후속 step 에서 비교용.
+    expect: 정수로 이루어진 marketOrderId 문자열 추출.
+
+  - id: record_counts_before_change
+    do: ACCEPT 탭 카운트 (신규주문 N) 와 INSTRUCT 탭 카운트 (배송준비중 N) 를 in-memory 기록. 페이지네이션의 총 N개 도 함께 기록.
+    expect: 두 탭 카운트 모두 정수로 추출.
+
+  - id: select_first_order_checkbox
+    do: 맨 위 OrderItem row 의 체크박스 클릭. 클릭 후 Controller 의 N개 선택됨 라벨이 1개 선택됨 으로 변하는지 확인.
+    expect: 1개 선택됨 visible.
+
+  - id: click_change_to_instruct
+    do: Controller 의 배송준비중으로 변경 버튼 클릭. handleShippingItems -> postProductOrderShippingInstruct API 호출 트리거.
+    expect: 버튼 클릭 성공.
+
+  - id: wait_toast_success
+    do: 토스트 메시지 총 N개의 상품을 배송준비중으로 변경했습니다 visible 까지 최대 15초 대기.
+    expect: 변경 성공 토스트 visible.
+
+  - id: verify_accept_tab_decreased
+    do: 토스트 후 ACCEPT 탭 카운트가 1 감소되고 기록된 marketOrderId 가 화면 OrderList 안에서 사라졌는지 확인. 최대 10초 polling.
+    expect: ACCEPT 카운트 -1 + 기록된 주문 ID 미노출.
+
+  - id: click_instruct_tab
+    do: 배송준비중 탭 (배송준비중 텍스트를 가진 TabItem) 클릭. orderStatus=INSTRUCT 로 SPA 라우팅 전환. URL 의 orderStatus=INSTRUCT 도달 확인.
+    expect: orderStatus=INSTRUCT URL 도달 + 배송준비중 탭 active.
+
+  - id: verify_order_in_instruct
+    do: 배송준비중 탭에서 기록된 marketOrderId 가 OrderList 에 visible 한지 확인. 또한 INSTRUCT 탭 카운트가 변경 전 baseline 보다 1 증가했는지 확인. 최대 15초 polling.
+    expect: 기록된 marketOrderId visible + INSTRUCT 카운트 +1.
+
+  - id: capture_final_screenshot
+    do: 최종 결과 화면 PNG 캡쳐 후 attach.
+    expect: 스크린샷 attach 정상.
+
+expected: 신규주문 1개를 배송준비중으로 변경한 후, ACCEPT 탭에서 사라지고 INSTRUCT 탭에 정상 표시된다. 카운트도 -1 / +1 일관성 유지. unhandled 0건.

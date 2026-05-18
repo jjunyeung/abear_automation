@@ -1,0 +1,45 @@
+# 단건 업로드 + 등록상품 검증 — UI ATC
+#
+# 흐름:
+#   (1) 수집상품 → (2) 상품 검색 → (3) 상세 진입 → (4) 업로드 트리거 (전 마켓 또는 기본 설정 마켓)
+#   → (5) 업로드 완료 대기 → (6) 등록상품 메뉴 이동
+#   → (7) 등록상품 목록에서 해당 상품 존재 확인
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+
+title: 단건 상품 업로드 후 등록상품 목록 검증
+
+description: |
+  단건 상품 업로드 + 등록상품 검증 시나리오 — 수집상품에서 source_product_id 로 검색 → 상세 → 업로드 트리거 → 업로드 완료 대기 → 등록상품 메뉴 이동 → 등록상품 목록에 해당 상품 존재 확인.
+
+  업로드 흐름 전체가 정상 동작하는지 보는 회귀 ATC.
+  입력: source_product_id (수집상품 카드의 윈들리 내부 ID).
+inputs:
+  source_product_id:
+    type: string
+    description: 윈들리 내부 상품 코드 (수집상품 카드의 ID, 예 235442266)
+    example: '235442266'
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+
+  - id: search_product
+    do: 상품 코드 검색 모달로 inputs.source_product_id 입력 후 검색하기 클릭
+
+  - id: open_detail
+    do: 검색 결과의 첫 번째 상품 카드 클릭하여 상세 페이지 진입
+
+  - id: trigger_upload
+    do: 상품 상세에서 업로드 트리거 (업로드 마켓 영역 또는 업로드 버튼/아이콘 클릭). 업로드 확인 모달이 뜨면 진행 옵션 확정
+
+  - id: wait_upload_complete
+    do: 업로드 진행이 끝나고 성공 메시지 또는 상태 표시가 나타날 때까지 대기 (최대 180초)
+
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭
+
+  - id: verify_in_registered
+    do: 등록상품 목록에서 inputs.source_product_id 또는 동일 상품 카드가 보이는지 확인 (상품 코드 검색 활용 가능)
+
+expected: 업로드가 성공하고 등록상품 목록에서 해당 상품이 1개 이상 매칭됨. unhandled 0건.

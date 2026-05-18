@@ -1,0 +1,12 @@
+title: 배송대행지 메뉴 진입 smoke — 페이지 헤더 visible 까지
+
+description: |
+  /view3/delivery-agency 진입 → "배송대행지" Layout title visible 확인.
+
+  delivery-agency-enter-application 의 1단계만 분리한 minimal smoke. 신청서 작성 / 모달 진입 등은 하지 않음.
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_agency
+    do: https://app.windly.cc/view3/delivery-agency 직접 goto + 페이지 헤더 '배송대행지' visible

@@ -1,0 +1,1517 @@
+{
+  "schema": "plan/v1",
+  "meta": {
+    "type": "feature",
+    "goal": "윈들리 ATC 프레임워크용 로컬 GUI 러너 — 카탈로그·다중선택·동적폼·실시간 관전·리포트 인라인 표시",
+    "non_goals": [
+      "ATC YAML 작성/편집 (CLI/Claude 유지)",
+      "spec.ts (Playwright 핸들러) 생성 (CLI/Claude 유지)",
+      "복구(recoveries/) 작성/관리 UI",
+      "기존 Playwright/ATC 프레임워크 자체 변경",
+      "CI/CD 통합 (D10 = 로컬 전용)",
+      "멀티유저/호스팅 배포",
+      "macOS 외 플랫폼 지원 (Windows/Linux 미지원)"
+    ]
+  },
+  "contracts": {
+    "artifact": "contracts.md",
+    "interfaces": [
+      "CatalogStatus",
+      "CatalogItem",
+      "RunQueueItem",
+      "ScheduleDef",
+      "SpawnArgs",
+      "PreRunValidation",
+      "PreRunError",
+      "RunHistoryEntry"
+    ],
+    "invariants": [
+      "INV-1: buildRunId() never called from gui/ — runId discovered post-run via reports/runs/ rescan or stdout parse (R-T2.3)",
+      "INV-2: reports/runs/ is read-only for GUI — no move/copy/rename/delete (R-T8.2, R-T13)",
+      "INV-3: Dependency direction is gui/ → lib/ only; lib/ never imports gui/; gui/ never imports tests/, recoveries/, or atcs/ (R-T12)",
+      "INV-4: Zero network ports — no ws/socket.io/express/http.createServer in gui/; all comms via Electron IPC channel whitelist (R-T15, R-T3)",
+      "INV-5: Every BrowserWindow must have webPreferences: { contextIsolation: true, nodeIntegration: false } (R-T14.1)",
+      "INV-6: At most 1 Playwright spawn at any instant; <userData>/.gui-run.lock created before spawn, deleted unconditionally on close; lock present = run skipped (R-T5, R-T6)",
+      "INV-7: gui/ never parses or writes .env; env reaches child via inherited parent env (env option omitted from spawn); loadEnv() called in main process only (R-T14.3, R-T2.2)",
+      "INV-8: macOS only — no cross-platform fallback for launchctl/plist code (R-T9)",
+      "INV-9: Every tests/<domain>/<name>.spec.ts must export const handlerKeys: string[] listing all handled step.ids; absence => stale badge (R-U4.1)",
+      "INV-10: .json report schema (atc_title/steps/overall/inputs_used) is frozen — reporters/atc-reporter.ts output not modified for GUI (R-T13.1)"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "layer": "L0",
+      "action": "Scaffold gui/ directory with approved npm packages, package.json scripts, tsconfig include for gui/**, and Vite + electron-builder config — without touching existing runner or atc paths",
+      "fulfills": [
+        "R-T1.2",
+        "R-T1.3",
+        "R-T10.1",
+        "R-T10.2",
+        "R-T11.1",
+        "R-T11.2",
+        "R-T11.3"
+      ],
+      "depends_on": [],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "gui/ scaffold + deps installed, existing npm run atc unchanged"
+    },
+    {
+      "id": "T2",
+      "layer": "L0",
+      "action": "Implement Electron main process shell: single-instance lock, BrowserWindow with contextIsolation/nodeIntegration-false, preload IPC channel whitelist scaffold, and second-instance event wiring",
+      "fulfills": [
+        "R-T1.1",
+        "R-T3.3",
+        "R-T14.1",
+        "R-T14.2",
+        "R-T14.3",
+        "R-T15.1",
+        "R-T15.2",
+        "R-U10.1"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "Electron main shell + preload contextBridge + IPC scaffold (NOT_IMPLEMENTED stubs)"
+    },
+    {
+      "id": "T3",
+      "layer": "L0",
+      "action": "Establish unidirectional gui/->lib/* import constraint via ESLint path rules or tsconfig aliases, ensuring lib/ never imports gui/ and gui/ never imports tests/recoveries/atcs/",
+      "fulfills": [
+        "R-T12.1",
+        "R-T12.2",
+        "R-T12.3"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "unidirectional gui->lib dep rule enforced via scripts/check-deps.mjs (npm run check:deps)"
+    },
+    {
+      "id": "T4",
+      "layer": "L0",
+      "action": "Generate handlerKeys.json manifest files alongside all 51 existing spec.ts files (tests/<domain>/<name>.handlerKeys.json) by parsing each spec.ts statically to extract step.id keys from its StepHandlers object — DO NOT modify any spec.ts file content",
+      "fulfills": [
+        "R-U4.1"
+      ],
+      "depends_on": [],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "handlerKeys manifests generated (51 files, spec.ts untouched)"
+    },
+    {
+      "id": "T5",
+      "layer": "L1",
+      "action": "Implement the ATC catalog loader in the main process: glob atcs/ via loadATC (composes expanded), pair each ATC with its spec.ts, extract handlerKeys, detect stale mismatches, and classify CatalogStatus for every CatalogItem",
+      "fulfills": [
+        "R-B2.1",
+        "R-B6.7",
+        "R-U1.1",
+        "R-U1.3",
+        "R-U4.2",
+        "R-T16.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "catalog loader (atcs glob + composes expand + handlerKeys diff + legacy step stale) wired to catalog:list/reload IPC"
+    },
+    {
+      "id": "T6",
+      "layer": "L1",
+      "action": "Implement the dynamic input form renderer: generate typed form fields from ATC inputs schema, reset form state on ATC selection change, and wire the Run button and its pre-run hook",
+      "fulfills": [
+        "R-B2.2",
+        "R-B6.5",
+        "R-U1.2",
+        "R-U2.1",
+        "R-U2.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "Dynamic InputForm with type-derived fields, R-B6.5 reset on ATC selection change, Run button submit"
+    },
+    {
+      "id": "T7",
+      "layer": "L1",
+      "action": "Implement the sequential run queue, child_process.spawn orchestration, lock file create/delete lifecycle, SpawnArgs assembly, stdout streaming via atc:log IPC, and atc:done emission with exit-code success/failure classification",
+      "fulfills": [
+        "R-B6.1",
+        "R-B6.2",
+        "R-B6.6",
+        "R-T2.1",
+        "R-T2.2",
+        "R-T2.3",
+        "R-T3.1",
+        "R-T3.2",
+        "R-T5.1",
+        "R-T5.2",
+        "R-T6.1",
+        "R-T6.2",
+        "R-T17.1",
+        "R-T17.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "sequential run-queue + spawn + lock-file + line-buffered IPC streaming + exit/stdout failure classification (atc:run/atc:kill wired)"
+    },
+    {
+      "id": "T8",
+      "layer": "L1",
+      "action": "Implement pre-run environment validation: check .env file presence and WINDLY_EXTENSION_PATH path validity, produce a PreRunValidation result, and surface inline error messages in the renderer before allowing spawn",
+      "fulfills": [
+        "R-U3.1",
+        "R-U3.2",
+        "R-T16.1"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "preflight.ts impl: .env 부재 vs WINDLY_EXTENSION_PATH 누락/경로 무효 구분, loadEnv 경유(INV-7), tsconfig include lib/config 화이트리스트(INV-3)"
+    },
+    {
+      "id": "T9",
+      "layer": "L1",
+      "action": "Implement the catalog panel React component: collapsible domain sections, fragment ATC visual distinction, and the six CatalogStatus visual indicators rendered per catalog item",
+      "fulfills": [
+        "R-U5.1",
+        "R-U5.2",
+        "R-U5.3",
+        "R-U5.4",
+        "R-U5.5",
+        "R-U5.6"
+      ],
+      "depends_on": [
+        "T2",
+        "T5"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "CatalogPanel.tsx — 도메인별 collapsible 그룹 + R-U5.1-6 status 인디케이터 6종 + fragment 시각구분 (R-U1.3) + 검색 useMemo 캐싱"
+    },
+    {
+      "id": "T10",
+      "layer": "L1",
+      "action": "Implement the real-time step card run view: cards appear in execution order, active step auto-expands with live log lines, completed steps auto-collapse to summary row with status icon and duration, and users can manually re-expand any card",
+      "fulfills": [
+        "R-B3.2",
+        "R-U6.1",
+        "R-U6.2",
+        "R-U6.3",
+        "R-U6.4"
+      ],
+      "depends_on": [
+        "T2",
+        "T7"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "RunView + StepCard 실시간 step 카드 — atc:log marker 파싱(▶/✓/✗/⚠) + auto expand/collapse + R-U6.4 status 아이콘 매핑"
+    },
+    {
+      "id": "T11",
+      "layer": "L1",
+      "action": "Implement screenshot thumbnail display inside step cards and a full-screen lightbox overlay on thumbnail click, closeable via close button or Esc",
+      "fulfills": [
+        "R-U7.1",
+        "R-U7.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T10"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "StepCard 스크린샷 슬롯 + ScreenshotThumb (data-URL 로딩 + 라이트박스, Esc 종료) + screenshot:read IPC (reports/runs sandbox) + RunView 📸 마커 파서"
+    },
+    {
+      "id": "T12",
+      "layer": "L1",
+      "action": "Implement the Report tab renderer: display runId.md via react-markdown inside the right panel, visually distinguish unhandled error sections, and support loading any past runId report from the history panel",
+      "fulfills": [
+        "R-B3.3",
+        "R-U8.1",
+        "R-U8.2",
+        "R-U8.3",
+        "R-T13.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "ReportPanel renders runId.md via react-markdown with unhandled-section heading override"
+    },
+    {
+      "id": "T13",
+      "layer": "L1",
+      "action": "Implement keyboard shortcuts (Cmd+Enter run, Cmd+/ search focus, Esc overlay dismiss) and the Cmd+K command palette with fuzzy ATC filtering, Enter-to-select, and Cmd+Shift+Enter instant run",
+      "fulfills": [
+        "R-U9.1",
+        "R-U9.2",
+        "R-U9.3",
+        "R-U9.4",
+        "R-U9.5"
+      ],
+      "depends_on": [
+        "T2",
+        "T6"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "useKeyboardShortcuts hook + 카탈로그 search input + Cmd+Enter/Cmd+R/Cmd+/ 와이어링 (R-U9.4/R-U9.5 팔레트는 follow-up, R-U9.3 Esc는 overlay 컴포넌트에서)"
+    },
+    {
+      "id": "T14",
+      "layer": "L1",
+      "action": "Implement single-instance UX: show an informational toast in the existing window on second-instance signal, and intercept window.open to block any additional BrowserWindow creation",
+      "fulfills": [
+        "R-U10.2",
+        "R-U10.3"
+      ],
+      "depends_on": [
+        "T2"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "SecondInstanceToast subscribes to app:second-instance push; window.open blocked at gui/main/index.ts:51"
+    },
+    {
+      "id": "T15",
+      "layer": "L1",
+      "action": "Implement chokidar file watcher on reports/runs/: index existing runId directories at app startup, push RunHistoryEntry updates to the renderer as new runIds appear, and use only filesystem watch with no launchd post-hooks",
+      "fulfills": [
+        "R-B4.2",
+        "R-T7.1",
+        "R-T7.2",
+        "R-T7.3",
+        "R-T13.1"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "run-history.ts (chokidar fs-watch on reports/runs/ + RunHistoryEntry indexing) + run:history/run:report/run:open IPC wired"
+    },
+    {
+      "id": "T16",
+      "layer": "L1",
+      "action": "Implement Electron userData persistence: write/read schedules.json and place .gui-run.lock exclusively under app.getPath('userData'), enforcing read-only consumption of reports/runs/ files",
+      "fulfills": [
+        "R-T8.1",
+        "R-T8.2",
+        "R-T8.3"
+      ],
+      "depends_on": [
+        "T2",
+        "T3"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "gui/main/userdata.ts — schedules.json + .gui-run.lock under userData (atomic write, INV-2 boundary documented)"
+    },
+    {
+      "id": "T17",
+      "layer": "L1",
+      "action": "Implement launchd-based scheduling: generate StartCalendarInterval and oneshot plist files, run launchctl load/unload, auto-cleanup fired oneshot plists, detect lock-collision skips with OS notifications and next-open banners, and expose schedule management IPC handlers",
+      "fulfills": [
+        "R-B4.2",
+        "R-B5.1",
+        "R-B6.8",
+        "R-T4.1",
+        "R-T4.2",
+        "R-T4.3",
+        "R-T5.3",
+        "R-T9.1",
+        "R-T9.2"
+      ],
+      "depends_on": [
+        "T2",
+        "T3",
+        "T16"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "schedule-manager.ts: launchd plist (recurring StartCalendarInterval + oneshot Month/Day/Hour/Minute) + launchctl load/unload + oneshot init() auto-cleanup; schedule:create/delete/list IPC wired"
+    },
+    {
+      "id": "T18",
+      "layer": "L1",
+      "action": "Implement GUI close-with-active-run handling: intercept close event, show kill/detach confirm modal, SIGTERM on kill choice, detach the spawn on detach choice, send macOS native notification on detach completion, and handle run:open deep-link to activate the Report tab",
+      "fulfills": [
+        "R-B6.3",
+        "R-B6.4",
+        "R-T18.1",
+        "R-T18.2",
+        "R-T18.3"
+      ],
+      "depends_on": [
+        "T2",
+        "T7"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "GUI 닫기 시 kill/detach confirm modal — win.on(close)+before-quit 인터셉트, run-queue cancelActive/detachActive/onDone hook, Notification 발사 R-B6.4/R-T18.3"
+    },
+    {
+      "id": "T19",
+      "layer": "L2",
+      "action": "Validate the full catalog-select to form-fill to Run happy path end-to-end: confirm 3-click completion, Cmd+Enter triggering run from anywhere in the right panel, and pre-run validation gating spawn correctly",
+      "fulfills": [
+        "R-B1.1",
+        "R-B3.1",
+        "R-U2.3"
+      ],
+      "depends_on": [
+        "T5",
+        "T6",
+        "T7",
+        "T8",
+        "T9",
+        "T13"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "catalog→form→Run happy path 통합 검증 — 3클릭(catalog/input/Run) ≤3, Cmd+Enter window-level keydown으로 any-focus, preflight gate가 enqueueRun에서 await runPreflight 직후 게이팅 확인. 코드 무변경, main.tsx 주석에 file:line trace 추가"
+    },
+    {
+      "id": "T20",
+      "layer": "L2",
+      "action": "Integrate and verify form state reset policy across the full panel lifecycle: confirm inputs clear on each new ATC selection with no prior-session values leaking through",
+      "fulfills": [
+        "R-B6.5"
+      ],
+      "depends_on": [
+        "T6",
+        "T9"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "R-B6.5 검증: useEffect([atc.atcPath]) reset + main.tsx key={atcPath} remount + zero localStorage/sessionStorage in gui/ — 폼 입력 비영속 정책 주석 anchor 추가"
+    },
+    {
+      "id": "T21",
+      "layer": "L2",
+      "action": "Integrate and verify concurrent-execution collision handling: confirm a launchd-fired schedule skips when the GUI holds the lock, and the skip notification plus next-open banner appear correctly",
+      "fulfills": [
+        "R-B6.8"
+      ],
+      "depends_on": [
+        "T7",
+        "T15",
+        "T16",
+        "T17"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "run-queue → userdata.getLockPath() 단일소스 + lock 충돌 시 schedule:skipped push + macOS Notification + recent-skips.json persist (next-open banner replay) — R-B6.8/R-T5.3 통합"
+    },
+    {
+      "id": "T22",
+      "layer": "L2",
+      "action": "Configure electron-builder for macOS-only packaging (.app/.dmg/.zip targets only, no win/linux targets) and verify existing npm run atc CLI behavior is unchanged after packaging config is added",
+      "fulfills": [
+        "R-T1.2",
+        "R-T9.2"
+      ],
+      "depends_on": [
+        "T1",
+        "T2"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "electron-builder mac-only (.dmg/.zip arm64+x64) + build:gui/package:gui scripts; YAML+build verified"
+    },
+    {
+      "id": "T23",
+      "layer": "L2",
+      "action": "Add guardrail rules or code-review checklist entries enforcing all non-goal boundaries: no ATC YAML editor UI, no spec.ts generation UI, no recoveries management UI, no framework changes, and no CI/CD or multi-user hosting features, with explicit env-access prohibition in renderer",
+      "fulfills": [
+        "R-B5.2",
+        "R-T14.3"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "gui-import-direction/no-network/env-policy markdown rules + check-deps.mjs 확장 (renderer/preload→lib 차단, 네트워크 모듈 bare-ban, dotenv bare-ban)"
+    },
+    {
+      "id": "T24",
+      "layer": "L2",
+      "action": "Harden runtime stability: add top-level uncaughtException and unhandledRejection handlers, verify no crash or hang paths during normal ATC/history/schedule use, and ensure the Electron app menu baseline is present",
+      "fulfills": [
+        "R-B4.1"
+      ],
+      "depends_on": [
+        "T7",
+        "T10",
+        "T12",
+        "T15",
+        "T17",
+        "T18"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "uncaughtException/unhandledRejection 핸들러 + error-bus + per-subsystem safeInit + IPC safeInvoke wrapper + ErrorToast (renderer) + macOS baseline app menu"
+    },
+    {
+      "id": "T25",
+      "layer": "L3",
+      "action": "Write gui/ developer README with run and packaging instructions, update .gitignore for electron-builder dist output and userData artifacts, and finalize electron-builder publish config",
+      "fulfills": [],
+      "depends_on": [
+        "T22",
+        "T23",
+        "T24"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "gui/README 개발자 가이드 확장 + .gitignore (gui/dist, dist-installer, *.log; reports/runs 추적 유지) + npm run gui dev script path-drift (gui/dist/main→gui/dist/gui/main) 수정 + electron-builder publish:null 명시"
+    }
+  ],
+  "journeys": [
+    {
+      "id": "J1",
+      "name": "single ATC happy path (catalog -> form -> run -> observe -> report)",
+      "composes": [
+        "R-U1.1",
+        "R-U1.2",
+        "R-U2.1",
+        "R-U2.3",
+        "R-U3.1",
+        "R-B3.2",
+        "R-U6.1",
+        "R-U6.2",
+        "R-U7.1",
+        "R-U8.1"
+      ],
+      "given": "GUI 가 신규 기동된 상태이고 카탈로그에 정상(non-stale) ATC 가 1개 이상 있으며 .env 의 WINDLY_EXTENSION_PATH 가 유효함",
+      "when": "사용자가 좌측 카탈로그에서 한 ATC 를 클릭하고 우측 폼에 inputs 를 채운 뒤 Cmd+Enter 또는 Run 버튼을 누른다",
+      "then": "사전 검증 통과 후 spawn 이 시작되어 우측 패널에 step 카드가 순차로 등장 (실행 중 자동 expand, 완료 시 collapse) 하고, 스크린샷 thumbnail 이 카드 안에 보이며, 실행 완료 후 Report 탭이 자동 활성화되어 .md 리포트가 인라인으로 렌더링된다"
+    },
+    {
+      "id": "J2",
+      "name": "scheduled run while GUI closed -> appears on reopen",
+      "composes": [
+        "R-B5.1",
+        "R-B4.2",
+        "R-T7.1",
+        "R-T7.2",
+        "R-U8.3"
+      ],
+      "given": "사용자가 스케줄(cron-like 또는 단발 예약)을 등록했고 GUI 창이 닫힌 상태",
+      "when": "예약된 시점이 도래하여 launchd 가 ATC 를 발화 실행 완료한 뒤 사용자가 GUI 를 다시 연다",
+      "then": "GUI 시작 시 reports/runs/ 가 재스캔되어 해당 runId 가 히스토리 패널에 자동 등장하고, View Report 를 클릭하면 우측 Report 탭에 .md 가 렌더링된다"
+    },
+    {
+      "id": "J3",
+      "name": "detach during run -> notification click -> Report deep-link",
+      "composes": [
+        "R-B6.3",
+        "R-B6.4",
+        "R-T18.2",
+        "R-T18.3",
+        "R-U8.1"
+      ],
+      "given": "ATC 가 실행 중인 상태에서 사용자가 GUI 창 닫기를 시도한다",
+      "when": "confirm 모달에서 detach 를 선택하여 백그라운드 실행이 계속되고, 완료 후 발송된 macOS 네이티브 알림을 사용자가 클릭한다",
+      "then": "GUI 가 활성화 (또는 재기동) 되고 해당 runId 의 Report 탭이 우측 패널에 자동으로 열려 .md 리포트가 즉시 보인다"
+    },
+    {
+      "id": "J4",
+      "name": "scheduled run skipped by lock collision -> notified",
+      "composes": [
+        "R-T5.1",
+        "R-T5.3",
+        "R-B6.8"
+      ],
+      "given": "GUI 에서 ATC 가 실행 중이라 .gui-run.lock 이 잡혀있고, launchd 에 예약된 다른 ATC 의 발화 시점이 도래한다",
+      "when": "launchd job 이 발화하여 lock 상태를 사전 체크한다",
+      "then": "해당 발화는 spawn 하지 않고 reports/runs/ 에 'skipped(lock)' 으로 마킹되며 macOS 네이티브 알림이 발송되고, 사용자가 GUI 를 다음에 열 때 상단 배너로도 skip 사실이 표시된다"
+    },
+    {
+      "id": "J5",
+      "name": "Cmd+K palette -> instant run (power user)",
+      "composes": [
+        "R-U9.4",
+        "R-U9.5",
+        "R-U2.3"
+      ],
+      "given": "GUI 창이 포커스되어 있고 카탈로그에 ATC 가 로드되어 있다",
+      "when": "사용자가 Cmd+K 로 명령 팔레트를 열고 ATC 일부 이름을 타이핑하여 fuzzy 필터링한 뒤 Cmd+Shift+Enter 를 누른다",
+      "then": "해당 ATC 가 선택되고 폼에 example placeholder 가 채워진 상태로 즉시 Run 이 트리거되어 step 카드 실시간 관전이 시작된다"
+    },
+    {
+      "id": "J6",
+      "name": "stale ATC detected -> confirm dialog -> proceed",
+      "composes": [
+        "R-U4.2",
+        "R-B6.7",
+        "R-U5.2",
+        "R-U2.1"
+      ],
+      "given": "카탈로그 로드 시 어떤 ATC 의 step.id 가 paired spec.ts 의 handlerKeys 와 매칭되지 않아 stale 로 마크되었거나 login 같은 구 step 이 잔존한다",
+      "when": "사용자가 stale 배지가 있는 ATC 를 클릭하고 Run 을 누른다",
+      "then": "차단 없이 mismatch 위험을 알리는 confirmation dialog 가 표시되며 사용자가 proceed 를 선택하면 실행이 진행된다 (실행 결과는 fail 일 수 있으나 GUI 가 사전에 막지 않는다)"
+    },
+    {
+      "id": "J7",
+      "name": "[regression] existing npm run atc CLI unchanged after GUI + handlerKeys migration",
+      "composes": [
+        "R-T11.3",
+        "R-T13.1",
+        "R-T8.2"
+      ],
+      "given": "GUI 가 gui/ 디렉토리에 추가되었고 51 개 기존 spec.ts 에 handlerKeys export 가 자동 마이그레이션 스크립트로 추가된 상태",
+      "when": "기존 워크플로우 그대로 `npm run atc -- atcs/<domain>/<name>.atc.yml --<input>=<value>` 를 터미널에서 실행한다",
+      "then": "reports/runs/<runId>/{runId}.md + .json + html/ 이 GUI 추가 이전과 동일한 위치/스키마로 생성되고 (atc_title/steps/overall/inputs_used 구조 유지), reporter 출력 형식 변함 없으며 GUI 가 그 파일을 이동·복사·삭제하지 않는다"
+    }
+  ],
+  "verify_plan": [
+    {
+      "target": "R-B1.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B2.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B2.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B3.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B3.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B3.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B4.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B4.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B5.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B5.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-B6.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.5",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.6",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.7",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-B6.8",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U1.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U1.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U1.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U2.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U2.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U2.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U3.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U3.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U4.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-U4.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.5",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U5.6",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U6.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U6.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U6.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U6.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U7.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U7.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U8.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U8.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U8.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U9.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U9.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U9.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U9.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U9.5",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U10.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U10.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-U10.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T1.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T1.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T1.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T2.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T2.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T2.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T3.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T3.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T3.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T4.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T4.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T4.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T5.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T5.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T5.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T6.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T6.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T7.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T7.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T7.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T8.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T8.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T8.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T9.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T9.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T10.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T10.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T11.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T11.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T11.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T12.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T12.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T12.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T13.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T13.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T14.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T14.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T14.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T15.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T15.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-T16.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T16.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T17.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T17.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T18.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T18.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "R-T18.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J1",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J2",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J3",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J4",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J5",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J6",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "target": "J7",
+      "type": "journey",
+      "gates": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

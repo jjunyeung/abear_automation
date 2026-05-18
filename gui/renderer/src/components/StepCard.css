@@ -1,0 +1,140 @@
+/* StepCard — GitHub-Actions-style step row. */
+
+.step-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  margin: 0 0 8px;
+  overflow: hidden;
+}
+
+.step-card__header {
+  display: grid;
+  grid-template-columns: 24px max-content 1fr max-content max-content;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.step-card__header:disabled {
+  cursor: default;
+}
+
+.step-card__header:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.step-card__icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.step-card__id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.step-card__do {
+  color: #111827;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-card__status-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.step-card__duration {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+/* Status-specific accents (icon + left border). */
+.step-card--pending .step-card__icon { color: #9ca3af; }
+.step-card--running { border-left: 3px solid #2563eb; }
+.step-card--running .step-card__icon { color: #2563eb; animation: step-card-spin 1.2s linear infinite; }
+.step-card--recovering { border-left: 3px solid #d97706; }
+.step-card--recovering .step-card__icon { color: #d97706; animation: step-card-spin 1.5s linear infinite; }
+.step-card--success { border-left: 3px solid #16a34a; }
+.step-card--success .step-card__icon { color: #16a34a; }
+.step-card--failed { border-left: 3px solid #dc2626; }
+.step-card--failed .step-card__icon { color: #dc2626; }
+.step-card--recovered { border-left: 3px solid #d97706; }
+.step-card--recovered .step-card__icon { color: #d97706; }
+.step-card--unhandled { border-left: 3px solid #dc2626; background: #fef2f2; }
+.step-card--unhandled .step-card__icon { color: #b91c1c; }
+.step-card--skipped { border-left: 3px solid #9ca3af; }
+.step-card--skipped .step-card__icon { color: #9ca3af; }
+
+@keyframes step-card-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.step-card__body {
+  padding: 8px 12px 12px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.step-card__log {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #1f2937;
+  background: #f3f4f6;
+  padding: 8px 10px;
+  border-radius: 4px;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.step-card__log-empty {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.step-card__recovery {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #d97706;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+/* R-U7.1 — screenshot thumbnails inside the expanded step body. */
+.step-card__screenshots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.step-card__screenshot-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+

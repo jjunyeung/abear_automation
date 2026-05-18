@@ -1,0 +1,16 @@
+title: 기본 설정 > 공통설정 > 판매가 → 마진만 변경 → 영속성 검증
+
+description: |
+  edit-base-common-price 의 단일 필드 분리 버전. 8개 필드 중 "마진" 하나만 +1step (% 또는 +100 원) 변경 + onBlur 저장 + reload 후 값 유지 확인.
+
+  마진은 marginType=RATE/AMOUNT 에 따라 unit 이 % ↔ 원 으로 동적 결정됨 — SupportTextBox 의 단독 "원"/"%" 텍스트로 감지.
+
+inputs: {}
+
+steps:
+  - id: open_price
+    do: /view3/base-setting?setting=COMMON&category=PRICE_SETTING 진입 + 마진 input 마운트 대기
+  - id: bump_margin
+    do: 마진 input 현재값 읽기 → step (±1% or ±100원) 적용 → fill + Tab + 저장 대기 → reformat 확인
+  - id: verify_persist
+    do: page.reload() 후 마진 input 값이 새 값과 동일한지 확인

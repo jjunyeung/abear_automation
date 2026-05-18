@@ -1,0 +1,45 @@
+# 주문 관리 페이지 진입 → 로딩 인디케이터 종료 → 결과 화면 확인
+#
+# 흐름:
+#   (1) app.windly.cc/view3/order-management?orderStatus=ACCEPT 직접 goto
+#   (2) 로딩 중 표시 (상품을 불러오고 있어요 + SpinLoader, EmptyList.isLoading=true)
+#       가 사라질 때까지 대기. 진입 즉시 로딩 없이 결과가 떠 있는 경우도 정상.
+#   (3) 최종 상태가 다음 둘 중 하나인지 검증:
+#         (a) 주문 카드(OrderItem) 1개 이상 렌더 — 결과 있음
+#         (b) 빈 상태 텍스트 (DEFAULT_EMPTY_MESSAGE[ACCEPT] = '신규주문인 상품이 없어요') 표시
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/Layout/Navigator/constants/DefaultRouteList.ts
+#       ORDER_MANAGEMENT.link = /order-management?orderStatus=ACCEPT
+#   - src/features/OrderManagement/index.tsx
+#       isLoading 동안 <EmptyList isLoading /> 렌더,
+#       !isLoading && orderList.length > 0 → <OrderList list={...} />
+#   - src/features/common/components/EmptyList.tsx
+#       isLoading → <SpinLoader /> + Text '상품을 불러오고 있어요'
+#       else      → <EmptyImage /> + Text {text} (DEFAULT_EMPTY_MESSAGE 기반)
+#   - src/features/OrderManagement/constants.ts
+#       DEFAULT_EMPTY_MESSAGE.ACCEPT = '신규주문인 상품이 없어요'
+
+title: 주문 관리 진입 → 로딩 종료 → 결과 화면 확인
+
+description: |
+  주문 관리 페이지 진입 → 로딩 인디케이터 종료 → 결과 화면이 정상적으로 렌더되는지만 빠르게 확인하는 minimal smoke test.
+
+  최종 상태가 (a) 주문 카드 1+ 또는 (b) 빈 상태 텍스트 ("신규주문인 상품이 없어요") 둘 중 하나면 PASS.
+  주문 유무에 무관하게 페이지가 mount 되기만 하면 OK 인 진입 검증용.
+
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: open_order_management
+    do: app.windly.cc/view3/order-management?orderStatus=ACCEPT 로 직접 goto. SPA hydrate 안정화 대기. 페이지 헤더의 '주문 관리' Layout title 이 뜨면 진입 성공.
+    expect: 페이지가 /view3/order-management 경로에 도달하고 Layout 의 '주문 관리' 타이틀이 보인다.
+
+  - id: wait_loading_finished
+    do: 로딩 인디케이터('상품을 불러오고 있어요' 텍스트) 가 보이면 hidden 될 때까지 최대 60초 대기. 진입 즉시 로딩 없이 결과가 떠 있는 경우는 즉시 통과. 최종 상태가 (a) OrderItem 카드 1개 이상 OR (b) '신규주문인 상품이 없어요' 빈 상태 텍스트 중 하나면 PASS.
+    expect: 로딩 인디케이터는 사라지고, 주문 목록(>=1) 또는 빈 상태 메시지가 화면에 표시된다.
+
+expected: /view3/order-management 진입 후 로딩이 종료되고 결과 화면(주문 카드 또는 빈 상태 메시지)이 정상 표시된다. unhandled 0건.

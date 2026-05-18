@@ -1,0 +1,9 @@
+[
+  "open_registered_list",
+  "search_product",
+  "open_detail",
+  "edit_name",
+  "trigger_upload",
+  "confirm_upload_modal",
+  "wait_upload_complete"
+]

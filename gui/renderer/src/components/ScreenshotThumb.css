@@ -1,0 +1,125 @@
+/* ScreenshotThumb — in-card thumbnail + lightbox overlay. */
+
+.screenshot-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: 160px;
+}
+
+.screenshot-thumb__button {
+  display: block;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: zoom-in;
+  overflow: hidden;
+  width: 100%;
+}
+
+.screenshot-thumb__button:hover {
+  border-color: #2563eb;
+}
+
+.screenshot-thumb__button:focus {
+  outline: 2px solid #2563eb66;
+  outline-offset: 1px;
+}
+
+/* R-U7.1 — thumbnail max width capped at 160px so multiple fit side-by-side. */
+.screenshot-thumb__img {
+  display: block;
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+  user-select: none;
+}
+
+.screenshot-thumb__filename {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 10px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+
+.screenshot-thumb--loading .screenshot-thumb__placeholder {
+  width: 160px;
+  height: 100px;
+  background: repeating-linear-gradient(
+    45deg,
+    #f3f4f6,
+    #f3f4f6 6px,
+    #e5e7eb 6px,
+    #e5e7eb 12px
+  );
+  border-radius: 4px;
+  border: 1px dashed #d1d5db;
+}
+
+.screenshot-thumb--error {
+  padding: 6px 8px;
+  border: 1px dashed #fca5a5;
+  border-radius: 4px;
+  background: #fef2f2;
+  max-width: 240px;
+}
+
+.screenshot-thumb__error {
+  display: block;
+  font-size: 11px;
+  color: #b91c1c;
+}
+
+/* R-U7.2 — full-screen lightbox overlay. */
+.screenshot-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.screenshot-lightbox__img {
+  max-width: 95vw;
+  max-height: 88vh;
+  object-fit: contain;
+  cursor: default;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: #ffffff;
+}
+
+.screenshot-lightbox__close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: #111827;
+  font-size: 22px;
+  line-height: 36px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.screenshot-lightbox__close:hover {
+  background: #ffffff;
+}
+
+.screenshot-lightbox__caption {
+  margin-top: 16px;
+  color: #f3f4f6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 12px;
+}

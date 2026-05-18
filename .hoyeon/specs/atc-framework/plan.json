@@ -1,0 +1,391 @@
+{
+  "schema": "plan/v1",
+  "meta": {
+    "type": "greenfield",
+    "goal": "Playwright 기반 ATC 실행 프레임워크 — 자유양식 ATC를 Playwright 코드로 변환, 에러 발생 시 복구 플로우 분기 후 복귀, 단계별 결과 리포팅",
+    "non_goals": [
+      "실제 N개 ATC 콘텐츠 작성",
+      "Windly 서비스 본체 코드 수정",
+      "마켓별 업로드 검증 비즈니스 로직 자체",
+      "운영용 CI/CD 파이프라인"
+    ]
+  },
+  "contracts": {
+    "artifact": null,
+    "interfaces": [],
+    "invariants": []
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "action": "Project init — npm init + package.json (scripts: atc, test, typecheck) + tsconfig.json (strict, ES2022, CommonJS, esModuleInterop) + 디렉토리 생성 (atcs/, recoveries/, tests/, lib/, reporters/, fixtures/, reports/, .claude/rules/, .claude/skills/) + npm install (--save-dev: @playwright/test, typescript, @types/node, dotenv, zod, yaml). Playwright browsers는 사용자가 직접 install 안내 (npx playwright install chromium).",
+      "fulfills": [
+        "R-A1.1"
+      ],
+      "depends_on": [],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "Scaffold complete: dirs+stubs+deps installed, tsc --noEmit passes"
+    },
+    {
+      "id": "T2",
+      "action": "Type Contracts (R-A4) — lib/atc-schema.ts: zod 스키마로 ATC 정의 (title, inputs, steps[{id, do, on_error?, on_recovery?, expect?}], expected). lib/errors.ts: type ErrorKey union (vertical slice용 'missing_image'). type RecoveryContext = { error_key, page_url, last_step_id, screenshot_path }. ATCError 클래스.",
+      "fulfills": [
+        "R-A4.1",
+        "R-A4.2"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "lib/atc-schema.ts (zod ATC schema + inferred types) and lib/errors.ts (ErrorKey union, RecoveryContext, ATCError/UnhandledATCError/RecoveryFailedError) created; tsc --noEmit passes"
+    },
+    {
+      "id": "T3",
+      "action": "Runtime libs — lib/config.ts (env 로딩 + 검증), lib/logger.ts (구조화 로깅), lib/atc-loader.ts (YAML 읽기 + zod 정규화 + 누락 키 디폴트), lib/recovery-registry.ts (recoveries/*.ts 자동 import + key→함수 매핑), lib/runner.ts (step 순회 + on_error 매칭 + 복구 분기 + D4 재개 + D11 unhandled + D12 1회만 + 결과 누적).",
+      "fulfills": [
+        "R-A1.3",
+        "R-A1.4",
+        "R-A1.5",
+        "R-A1.6",
+        "R-A1.7"
+      ],
+      "depends_on": [
+        "T1",
+        "T2"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "lib/{config,logger,atc-loader,recovery-registry,runner}.ts 5개 작성 + tsconfig types:[node] 추가, tsc --noEmit 통과"
+    },
+    {
+      "id": "T4",
+      "action": "Playwright config + reporter — playwright.config.ts (5 도메인 프로젝트: windly-collect/error-check/fix/upload/e2e, runId 빌더 'result_YYYY-MM-DD_HH-MM-SS', WINDLY_EXTENSION_PATH 로드, headed Chromium, custom reporter 등록). reporters/atc-reporter.ts (.md 사람용 + .json 기계용, 단계별 ✅/⚠️ + 복구 정보, unhandled 강조).",
+      "fulfills": [
+        "R-A2.1"
+      ],
+      "depends_on": [
+        "T1",
+        "T2"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "round3: playwright.config.ts (5 도메인 프로젝트 + 확장 로드 + buildRunId + atc-reporter 등록) + reporters/atc-reporter.ts (md/json, 단계별 아이콘, unhandled 강조). tsc --noEmit 0 errors. playwright --list 스모크테스트 통과 — reports/runs/<runId>/{<runId>.md,<runId>.json} 정상 emit."
+    },
+    {
+      "id": "T5",
+      "action": ".claude/rules/ 4개 작성 — typescript-strict.md, npm-only.md, atc-file-layout.md, recovery-file-layout.md. 각 파일은 'X 금지' + '대신 Y' + '위반 예시' 형식.",
+      "fulfills": [
+        "R-A8.1",
+        "R-A8.2"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "round2: .claude/rules/ 4 files (typescript-strict, npm-only, atc-file-layout, recovery-file-layout) — 금지/대신/예시/근거 5섹션 + 한국어"
+    },
+    {
+      "id": "T6",
+      "action": ".claude/skills/ 4개 작성 — atc-new (자유양식 → atcs/<domain>/<name>.atc.yml + tests/<domain>/<name>.spec.ts), atc-run (npm run atc 래퍼), recovery-new (recoveries/<id>.ts + ErrorKey 유니온 추가 가이드), atc-report (최신/지정 runId의 .md 출력). 모두 disable-model-invocation: true.",
+      "fulfills": [
+        "R-A9.1",
+        "R-A9.2",
+        "R-A9.3",
+        "R-A9.4",
+        "R-A9.5"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "4 SKILL.md (atc-new/atc-run/recovery-new/atc-report) + 3 validate.sh 스캐폴드 완료. 모두 disable-model-invocation:true 포함"
+    },
+    {
+      "id": "T7",
+      "action": ".claude/settings.json 작성 — PostToolUse(Edit/Write on *.ts → npx tsc --noEmit, 비차단), PreToolUse(Edit/Write on .env* → 차단), PreToolUse(Edit/Write on package-lock.json → 차단).",
+      "fulfills": [
+        "R-A10.1",
+        "R-A10.2",
+        "R-A10.3",
+        "R-A10.4"
+      ],
+      "depends_on": [
+        "T1"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "settings.json + 3 hooks (typecheck-on-ts/block-env/block-lockfile)"
+    },
+    {
+      "id": "T8",
+      "action": "Vertical slice exemplar — atcs/collect/product-error-check.atc.yml (제목 + inputs.url schema + steps: collect/open_detail/error_check, error_check에 on_error: [missing_image]). recoveries/missing_image.ts (recover() 시그니처 + ctx 사용 + TODO 주석으로 실제 윈들리 동작 자리). tests/collect/product-error-check.spec.ts (loader → runner.run() 3줄 패턴).",
+      "fulfills": [
+        "R-A1.2",
+        "R-A2.2",
+        "R-A2.3"
+      ],
+      "depends_on": [
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "vertical slice exemplar: ATC YAML + missing_image recovery (MVP throw stub) + spec with standard loadATC→runATC→attach pattern. tsc clean, YAML zod-valid, playwright lists 1 test under windly-collect."
+    },
+    {
+      "id": "T9",
+      "action": "CLAUDE.md + .env.example + README.md (간결) — CLAUDE.md는 R-A3.1의 9개 항목 모두 (도메인/팀 컨벤션/D1-D12 요약/새 ATC 추가 절차/새 복구 추가 절차/스킬 4개/훅 3개/의존성 방향/KG1 운영 가이드). .env.example은 WINDLY_BASE_URL, WINDLY_EXTENSION_PATH 등. README.md는 60줄 이내 — 빠른 시작 + 구조 요약.",
+      "fulfills": [
+        "R-A3.1",
+        "R-A3.4"
+      ],
+      "depends_on": [
+        "T2",
+        "T3",
+        "T5",
+        "T6",
+        "T7"
+      ],
+      "parallel_safe": true,
+      "status": "done",
+      "summary": "CLAUDE.md (9 섹션 a-i, 194줄), .env.example (envSchema 4키 + ATC_INPUT_URL), README.md (43줄) 작성 완료. typecheck PASS."
+    },
+    {
+      "id": "T10",
+      "action": "최종 검증 — npx tsc --noEmit 통과 확인. 디렉토리/파일 구조 점검. CI 디렉토리 미생성 확인. package-lock.json 존재 확인. ATC 1건 dry-run 가능 여부 보고 (실제 윈들리 로그인 필요한 부분은 사용자 직접 검증 안내).",
+      "fulfills": [
+        "R-A3.2",
+        "R-A3.3"
+      ],
+      "depends_on": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T8"
+      ],
+      "parallel_safe": false,
+      "status": "done",
+      "summary": "최종 검증 PASS: tsc --noEmit 0 errors, .github 미생성, 35개 필수 파일/디렉토리 모두 존재, playwright --list 1 test 검출, ATC YAML 4 키(title/inputs/steps/expected) + on_error: [missing_image] 정상, CLAUDE.md 9 섹션, 훅 3개 -rwx, lockfile package-lock.json 단독"
+    }
+  ],
+  "journeys": [],
+  "verify_plan": [
+    {
+      "target": "R-A1.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.5",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.6",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A1.7",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A2.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A2.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A2.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A3.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A3.2",
+      "type": "sub_req",
+      "gates": [
+        1
+      ]
+    },
+    {
+      "target": "R-A3.3",
+      "type": "sub_req",
+      "gates": [
+        1
+      ]
+    },
+    {
+      "target": "R-A3.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A4.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A4.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A8.1",
+      "type": "sub_req",
+      "gates": [
+        1
+      ]
+    },
+    {
+      "target": "R-A8.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A9.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A9.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A9.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A9.4",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A9.5",
+      "type": "sub_req",
+      "gates": [
+        1
+      ]
+    },
+    {
+      "target": "R-A10.1",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A10.2",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A10.3",
+      "type": "sub_req",
+      "gates": [
+        1,
+        2
+      ]
+    },
+    {
+      "target": "R-A10.4",
+      "type": "sub_req",
+      "gates": [
+        1
+      ]
+    }
+  ]
+}

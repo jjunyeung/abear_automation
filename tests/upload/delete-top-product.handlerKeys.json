@@ -1,0 +1,10 @@
+[
+  "open_registered_list",
+  "capture_top_product_id",
+  "select_top_checkbox",
+  "click_delete_button",
+  "select_all_stores",
+  "confirm_delete",
+  "wait_deletion",
+  "verify_not_in_list"
+]

@@ -1,0 +1,99 @@
+/* RunView — Blueprint Section 기반 TC 그룹 카드 리스트. */
+
+.run-view {
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--background);
+}
+
+.run-view--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--muted-foreground);
+}
+.run-view__empty-inner {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.run-view__empty-inner p {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+/* 각 TC 그룹 = Blueprint Section. CatalogPanel 의 Section 톤과 동일. */
+.run-group {
+  margin: 0 0 10px;
+}
+.run-group:last-child {
+  margin-bottom: 0;
+}
+
+.run-group .bp6-section-card,
+.run-group .bp6-collapse {
+  overflow-x: hidden;
+}
+
+/* Section 의 title slot 으로 들어가는 커스텀 노드 — #idx + 제목 + atcPath. */
+.run-group__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.run-group__index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  flex-shrink: 0;
+}
+.run-group__title-text {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+.run-group__title-line {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.run-group__title-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.run-group__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.run-group__stepcount {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.run-group__empty {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.run-group__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

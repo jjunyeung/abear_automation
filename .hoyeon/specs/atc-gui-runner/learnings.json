@@ -1,0 +1,337 @@
+[
+  {
+    "task": "T5",
+    "round": 1,
+    "problem": "ATC 카탈로그 로더가 (a) 도메인 디렉토리 노이즈 — 추후 결정 없이 새 디렉토리 추가되면 알 수 없는 도메인 ATC 가 invalid 한 채 로드됨 (b) loadATC throw — 단일 깨진 ATC 가 전체 카탈로그 로드를 abort 하면 GUI 부팅 불가 (c) handlerKeys 매니페스트 부재 vs mismatch 구분 — R-T16.2 는 둘 다 'stale' 이지만 staleMismatches tooltip 은 실제 누락된 step.id 만 보여야 사용자가 '뭐가 빠졌는지' 정확히 인지.",
+    "cause": "(a) D9 는 도메인 후보 5개를 못박았는데 readdirSync 가 디스크의 모든 dirent 를 그대로 반환하면 향후 'fixme/' 같은 임시 디렉토리도 catalog 에 들어옴 → CatalogItem.domain 의 유니온이 깨짐. (b) loadATC 는 zod schema violation 또는 composes cycle 에서 throw — 카탈로그 빌더가 try/catch 없이 호출하면 첫 에러에서 전체 scan 이 멈춤. (c) handlerKeys 가 null 일 때 'every step.id missing' 으로 채우면 tooltip 이 '5개 step 다 누락' 으로 보이지만 실제 의미는 '매니페스트 파일 자체가 없다' — UX 가 혼동스러움. 단순 합치기로는 부족.",
+    "rule": "(a) KNOWN_DOMAINS 상수 (5개) 를 모듈 상단에 두고 readdirSync 결과를 isKnownDomain() 타입가드로 필터 → CatalogItem.domain 타입 안전성 보장. 새 도메인 추가는 contracts.md 갱신 → 상수 갱신 2단계로 의도적 마찰. (b) buildItem() 가 loadATC try/catch 후 null 반환 — null entry 는 collection 에서 drop. 단일 깨진 ATC 는 무시되고 나머지 50개가 정상 로드 (resilience). (c) diffHandlerKeys() 가 null handlerKeys 면 stepIds 전체를 반환하되, 매니페스트 부재는 isStale 체크에서 handlerKeys === null 로 별도 branch — staleMismatches 에는 step.ids 가 들어가도 status decision 은 '매니페스트 자체 부재'와 'step.id mismatch' 둘 다 stale 로 합쳐짐. tooltip 은 staleMismatches 만 보면 됨. 추가: getCatalogSnapshot() 는 lazy build (snapshot===null 일 때만 loadCatalog 호출) — 카탈로그 빌드 비용을 첫 invoke 까지 deferred 하여 app.whenReady() 순서에 무관. reloadCatalog() 는 PUSH_CHANNELS.catalogUpdated 로 push — R-B6.7 의 'fs 변경 감지 후 자동 새로고침' 은 향후 chokidar 통합 시 reloadCatalog() 만 호출하면 됨. NODE_PATH 로 스모크 테스트할 때 process.chdir() 가 import.meta.url 없이도 atcs/ root 를 정확히 가리키도록 path.resolve(process.cwd()) 사용 — `npm run gui` 가 항상 프로젝트 루트에서 실행되는 컨벤션과 일치.",
+    "tags": [
+      "catalog",
+      "fs-walk",
+      "stale-detection",
+      "handlerKeys",
+      "R-U4.2",
+      "INV-3",
+      "resilience"
+    ]
+  },
+  {
+    "task": "T7",
+    "round": 1,
+    "problem": "sequential run-queue + spawn + lock + line-buffered IPC streaming 을 한 모듈에 응집해야 하면서 (a) AtcRunResult 계약이 preflight 실패 경로를 표현하지 못함 (b) child_process.spawn 의 반환 타입은 stdio 옵션에 따라 union 이라 ChildProcessWithoutNullStreams 로 못 맞춤 (c) stdout 'data' 이벤트가 라인 경계로 잘리지 않아 IPC 로 그대로 흘리면 mid-line truncation 발생.",
+    "cause": "(a) contracts.md 의 AtcRunResult = { queueId } 는 happy path 만 가정 — preflight 실패 시 throw 하면 renderer 가 catch 후 메시지 파싱해야 해서 R-U3.1/R-U3.2 inline 메시지 UX 가 어색. (b) Node 타입 정의가 stdio:'ignore' 면 stdin: null 로 좁혀짐 → ChildProcessWithoutNullStreams(stdin: Writable) 에 대입 불가, TS2322. (c) Buffer.toString() 결과는 임의 길이라 \\n 경계 보장 X — 줄바꿈 split 후 마지막 partial 을 tail 로 carry over 안 하면 IPC 로 'a partial' / 'next line' 식으로 깨진 라인이 나간다.",
+    "rule": "(a) AtcRunResult 를 discriminated union 으로 확장: {ok:true,queueId} | {ok:false,errors:PreRunError[]}. 계약 진화는 shared/ipc.ts 한 곳만 갱신하면 preload·renderer·main 모두 narrowing 으로 안전. throw across IPC 회피. (b) `import type { ChildProcessByStdio } from 'node:child_process'; import type { Readable } from 'node:stream'` → `type SpawnedChild = ChildProcessByStdio<null,Readable,Readable>` 로 정확 매칭. stdio:['ignore','pipe','pipe'] 와 1대1. (c) makeLineReader = closure 가 tail 문자열을 가지고 chunk 들어올 때마다 split(/\\r?\\n/) → pop() 이 tail 로 다음 chunk 까지 carry. close 이벤트에서 partial buffer.length>0 면 flush 한 줄로 send → 마지막 줄 누락 방지. 부수적으로 R-T17.2 failure-pattern scan 용 combinedTail 을 64KB ring 으로 유지 (메모리 폭증 방지). lock file: writeFileSync(path, pid, {flag:'wx'}) 로 atomic 'createNew' — 동시 두 main 프로세스 race 도 안전. spawn env 옵션은 명시적으로 누락 (`{ stdio:..., shell:false }` 만) — INV-7/R-T2.2 verifiable by grep.",
+    "tags": [
+      "run-queue",
+      "spawn",
+      "INV-6",
+      "INV-7",
+      "line-buffered-ipc",
+      "discriminated-union",
+      "lock-file"
+    ]
+  },
+  {
+    "task": "T16",
+    "round": 5,
+    "problem": "Electron userData 경로 + schedules.json/lock 파일 위치를 단일 모듈에 집약하면서 reports/runs/ R/O 경계(R-T8.2)를 코드 수준에서 표현해야 함. 또 schedules.json 은 T17 가 round-trip 으로 자주 쓰는 파일이라 atomic write 가 필요.",
+    "cause": "ScheduleDef 타입은 contracts.md 와 gui/shared/ipc.ts 두 곳에 이미 정의돼 있어 새 types 모듈을 만들면 중복 source-of-truth 가 됨. R-T8.2 는 '쓰지 마라' 라는 부정 요건이라 코드로 표현할 방법이 export 하지 '않기' + 주석으로 boundary 명시 뿐. atomic write 없이 그냥 writeFileSync 하면 schedule 추가/삭제 중 프로세스 kill 시 손상된 JSON 이 남아 다음 부팅에서 readSchedules 가 모든 스케줄을 잃음.",
+    "rule": "ScheduleDef 같은 IPC payload 타입은 gui/shared/ipc.ts 가 single source — 새 types 파일을 만들지 말고 거기서 import. 부정 요건(REPORTS_RUNS_RO)은 (a) export surface 에 write helper 가 없다는 사실 + (b) 모듈 헤더 주석에 INV-2 / R-T8.2 boundary 1줄 명시로 표현 — 코드 리뷰어가 '여기에 이 helper 추가하면 안 되는구나' 를 즉시 인지. JSON IO 는 .tmp → rename 패턴으로 atomic; readSchedules 는 missing/empty/non-JSON/non-array 모두 [] fallback (T17 가 zod-level 검증 담당). getUserDataDir() 는 app.getPath('userData') 의 1줄 wrapper — 향후 test injection 시 mock point 단일화.",
+    "tags": [
+      "electron",
+      "userdata",
+      "atomic-write",
+      "INV-2",
+      "INV-6",
+      "single-source-of-truth"
+    ]
+  },
+  {
+    "task": "T4",
+    "round": 1,
+    "problem": "51개 spec.ts 의 StepHandlers 키를 본체 무변경으로 외부 매니페스트(.handlerKeys.json)에 추출해야 함 — 3가지 패턴 존재 (인라인 const, shorthand, factory 호출+공유 모듈)",
+    "cause": "spec.ts 가 시간을 두고 작성되며 패턴 일관성이 떨어졌고 url-collect 도메인은 case A/B 공유 위해 factory 화 됨. 단순 regex 로는 makeXxx() 후 다른 파일의 return-object 까지 따라가야 해서 부족.",
+    "rule": "TypeScript compiler API (이미 devDep) 로 AST 파싱 — runATC({ handlers: <expr> }) 의 expr 타입별 처리(ObjectLiteral / Identifier→same-file const / CallExpression→imported factory return object). 단일 스크립트(scripts/migrate-handlerKeys.mjs)로 idempotent 재실행 가능. JSDoc 안에 `**/*.spec.ts` 같은 glob 쓰면 `*/` 가 주석을 닫아서 syntax error 가 나니 // 라인 주석 사용.",
+    "tags": [
+      "migration",
+      "spec-untouched",
+      "ts-ast",
+      "INV-9"
+    ]
+  },
+  {
+    "task": "T1",
+    "round": 2,
+    "problem": "gui/ 스캐폴드 시 root tsconfig 가 module:commonjs + moduleResolution:node 이므로 ESM-only 패키지(vite, @vitejs/plugin-react) 가 require 호환 안 됨 + lib/recovery-registry.ts 가 require() 동적 로드에 의존하여 module 옵션을 변경 불가",
+    "cause": "vite@8, @vitejs/plugin-react@6 모두 package.json exports 가 ESM-only. 기존 lib/* 는 commonjs 유지 필요 (recovery-registry 의 `require(fullPath)`). tsconfig 단일 module 옵션으로 동시 만족 불가능.",
+    "rule": "vite.config 은 `.mts` 확장자로 작성하고 root tsconfig 의 exclude 에 `gui/vite.config.mts` 추가하여 tsc 가 건드리지 않게. include 에는 `gui/**/*` 유지 (R-T11.1) — renderer/main/preload 의 .ts/.tsx 는 root tsconfig 의 commonjs+JSX:react-jsx 로 충분히 type-check 됨 (react, react-dom 은 dual-package 라 commonjs 에서도 import 정상). package.json scripts 에서 vite 도 `vite.config.mts` 를 명시. jsx 는 root compilerOptions 에 `jsx:'react-jsx'` 추가 (.ts 파일에는 no-op, .tsx 에만 활성).",
+    "tags": [
+      "scaffold",
+      "npm-install",
+      "tsconfig",
+      "esm-cjs-interop",
+      "vite"
+    ]
+  },
+  {
+    "task": "T2",
+    "round": 3,
+    "problem": "Electron main 은 commonjs 로 컴파일되어야 하지만 (electron 런타임 = node CJS) 같은 tsc 한 번에 renderer(.tsx)도 끼면 출력이 dist 에 섞임. 또 main/preload 가 src 에서 `..` 경로로 shared/ipc 를 참조하므로 rootDir 가 gui/main 하나만으로는 부족.",
+    "cause": "tsc 의 rootDir 은 모든 input 파일의 공통 조상이어야 함. main(.ts) + preload(.ts) + shared/ipc(.ts) 를 한 번에 emit 하려면 rootDir 을 gui/ 로 잡아야 출력이 gui/dist/{main,preload,shared} 평면 구조로 떨어짐. renderer 는 Vite 가 별도 번들링하므로 main 의 tsconfig include 에서 명시 제외.",
+    "rule": "gui/main/tsconfig.json 을 별도로 두고 extends 로 root 의 strict/jsx 만 상속, rootDir='..' (gui/) + include=['./**/*.ts','../preload/**/*.ts','../shared/**/*.ts'] + exclude=['../renderer/**/*','../vite.config.mts','../dist/**/*']. 산출물 outDir='../dist'. preload 경로는 main/index.ts 안에서 `path.join(__dirname,'..','preload','index.js')` — 컴파일 후 gui/dist/main/index.js → gui/dist/preload/index.js 로 정상 resolve. npm run gui = concurrently(vite + wait-on tcp:5173 + electron gui/dist/main/index.js). single-instance lock 검증은 prod 모드 `NODE_ENV=production electron gui/dist/main/index.js` 두 번 띄우기로 확인 (두 번째가 즉시 exit 0).",
+    "tags": [
+      "electron-main",
+      "ipc",
+      "scaffold",
+      "tsconfig",
+      "single-instance"
+    ]
+  },
+  {
+    "task": "T3",
+    "round": 4,
+    "problem": "INV-3 (gui→lib 단방향) 강제할 lint 메커니즘이 필요한데 ESLint 도입은 4-5 devDep 추가라 zero-dep 노드 스크립트가 더 적합. 추가로 working dir 이 'windly 자동화'(공백+한글)라 `new URL('..', import.meta.url).pathname` 이 URL-encoded path 를 그대로 반환하여 readdirSync 가 ENOENT.",
+    "cause": "macOS APFS 정규화에 한글 NFD 분해 + URL pathname spec 상 공백/non-ASCII 는 percent-encoding. import.meta.url 은 'file:///Users/a1/windly%20%E1%84%8C%E1%85%A1...' 형태로 디코드되지 않은 채 pathname 만 잘라줌.",
+    "rule": "ESM 스크립트에서 __dirname 대용으로 경로를 잡을 땐 항상 `fileURLToPath(new URL('..', import.meta.url))` 사용. node:url 의 fileURLToPath 가 percent-decoding + 정규화를 처리해줌. check-deps.mjs 는 import|export ... from '...' 과 require('...') 둘 다 정규식으로 잡고, 상대경로/절대경로만 ROOT 기준 topDir(=relative split[0]) 로 분류 — 외부 bare module(electron, react)은 자연스럽게 skip 된다. npm run check:deps 로 노출 + 위반 시 exit 1 로 CI/hook 친화.",
+    "tags": [
+      "deps-direction",
+      "enforcement",
+      "esm",
+      "fileURLToPath",
+      "INV-3"
+    ]
+  },
+  {
+    "task": "T8",
+    "round": 1,
+    "problem": "gui/main/preflight.ts 가 INV-7 준수를 위해 lib/config.ts 의 loadEnv 를 import 해야 하는데 gui/main/tsconfig.json 의 rootDir 이 '..' (=gui/) 로 한정돼 있어 lib/* 가 rootDir 밖이라는 TS6059 발생. 단순히 rootDir 만 넓히면 INV-3 위반 가능성(tests/recoveries/atcs 도 모두 컴파일 대상 됨).",
+    "cause": "Electron main 은 commonjs 로 별도 컴파일되며 gui/main/tsconfig 가 rootDir='..' 로 좁게 잡혀 있음. 동시에 INV-7 은 .env 직접 파싱 금지 → loadEnv 통해서만 env 접근 → 결국 gui→lib import 가 1군데 발생할 수밖에 없음.",
+    "rule": "rootDir 을 '../..'(프로젝트 루트)로 넓히되 include 는 명시적 화이트리스트만 — './**/*.ts', '../preload/**/*.ts', '../shared/**/*.ts', '../../lib/config.ts' (lib 전체가 아니라 config.ts 단 한 파일). tsc --listFiles 로 검증 시 tests/recoveries/atcs 어느 것도 컴파일 대상에 포함되지 않음 (INV-3 유지). projectRoot 는 __dirname 기준으로 dist 빌드와 ts-direct 양쪽 다 동작하도록 'package.json 존재 체크' fallback 사용 (gui/dist/main/* → ../../.. = 루트, gui/main/* → ../.. = 루트).",
+    "tags": [
+      "preflight",
+      "INV-7",
+      "INV-3",
+      "rootDir",
+      "tsconfig",
+      "loadEnv"
+    ]
+  },
+  {
+    "task": "T6+T12+T14",
+    "round": 5,
+    "problem": "renderer 측 3개 컴포넌트(InputForm/ReportPanel/SecondInstanceToast)를 같은 main.tsx 로 통합하면서 (a) CatalogItem.atc 가 IPC 경계에서 unknown 으로 좁혀져 있어 InputForm 이 atc.inputs 를 안전하게 읽을 수 없고, (b) global.d.ts 에 `import type { AtcAPI }` 와 `declare module '*.css'` 를 같이 두면 import 가 파일을 module 로 만들어 ambient `*.css` 선언이 무효화돼서 TS2882 (Cannot find module ... for side-effect import) 가 발생함.",
+    "cause": "(a) shared/ipc.ts 가 CatalogItem.atc:unknown 으로 선언한 건 의도된 IPC payload 안전망 (lib/atc-schema.ts 의 ATC 타입을 renderer 까지 끌고 가지 않으려는 격리) — 그러나 renderer 폼은 inputs schema 를 다시 좁혀야 함. (b) TS 의 `*.css` ambient 선언은 ambient script(파일 상단에 import/export 없음)에서만 유효하다. `import type` 도 file scope 를 module 로 바꾸기 때문에 같은 파일에 같이 두면 ambient 가 사라진다.",
+    "rule": "(a) renderer 컴포넌트가 IPC payload 의 unknown 필드를 사용할 땐 ① 컴포넌트 파일 안에 narrowing helper 를 둔다 (`narrowAtcBody(raw:unknown): {title; inputs}` + `isInputSpec(v:unknown):v is InputSpec`), ② mirror 타입을 export 해서 다른 컴포넌트가 재사용. lib 타입을 직접 import 하지 않으므로 INV-3 도 유지. (b) declare module '*.css' 는 import/export 가 없는 별도 파일(예: gui/renderer/src/assets.d.ts)로 분리. global.d.ts (window.atcAPI 보강용) 는 `import type {AtcAPI}` 가 필요하므로 모듈 파일로 남기고 ambient asset 선언과 분리한다. (c) 컴포넌트 단위 CSS (ReportPanel.css 등) 는 컴포넌트와 같은 디렉토리, 전역 shell CSS (main.css) 는 src 루트 — Vite 가 자동 bundling. (d) ReportPanel 의 unhandled section 강조는 react-markdown 의 `components={{ h2/h3 }}` override 로 children 텍스트 추출(`extractText(node:ReactNode):string`) → 'unhandled' 키워드 검사 → 클래스 분기. 한국어 \"🚨 Unhandled 에러 요약\" 헤딩에 모두 매칭.",
+    "tags": [
+      "renderer",
+      "ambient-declarations",
+      "unknown-narrowing",
+      "react-markdown",
+      "INV-3",
+      "css-modules"
+    ]
+  },
+  {
+    "task": "T17",
+    "round": 6,
+    "problem": "launchd plist 를 동적으로 생성·로드·언로드해야 하면서 (a) recurring(StartCalendarInterval) 과 oneshot(특정 일시) 두 변종을 같은 ScheduleDef 에 담아야 하고, (b) plist XML 을 손으로 빌드하면 사용자 입력 (inputs 값, atc title) 의 특수문자(`&` `<` `>` `\"` `'`)가 XML 파서를 깨거나 markup-injection 위험, (c) 단발 plist 의 발화 후 자동 cleanup 을 launchd post-exit hook 으로 하면 R-T7.3 위반, (d) ScheduleDef.calendarInterval 의 `Day` 가 optional 이라 oneshot 빌드 시 `Day: number | undefined` 가 plistInteger(number) 에 못 들어감.",
+    "cause": "(a) 같은 schedules.json 에 두 kind 가 섞이고 ScheduleDef 의 calendarInterval 은 recurring 전용 + runAtEpochMs 는 oneshot 전용 — 빌더는 kind discriminator 로 분기해야 함. (b) plist 는 XML 기반이라 5문자(`&<>\"'`) 가 엘리먼트 본문에서 escape 필수. (c) launchd 의 `RunAtLoad`/post-exit `KeepAlive` 둘 다 R-T7.3 (\"launchd post-hook 의존 금지\")에 저촉 — GUI 가 reports/runs/ chokidar 결과로 판단하거나 다음 GUI 부팅 시 init() 에서 정리해야 함. (d) TS strict + noUncheckedIndexedAccess 환경에서 `CalendarInterval & { Month: number }` intersection 만으로는 Day 의 optionality 가 제거되지 않음 → 함수 인자 타입을 별도 OneshotCalendar interface 로 분리해야 모든 4필드가 required.",
+    "rule": "(1) plist XML 직렬화는 escapeXml(value) 한 곳에서 5문자(`&<>\"'`) → entity 치환 후 모든 dynamic string 을 plistString() 로 감싼다. plutil -lint + plutil -p round-trip 으로 검증하면 사용자 입력의 `a&b<c>\"d'` 같은 worst-case 도 깨지지 않는다. (2) oneshot 은 별도 OneshotCalendar interface ({Month, Day, Hour, Minute} 4필드 required) 를 만들어 `CalendarInterval & { Month: number }` intersection 트릭을 피한다 — TS strict 에서 optional 필드는 intersection 으로 required 화 안 됨. (3) ProgramArguments 는 run-queue.buildArgs 와 동일 shape (`['npx','playwright','test','--project=windly-<d>','<spec>','--','--<k>=<v>',...]`) 으로 통일해야 launchd-fired run 과 GUI run 이 같은 결과를 낸다. WorkingDirectory = repo root (gui/dist/main/* 기준 `path.resolve(__dirname,'..','..','..')`). RunAtLoad=false (load 즉시 발화 방지). post-exit hook 절대 없음. (4) oneshot auto-cleanup = 두 진입점: ① 발화 후 T15 가 reports/runs/ 에서 결과 감지하면 markOneshotFired(id) 호출 가능 ② 그게 못 잡혀도 다음 app.whenReady() 의 init() 가 runAtEpochMs < Date.now() 이고 active 인 oneshot 을 전수 처리. 둘 다 launchctl unload + fs.unlinkSync(plistPath) + active=false 로 동일 path. (5) createSchedule 실패 rollback: plist write → schedules.json append → launchctl load 순서로 가되 load 실패 시 schedules.json 복원 + plist 삭제. 절반 armed 상태를 사용자에게 남기지 않는다. (6) child_process.execFile (promisified) + argv 배열 — `exec` shell string 은 plistPath 에 공백/한글 들어가면 quoting 깨짐 (cwd='/Users/a1/windly 자동화'). launchctl unload 는 idempotent: '이미 unload' 에러는 swallow.",
+    "tags": [
+      "launchd",
+      "plist-xml",
+      "xml-escape",
+      "schedule-manager",
+      "R-T4.1",
+      "R-T4.2",
+      "R-T4.3",
+      "R-T7.3",
+      "oneshot-cleanup",
+      "execFile-argv"
+    ]
+  },
+  {
+    "task": "T15",
+    "round": 1,
+    "problem": "reports/runs/<runId>.json 의 디스크 wire-format 이 contracts.md 의 RunResultJson (=reporter 의 inner RunResult) 와 다름 — 실제 파일은 wrapper { run_id, started_at, ended_at, overall_status, atcs:[{test_title, spec_file, result:RunResult}] }. 또 RunHistoryEntry.overall 은 'success'|'failed'|'unhandled' 3-state 인데 reporter 의 RunResult.overall 은 2-state (success|failed). 거기에 chokidar 는 새 runId 디렉토리 add 시점에 JSON 이 아직 안 쓰여 있을 수도 있고, 초기 mount burst 도 addDir/add 둘 다 발사하므로 단순 emit 하면 중복/빈-엔트리 push 가 발생.",
+    "cause": "reporters/atc-reporter.ts:237-251 의 renderJson() 이 wrapper 구조로 직렬화하지만 contracts.md §RunHistoryEntry/§run:report 는 inner shape 만 명시. R-T13.1 ('schema 변경 없이 그대로 사용') 은 디스크 포맷을 그대로 두라는 의미이지 IPC 가 wrapper 를 그대로 노출하라는 의미는 아님 (contracts 가 inner 를 RunResult 로 못박음). overall 3-state 는 D11(unhandled = 자동 복구 시도 X, 리포트에만 기록)에서 옴 — UI 가 success/failed 와 시각적으로 구분해야 하므로 entry 빌드 시점에 steps[].status==='unhandled' 존재 여부로 도출. chokidar awaitWriteFinish(stabilityThreshold=250ms) 로 부분 쓰기 단계의 'add' 이벤트는 자연스럽게 발화 지연되지만, 그래도 addDir 은 JSON 이전에 발사 가능 — readEntry 가 null 반환하면 emit 하지 않고 다음 'add(json)' 이벤트가 다시 시도하도록 dedupe set 분리.",
+    "rule": "(1) wrapper vs inner: gui/shared/ipc.ts 의 RunResultJson 은 inner shape — main 의 run-history.ts 가 wrapper 파싱 후 atcs[0].result 를 노출 (현재 vertical slice 는 1-spec/run 가정). 향후 multi-spec/run 이 생기면 RunResultJson[] 로 확장. (2) overall 정규화: hasUnhandled = steps.some(s=>s.status==='unhandled') ? 'unhandled' : inner.overall. 입구는 reporter, 출구는 RunHistoryEntry — 변환은 main 한 곳에만. (3) chokidar 패턴: ignoreInitial:false + awaitWriteFinish:{stabilityThreshold:250,pollInterval:100} + depth:2. 'addDir'(runId 폴더) / 'add'(<runId>.json) / 'change'(rewrite) 셋 다 emitIfReady() 에 위임 — known: Set<string> dedupe + readEntry() null 이면 skip → 다음 이벤트에서 자동 재시도. initRunHistory() 가 indexExistingRuns() 결과로 known 을 미리 채워 mount burst 중복 push 방지. (4) completedAt 도출: buildRunId() 의 'result_YYYY-MM-DD_HH-MM-SS' 로컬 시각 → new Date(y,mo-1,d,h,mi,s).toISOString() 로 변환 (UTC 'Z' 표기). 실패 시 statSync(jsonPath).mtime fallback. (5) revealRunInFinder 는 shell.openPath (renderer 측 deep-link UX 는 T18 가 layer). 모든 export 는 read-only 동작만 — INV-2/R-T8.2 의 reports/runs R/O 경계를 코드 surface 자체가 표현 (write helper 부재).",
+    "tags": [
+      "run-history",
+      "chokidar",
+      "fs-watch",
+      "R-T7",
+      "R-T13.1",
+      "INV-2",
+      "INV-4",
+      "shape-mismatch"
+    ]
+  },
+  {
+    "task": "T22",
+    "round": 1,
+    "problem": "electron-builder macOS-only 패키징 설정에서 (a) gui/main/tsconfig 의 rootDir='../..'(repo root) 라서 tsc 가 emit 한 결과가 gui/dist/main 이 아니라 gui/dist/gui/main/ 로 한 단계 더 깊이 떨어지고, lib/config.ts 화이트리스트도 gui/dist/lib/ 로 emit 되는데 기존 electron-builder.yml 의 files 글롭과 extraMetadata.main 이 옛 평면 경로(gui/dist/main/**)를 가리키고 있어 패키지에 실제 빌드 산출물이 들어가지 않거나 main 진입점이 stale 파일을 가리키는 위험 — packaging dry-run 없이 `npm run build:gui` 직후 dist 트리만 비교해도 즉시 드러남. (b) R-T9.2 의 부정 요건('win/linux 추가 금지')은 YAML 키의 부재로만 표현 가능하고 자동 검증이 필요. (c) electron@42 는 npm dependencies 에 들어가 있어 production install 대상 — extraMetadata.main 이 dist 경로면 electron-builder 의 asar 패킹은 정상이지만 시초에 잘못된 path 면 .app 실행이 \"Cannot find module gui/dist/main/index.js\" 로 즉시 죽는다 (실패가 packaging 시점이 아니라 사용자 launch 시점에 발견되어 매우 늦음).",
+    "cause": "tsc 는 rootDir 가 모든 input 의 공통 조상이어야 한다는 제약 때문에 gui/main/tsconfig 가 'gui/**/* + lib/config.ts + lib/atc-loader.ts + lib/atc-schema.ts' 를 동시에 컴파일하려면 rootDir 을 '../..'(=repo root)로 잡을 수밖에 없었음(T8 의 결정, learnings T8 round 1 참조). 그 결과 outDir='../dist' 안에 input 의 상대 경로가 그대로 보존되어 gui/dist/gui/main/, gui/dist/lib/, gui/dist/renderer 가 됨. 기존 electron-builder.yml 은 이걸 모르고 평면 경로(gui/dist/main, gui/dist/preload) 만 명시 — 평면 경로의 stale .js 가 우연히 존재하는 동안에는 패킹 시 에러 없이 잘못된 산출물이 들어감.",
+    "rule": "(1) electron-builder.yml 의 files 글롭과 extraMetadata.main 은 항상 tsc 의 실제 emit 경로와 1대1 — files=['gui/dist/gui/**','gui/dist/lib/**','gui/dist/renderer/**','package.json'], main='gui/dist/gui/main/index.js'. tsconfig 변경 시 yml 도 같이 업데이트 (T8 같은 rootDir 확장 PR 에서는 yml 도 한 번에 동기화). (2) mac.target 은 배열 형태 ([{target:dmg,arch:[arm64,x64]},{target:zip,arch:[arm64,x64]}]) — 명시 배열이면 win/linux 키가 자연스럽게 부재하여 R-T9.2 충족. yml 헤더 주석에 '추가 시 INV-8 위반' 명시로 향후 코드리뷰 가드. (3) packaging 자체는 매우 무거우므로 (>60s + dmg 압축), 검증은 `node -e \"yaml.parse(...)\"` 로 YAML 파서 round-trip + npm run build:gui (tsc + vite build) 만으로 충분. electron-builder 실제 실행은 사용자 명시 명령(`npm run package:gui`) 때만. (4) 패키지명/스크립트 네이밍 — 기존 gui:build:main / gui:build 는 backward-compat 으로 유지하고, T22 charter 가 요구한 새 명명(build:gui:main / build:gui:renderer / build:gui / package:gui) 을 추가. 둘은 동일 동작이므로 중복이지만 향후 단계적 마이그레이션 안전. (5) hardenedRuntime:false, gatekeeperAssess:false, identity:null — 본 프로젝트는 D10 (CI/CD 없음, 로컬 전용) + CLAUDE.md (b) (솔로 프로젝트) 라서 notarization 부담 회피. autoUpdater 없음 (INV-4 의 'no network at startup' 과 일치).",
+    "tags": [
+      "electron-builder",
+      "packaging",
+      "macOS-only",
+      "R-T1.2",
+      "R-T9.2",
+      "INV-4",
+      "INV-8",
+      "tsc-rootDir-emit-path"
+    ]
+  },
+  {
+    "task": "T10+T13+T18",
+    "round": 6,
+    "problem": "GUI 측 3개 통합 작업: (a) RunView 의 step 상태를 atc:log 스트림에서 도출해야 하는데 runner 가 emit 하는 \"▶ step 'id': do\" 같은 한국어/이모지 마커가 logger.info prefix(레벨/타임스탬프) 와 섞여 들어와 정규식이 빗나감, (b) Cmd+Enter 단축키가 InputForm 의 내부 state 를 모르는 상태에서 어떻게 submit 을 트리거할지, (c) GUI 닫기 시 detach 옵션은 child_process.spawn 이 detached:true 로 시작되지 않아도 Electron 프로세스가 살아서 child 를 await 하면 안 되는 문제 (= child.unref()), 그리고 detached 후 알림 발사를 어떻게 main 안에서 atc:done 에 hook 할지.",
+    "cause": "(a) lib/logger.ts (winston/console 어떤 거든) 가 \"[INFO] 2025-... ▶ step ...\" 같은 prefix 를 붙여 보내므로 정규식이 ^▶ 으로 anchor 되면 매칭 실패. (b) React 자식 컴포넌트의 internal state 를 부모가 imperative 호출 없이 trigger 하려면 form 의 native submit 이벤트를 다시 발사하는 방법이 가장 disruption-free. (c) Electron 의 child_process.spawn 은 부모가 살아있는 동안 stdio pipe 와 wait4 시그널을 유지 — child.unref() 가 호출되면 Node 의 reference count 가 떨어져 parent 가 child 와 무관하게 exit 가능. detached:true 는 새 process group 을 만들지만 stdio 가 pipe 면 어차피 부모와 시그널이 묶임. unref() 만으로 충분.",
+    "rule": "(1) atc:log line parser 는 line.search(/[▶✓✗⚠]/) 로 마커 위치를 찾고 stripLogPrefix(line) 가 marker 이전을 잘라낸 뒤에 정규식 매칭 — logger.info prefix 와 무관해진다. RE_STEP_START=/^▶ step '([^']+)': (.+)$/, RE_UNHANDLED=/^✗ unhandled error '([^']+)' at step '([^']+)'$/, RE_RECOVERY_START=/^⚠ recovery '([^']+)' 시작\\.\\.\\.$/, RE_RECOVERY_DONE=/^✓ recovery '([^']+)' 완료$/. step 성공은 명시적 마커가 없으므로 \"다음 ▶ step 이 오면 직전 running 카드는 success\" 로 implicit transition. atc:done 이 오면 잔존 running/recovering 카드를 exit code 로 final transition. (2) Cmd+Enter 는 useKeyboardShortcuts hook 에서 document.querySelector(\".atc-input-form\") 로 form 을 찾고 form.requestSubmit() 호출 — InputForm 의 native onSubmit 파이프라인이 그대로 동작하므로 컴포넌트 imperative handle 없이 wiring. (3) GUI 닫기 = win.on(\"close\", e=>{ if (awaitingCloseChoice) return; if (!isActive()) return; e.preventDefault(); webContents.send(\"app:close-attempt\") }). Renderer 의 CloseConfirmDialog 가 응답을 \"app:close-confirm\" send 채널로 보내고 main 의 handleCloseConfirm() 가 cancel/kill/detach 분기. kill = await cancelActive() (run-queue 가 SIGTERM + close 이벤트 wait Promise 반환) → win.close(). detach = detachActive() (child.unref()) + detachedQueueId 기록 → win.close() → run-queue 의 onDone observer 가 detachedQueueId 매칭 시 Notification 발사 (R-B6.4/R-T18.2). app.on(\"before-quit\") 도 동일 인터셉트 (Cmd+Q 경로). (4) StepCard 의 \"running 카드는 항상 expand, terminal 카드는 expand override 없으면 collapse\" 정책은 (terminal,expandedOverride) 튜플로 결정 — useEffect 가 status non-terminal 로 돌아갈 때 override 를 wipe 해서 running 재진입 시 expand 보장. (5) run-queue.onDone hook = main 안 in-process observer (배열) — webContents.send 와 병렬로 호출 → 윈도우가 destroyed 되어 webContents.send 가 no-op 이어도 main 측 hook 은 살아남아 Notification 발사. INV-3/INV-4 무관 (electron + node stdlib 만).",
+    "tags": [
+      "T10",
+      "T13",
+      "T18",
+      "step-card",
+      "atc:log-parser",
+      "logger-prefix-strip",
+      "requestSubmit",
+      "close-confirm",
+      "detach",
+      "unref",
+      "notification",
+      "R-B6.3",
+      "R-B6.4",
+      "R-T18.1",
+      "R-T18.2",
+      "R-T18.3"
+    ]
+  },
+  {
+    "task": "T23",
+    "round": 1,
+    "problem": "INV-3 / INV-4 / INV-7 가 contracts.md 안에만 텍스트로 박혀 있어 새 라운드의 Worker / 미래의 사용자가 gui/ 작업 시 깜빡 위반할 수 있다. T3 의 scripts/check-deps.mjs 는 INV-3 (relative path 의 top-level dir) 만 검사하고 (a) renderer/preload 서브트리가 lib/* 를 import 하는 케이스 (b) HTTP/WS 서버 모듈 bare import (c) dotenv-계열 bare import 셋 다 검사 못 한다.",
+    "cause": "(a) renderer/preload 도 'gui/' 의 일부라 첫 버전 RULES 표에서 'from: gui' 한 줄로 묶여 → renderer 가 ../../../lib/config 를 import 해도 'gui→lib' 화이트리스트로 통과. R-T14.1 의 nodeIntegration=false 가 런타임에서 막아주긴 하지만 빌드 타임에는 통과해 잡음. (b) bare module specifier 는 SPEC_RE 로 매치되지만 resolveSpecifier() 가 null 반환 후 그냥 continue — 외부 패키지 import 는 모두 무검사. (c) 마찬가지.",
+    "rule": "scripts/check-deps.mjs 를 한 단계 더 일반화: (i) RELATIVE_RULES 는 top-level 디렉토리 from→forbid 표 그대로 유지하되 reporters/automation 도 forbid 에 포함, (ii) 새 SUBTREE_RELATIVE_RULES — 'fromPrefix' 가 'gui/renderer/' 또는 'gui/preload/' 인 파일은 추가로 lib top-level import 금지, (iii) 새 GUI_BARE_BANS — bare specifier 가 정규식 매치되면 gui/** 안에서만 violation. 한 파일에서 여러 rule 위반 동시 검출 가능. 자가 테스트: 5개 합성 violation 파일을 임시 생성→exec 후 unlink 로 회귀 방지. 셋 다 markdown rule 파일도 같이 만들어 (.claude/rules/gui-import-direction.md / gui-no-network.md / gui-env-policy.md) 기존 .claude/rules 컨벤션(금지/대신/위반 예시/올바른 예/근거) 정확히 따르고 각 rule 끝에 INV-3/INV-4/INV-7 출처를 cite — Claude 가 새 gui 작업 시작 시 1회 읽으면 충분. 또 .env 정책의 미묘함(메인 안에서도 loadEnv() 외 process.env.WINDLY_* 직접 접근 금지 — DI 패턴) 같이 grep 만으로는 못 잡는 룰은 markdown 으로만 표현하고 grep 으로 false-positive 줄임.",
+    "tags": [
+      "guardrails",
+      "INV-3",
+      "INV-4",
+      "INV-7",
+      "check-deps",
+      "rules-md",
+      "R-B5.2",
+      "R-T14.3"
+    ]
+  },
+  {
+    "task": "T9+T11",
+    "round": 7,
+    "problem": "Catalog panel (R-U5) 와 step-card screenshot thumbnail (R-U7) 을 한 라운드에 묶었을 때 (a) catalog item 의 status 6종 중 normal 은 'indicator 없음' 이라 null 반환을 잊으면 빈 span 이 row 마다 hidden visual noise 가 됨, (b) fragment ATC 의 시각적 구분(R-U1.3) 은 'dimmed/indented' 라는 추상 표현이라 padding-left + opacity 만 주면 selected highlight 와 충돌, (c) screenshot 경로를 atc:log stdout 에서 어떻게 추출할지 — 기존 reporter 는 PNG 를 html/data/<hash>.png 로 저장하지만 step 단위 매핑이 없어서 step.id → path 를 알 방법이 없음, (d) renderer 가 PNG 파일을 직접 읽으면 INV-3/INV-4 위반이라 IPC 로만 base64 로 받아야 하는데 sandbox 강제가 path traversal 방어를 통과해야 함.",
+    "cause": "(a) JSX 에서 conditional indicator 슬롯을 만들 때 'normal 도 일관성 있게 placeholder 를 둘까' 라는 유혹이 있지만 layout shift 가 없는 한 null 반환이 정답 — R-U5.1 의 'title 과 도메인 라벨만 표시되고 추가 indicator 는 없다' 를 정확히 만족. (b) fragment 는 atc-loader.ts 가 isFragment=true 로 표시하고 normal 시나리오와 같은 list 에 mix 되므로, CSS 로는 indent + 색상 dim + italic + 작은 ƒ 태그 4가지 시그널을 동시에 줘서 'building block' 임을 즉시 인지하게 — selected 상태에서도 fragment 표식은 유지되도록 .catalog-panel__item--fragment 와 --selected 를 별도 클래스로. (c) 기존 spec 51개를 건드리지 않는 게 default 정책이라 reporter 출력 포맷을 깨지 않고 step↔screenshot 매핑을 얻으려면 logger.info 한 줄을 컨벤션으로 정해야 함 — '📸 screenshot: <abs-path>' 가 RunView 의 line-strip 정규식(line.search(/[▶✓✗⚠📸]/)) 과 자연스럽게 어울리는 marker. 새 spec/recovery 가 page.screenshot 후 이 줄만 찍으면 GUI 가 자동 매핑. (d) Electron 의 file:// 로더는 contextIsolation=true 환경에서도 보안상 안 쓰는 게 정석 — IPC 한 channel(screenshot:read) 로 base64 data URL 받고 path 는 path.resolve 후 reports/runs/ 로 strict containment 체크.",
+    "rule": "(1) CatalogPanel 의 StatusIndicator 는 switch 문에서 'normal' 만 명시적으로 null 반환 — exhaustiveness 검사를 위해 TS 의 union narrowing 활용 (case 별 return, 마지막 default 없음). 새 status 가 contracts.md 에 추가되면 컴파일 에러로 자동 검출. (2) fragment 행은 padding-left 만 늘리면 layout 만 변하므로 italic + #6b7280 + ƒ 태그(#fef3c7 배경) 4-feature combo — 색상/형태/위치 셋 다 변경해야 '시나리오와 다르다' 가 1초 만에 읽힘. selected highlight 가 fragment 색상을 덮을 수 있으니 .catalog-panel__item-title 는 selected 안 가리도록 클래스 분리. (3) 큰 카탈로그 (50+) 에서 search filter 가 매 키스트로크마다 전체 재정렬을 돌리면 입력이 끊기므로 useMemo([items, query]) 로 filter 결과 캐싱 + groupByDomain 도 별도 useMemo — 50개 기준 무감각. (4) details/summary 의 기본 marker(▶/▼) 는 OS 마다 폰트 차이가 있어 ::-webkit-details-marker {display:none} + ::before 의 ▸ 회전 transition 으로 통일. (5) 📸 screenshot marker 의 absPath 는 trim 후 즉시 sandbox 체크에 위임 — RunView 는 path validation 안 함 (main 의 readScreenshot 이 단일 게이트). dedupe: 같은 path 가 두 번 emit 돼도 step.screenshotPaths 가 unique 유지 (includes 체크). (6) screenshot:read 의 sandbox = path.resolve(absPath) 가 path.resolve(cwd,'reports/runs') + sep 로 startsWith — sep 를 명시적으로 붙여서 '/x/reports/runs-evil/' 같은 prefix 매칭 회피. 확장자 화이트리스트(.png/.jpg/.jpeg) 로 임의 파일 read 차단. (7) ScreenshotThumb 의 lightbox Esc 키 리스너는 lightboxOpen=true 일 때만 mount — 부모 useKeyboardShortcuts 와 race 없도록 capture phase + stopPropagation 으로 외부 Esc handler 가 의도치 않게 발화하는 것 방지. (8) IPC channel 추가 절차: shared/ipc.ts (type + INVOKE_CHANNELS + AtcAPI surface) → preload/index.ts (import + invoke wrapper) → main/ipc-scaffold.ts (bindInvoke wiring) → main/<feature>.ts (실제 구현) → renderer 컴포넌트 (window.atcAPI.<method>) — 5 곳 동시 갱신 안 하면 TS 에러 카스케이드. 단일 commit 으로 묶어야 reviewer 가 boundary 1회 검증.",
+    "tags": [
+      "T9",
+      "T11",
+      "catalog-panel",
+      "screenshot-thumb",
+      "lightbox",
+      "ipc-channel-add",
+      "sandbox-path",
+      "R-U5",
+      "R-U7",
+      "R-U1.3",
+      "log-marker-convention",
+      "INV-3",
+      "INV-4"
+    ]
+  },
+  {
+    "task": "T21",
+    "round": 1,
+    "problem": "R-B6.8 lock 충돌 정책의 GUI 측 통합이 비어 있었음: (a) run-queue.ts 가 lockPath 를 app.getPath('userData') 인라인으로 구성해서 T16 의 userdata.getLockPath() 단일 소스를 우회 (b) skip 분기에서 sendDone(-1) 만 호출되고 schedule:skipped push / macOS Notification / 다음 GUI 열림 시 배너 표시 (R-T5.3) 가 어떤 모듈에서도 발화되지 않음 — IPC 채널은 화이트리스트에만 존재하고 emit site 없음 (c) launchd plist 가 직접 npx playwright test 를 spawn 하기 때문에 .gui-run.lock 은 GUI 프로세스 전용 coordination 인지 코드 어디에도 명시되어 있지 않아 'launchd job 이 lock 을 봐야 하는데 안 본다' 같은 잘못된 후속 작업을 유발할 수 있음.",
+    "cause": "(a) T7 시점에 lockPath 인라인은 의도된 임시 — T16 가 단일 진입점 만든 뒤에도 refactor 가 자동으로 안 옴 (charter 가 명시). (b) T17 의 fulfills 에 R-B6.8 / R-T5.3 가 들어 있었지만 실제 구현은 plist 생성 + launchctl 까지였고 'skip 됐을 때의 surface 3종' (renderer push / OS notif / next-open banner) 은 unscoped 로 남음 — schedule-manager 는 plist 만 다루지 spawn 결과를 보지 않기 때문에 emit 위치를 정할 수 없었음. emit 의 자연스러운 위치는 lock 충돌을 *실제로 감지*하는 run-queue 의 skip 분기 (existsSync(lock) 또는 wx-flag race). (c) launchd 가 spawn 하는 Playwright 프로세스는 .gui-run.lock 을 모르지만 Playwright 자체의 chromium userDataDir SingletonLock 이 cross-process 안전을 보장 — 이 사실이 'gui-run.lock 은 단지 GUI process 내부 sequential gate' 라는 의미인데 코드 주석엔 없었음.",
+    "rule": "(1) Lock-collision skip 의 '3종 surface' 는 lock 충돌을 *감지하는* 코드(run-queue.startNext) 에 같이 둔다 — schedule-manager 에 두면 plist 측에서 fired-but-skipped 를 알 길이 없어 비대칭. emitSkip(item) 한 함수로 묶어 두 skip 분기 (exists 분기 + wx-race 분기) 모두에서 호출. (2) Renderer push 는 window 가 bound + alive 일 때만, OS Notification 은 Notification.isSupported() 가드, persisted record 는 항상 — 셋 다 독립적으로 try/catch 로 격리해 한 surface 실패가 다른 둘을 죽이지 않게. (3) Next-open banner 는 userdata.recordSkip → readPendingSkips → clearPendingSkips 의 3-API 로 표현, TTL(24h) 로 자연 만료. 파일은 .json 으로 atomic tmp→rename. (4) replayPendingSkipsOnReady() 는 webContents.isLoading() 분기 — loading 중이면 'did-finish-load' once, 아니면 setImmediate → 렌더러의 onScheduleSkipped subscription 등록 race 회피. (5) Boundary 주석 한 단락을 run-queue.ts head 에 명시: lock 은 GUI process 내부 coordination, cross-process 안전은 Playwright userDataDir SingletonLock 이 1차 — 후속자가 'launchd wrapper script 만들어야 하나' 같은 잘못된 길로 안 빠지게.",
+    "tags": [
+      "R-B6.8",
+      "R-T5.3",
+      "lock-collision",
+      "schedule-skipped",
+      "macOS-notification",
+      "next-open-banner",
+      "userdata-single-source",
+      "integration-verification",
+      "INV-3"
+    ]
+  },
+  {
+    "task": "T24",
+    "round": 1,
+    "problem": "Electron 에서 한 모듈의 예외(catalog reload throw, chokidar emitter 동기 throw, launchctl spawn ENOENT) 가 main process 를 그대로 죽이는 문제 — 사용자가 어떤 동작을 했는지도 모른 채 GUI 가 사라짐 (R-B4.1 'unwilling termination' 직접 위반). 또 IPC invoke handler 에서 throw 하면 renderer 가 받는 메시지가 'Error invoking remote method ...' 식의 Electron 포장 문자열이라 디버그/UX 양쪽에 무용지물.",
+    "cause": "Electron main process 는 일반 Node 프로세스 — process.uncaughtException 핸들러를 등록하지 않으면 single throw 가 곧 termination. chokidar/fsevents 콜백, launchctl child_process 의 'error' 이벤트, ipcMain.handle 의 sync throw 모두 별개 채널이라 한 곳에서 try/catch 만으로는 부족. IPC 측에서는 ipcMain.handle 내부의 promise rejection 은 renderer 에 에러로 전달되지만 Error 인스턴스가 아니거나 객체 throw 면 직렬화가 무너짐.",
+    "rule": "(a) error-bus 모듈 (gui/main/error-bus.ts) — `reportError(scope, err)` 단일 진입점에서 stderr 로그 + (window 가 있으면) PUSH_CHANNELS.appUncaughtError 로 renderer 알림 push. 이 함수 자체는 절대 throw 하지 않음 (last line of defense). (b) main entry 의 최상단(`app.requestSingleInstanceLock()` 이전) 에 `process.on('uncaughtException', ...)` + `process.on('unhandledRejection', ...)` 등록 → 모든 비포착 throw 가 toast 로 surface. (c) initCatalog/initRunHistory/initSchedules 호출은 각각 `safeInit('<scope>', fn)` 로 감싸서 한 서브시스템 실패가 다른 서브시스템 부팅을 막지 않음 — 'partial boot' 가능. (d) IPC invoke handler 는 safeInvoke() 래퍼로 통일: 실패 시 reportError 로 로그 + Error 인스턴스로 re-throw (renderer 의 await window.atcAPI.xxx() 의 catch 가 정상 동작). (e) renderer 측 ErrorToast 컴포넌트가 onAppUncaughtError 구독, top-left 에 amber 색 (destructive red 아님 — 앱은 살아있음) 토스트 스택 (max 4, 6s auto-dismiss, click to dismiss). SecondInstanceToast 는 top-right 이라 z-index 9999 / 9998 차등으로 겹치지 않음. (f) macOS 베이스라인 메뉴는 Menu.buildFromTemplate 의 role-based 항목(quit/copy/paste/minimize/togglefullscreen)만 사용 — 비즈니스 로직 없음, R-T14 권한 경계 깨지지 않음. devtools/reload 항목은 isDev 일 때만 노출하여 packaged build 에서 사용자가 실수로 devtools 띄우지 못하게.",
+    "tags": [
+      "error-handling",
+      "R-B4.1",
+      "uncaughtException",
+      "unhandledRejection",
+      "ipc-hardening",
+      "menu",
+      "resilience"
+    ]
+  },
+  {
+    "task": "T20",
+    "round": 1,
+    "problem": "R-B6.5 (폼 입력값이 ATC 선택 전환 시 비영속) 의 통합 검증 — 무엇이 검증이고 무엇이 새 코드인지 경계가 모호. T6 가 이미 useEffect([atc.atcPath]) reset + parent key={atcPath} 두 메커니즘을 깔아놨다면 추가 구현은 over-engineering. 한편 검증의 증거 (no localStorage, no sessionStorage, no electron persistence wired to form fields) 는 코드에 명시되지 않으면 다음 사람이 또 의심.",
+    "cause": "폼 상태가 React useState 1곳에만 있다는 것은 implicit fact — grep -r localStorage gui/ 가 빈 결과여야만 보장됨. 그러나 향후 누군가 \"폼 복원 편하게\" 라며 localStorage hook 을 추가하면 R-B6.5 then 절 (\"이전 입력값이 남지 않는다\") 이 즉시 깨짐. T20 의 가치는 (a) 현재 상태가 spec 을 만족함을 확인 (b) 미래의 회귀를 막을 anchor (코멘트) 를 남기는 것. 두 메커니즘 (effect reset + key remount) 중 어느 하나만 있어도 동작하지만 둘 다 두는 것은 defense-in-depth — parent 가 실수로 key 를 빼도 effect 가, effect 가 race 로 안 돌아도 key 가 커버.",
+    "rule": "R-Bx.y integration verification task = (1) requirements.md 에서 GWT 그대로 fetch (placeholder \"TBD\" / 빈 문자열이면 즉시 abort, 절대 behavior 만으로 추론하지 않는다 — GWT Gate). (2) 기존 구현이 GWT 만족하는지 코드 trace 로 확인 (file:line 인용). (3) 부정 요건 (\"localStorage 쓰지 마라\") 은 grep 으로 빈 결과 확인 + 해당 컴포넌트에 \"never in localStorage/sessionStorage/userData/disk\" 1줄 주석 anchor. (4) Defense-in-depth 메커니즘이 여러 개면 각각의 역할과 fallback 관계를 주석에 명시 (\"in-place prop swap 보호\" vs \"selection 마다 fresh state 보장\"). (5) submit 후 reset 여부는 GWT 의 when 절이 \"선택 다시\" 인지 \"submit 직후\" 인지 정확히 읽고 코멘트로 명시 — 본 case 는 selection change 만 트리거고 submit 후에는 의도적으로 유지 (재실행 편의).",
+    "tags": [
+      "form-state",
+      "reset-policy",
+      "R-B6.5",
+      "defense-in-depth",
+      "integration-verify",
+      "no-persistence"
+    ]
+  },
+  {
+    "task": "T19",
+    "round": 1,
+    "problem": "Happy path 통합 검증 (R-B1.1 3클릭, R-U2.3 Cmd+Enter any-focus, R-B3.1 preflight 게이팅) — 세 요건이 서로 다른 레이어(렌더러 UI, 글로벌 키보드 hook, main IPC 핸들러)에 흩어져 있어 '동작한다' 의 증거를 한 곳에 모으지 않으면 다음 회귀 시 누가 무엇을 보장했는지 잃어버린다. 또한 단위 테스트 러너(jest/vitest)가 없는 프로젝트라 통합 테스트 파일을 새로 만들면 (a) 새 의존성 추가 = T22 packaging 영향 (b) ATC 인 Playwright 로 GUI 자체를 테스트하는 건 scope-out — verification-only task 의 산출물이 '실제 동작 확인 + 코드 anchor 코멘트' 외에는 적절치 않다.",
+    "cause": "R-B1.1 의 '3 클릭' 은 (catalog item 클릭, [입력 폼 클릭], Run 버튼 클릭) 3 단계로 산식이 분명하지만 R-U2.3 '우측 패널 어디서든 Cmd+Enter' 는 React 의 focus 관리 방식에 따라 hook 이 component-level (right panel container) 인지 document-level 인지가 핵심. useKeyboardShortcuts 가 window.addEventListener 를 쓰면 자동으로 'any focus' 가 되고, useRef + element listener 였다면 깨졌을 것. R-B3.1 '실행을 즉시 트리거' 는 main side enqueueRun 이 runPreflight 를 await 한 *직후* pending.push 하느냐가 결정 — 두 줄 순서만 바뀌어도 spawn 후 preflight 가 되어 게이팅이 무효화된다. 세 가지 모두 '있냐 없냐' 가 아니라 '코드 라인 순서/scope' 가 contract.",
+    "rule": "Integration verification task (T19 형) 패턴: (1) GWT Gate 먼저 — given/when/then 셋 다 비어 있으면 즉시 abort, behavior 만으로 절대 추론 X. (2) 각 사브레크에 대해 코드 file:line 인용으로 trace 를 entry-point 파일(main.tsx) 상단 주석에 한 블록으로 응축 — 다음 사람이 '어디 보면 되는지' 한 번에 알 수 있게. (3) 새 코드 추가는 결함이 실재할 때만 (verification-only 의 경우 코드 무변경 + 코멘트만이 정답). (4) 단위 테스트 러너 부재 시 'integration smoke test 를 ATC 로 짜자' 같은 충동 회피 — npm run atc 는 윈들리 자동화 자체이지 GUI 자체의 단위 테스트가 아니다. (5) 3 클릭 산식: catalog click (필수) → input focus (0 또는 1 click, inputs.length 따라) → Run click (필수) = no-input 2, 1-input 3, ≤3 만족 — 3 이상 input 인 ATC 는 R-B1.1 의 '3 클릭 이내' 가 본질적으로 깨질 수 있으므로 contracts 갱신 시점에 cap 추가 검토 대상 (현재는 솔로 운영자 use-case 상 inputs ≤ 1 이 dominant — 회귀 anchor 만 남김). (6) Cmd+Enter any-focus 보장은 window.addEventListener('keydown') 이 단일 truth — 향후 component-level listener 로 리팩토링하면 R-U2.3 즉시 깨진다. main.tsx 주석에 'window-level keydown — do not move into a focus-trapped subtree' 라고 anchor 남기는 것이 옳음.",
+    "tags": [
+      "happy-path",
+      "integration-verify",
+      "R-B1.1",
+      "R-B3.1",
+      "R-U2.3",
+      "preflight-gating",
+      "keyboard-shortcut",
+      "verification-only"
+    ]
+  },
+  {
+    "task": "T25",
+    "round": 1,
+    "problem": "최종 packaging/docs 라운드에서 (a) 기존 npm run gui dev script 가 `gui/dist/main/index.js` (옛 평면 emit) 를 가리키는데 실제 tsc emit 은 `gui/dist/gui/main/index.js` (rootDir=repo root 결과, T8/T22 결정) — `electron-builder.yml` 은 이미 새 경로로 동기화되어 있었지만 dev 스크립트만 stale 이라 cold install 후 npm run gui 가 Cannot find module 로 죽는 path-drift, (b) electron-builder 의 `publish` 키 부재 vs `publish:null` 명시의 차이 — 부재는 'forgot to configure' 와 'intentionally disabled' 를 구분 못 함, (c) gitignore 의 reports/runs/ 처리: 직관은 'large per-run 산출물이니 ignore' 지만 contracts 의도는 'runs persist on disk and the GUI history panel reads them at any time' — gitignore 는 git tracking 만 영향이지 디스크 보존과는 무관하나, README 에 '지우지 마라' anchor 가 없으면 사용자가 `git clean -fdx` 같은 명령으로 실수로 날릴 위험.",
+    "cause": "(a) T22 의 새 path 동기화가 electron-builder.yml + extraMetadata.main + files 글롭만 갱신하고 package.json scripts 의 `gui` (dev) 한 줄을 빠뜨림 — 별도 backward-compat (gui:build:main = build:gui:main) 으로 alias 도 만들어 두는 바람에 dev script 2개 (`gui` / `gui:dev`) 가 모두 옛 경로 참조. 빌드 산출물이 양쪽 모두 디스크에 잔존(과거 build + 신규 build)할 때만 우연히 동작해 발견이 늦어짐 — clean checkout 에서는 즉시 실패. (b) electron-builder docs 상 publish 가 unset 이면 `null` 과 동일하게 동작하지만 grep 가능성/의도 표명 차원에서 명시가 좋음. yml header 의 자연어 코멘트 (\"autoUpdater is therefore not configured\") 만으로는 `grep publish` 가 빈 결과라 future 자동 업데이트 도입 시도가 회피 가능. (c) gitignore 는 `git add` 후보에서 빼는 메커니즘이지 디스크 보존과 무관 — 'persisted on disk' 의미를 'must be in gitignore vs must not be' 로 받으면 의미 충돌. 본 라운드 charter 는 reports/runs/ 를 .gitignore 에서 제외 (= git 추적 후보로 들어옴) 지시 — 이 결정의 의미는 '이 트리는 valuable 한 ATC 실행 기록이고 사용자가 git clean 류 명령에서 실수로 날리지 않아야 한다' — README troubleshooting + .gitignore 헤더 코멘트 두 군데에 anchor 필요.",
+    "rule": "(1) path-drift 방지: tsc emit 경로 변경 (rootDir 확장 등) PR 에서는 ① electron-builder.yml 의 files + extraMetadata.main ② package.json 의 모든 scripts (`gui`, `gui:dev`, `gui:build`, `build:gui`, `package:gui`) — 둘 다 한 commit 으로 묶어 `grep gui/dist/ package.json gui/electron-builder.yml` 후 stale 경로 0건 확인. backward-compat alias (`gui:build:main` = `build:gui:main`) 를 둘 거면 한쪽이 진실원본이고 다른 쪽은 thin 위임이라고 정의 — 둘 다 직접 정의하면 path-drift 가 두 배. (2) electron-builder `publish: null` 은 명시: yml 헤더 코멘트만으로는 grep 어려움, key 자체가 있어야 향후 `grep publish gui/electron-builder.yml` 1회로 '의도된 부재' 검증 가능. INV-4 (startup network 금지) cite 가 yml 코멘트에 1줄 들어가야 future 자동 업데이트 도입 시도가 즉시 막힘. (3) gitignore 의 의도는 항상 'git 추적에서 제외할 파일' 로만 해석 — '디스크 보존' 같은 디스크-side 의미는 gitignore 와 무관하다는 사실을 README + gitignore 코멘트 양쪽에 표기. reports/runs/ 를 ignore 에서 빼는 결정을 했다면 .gitignore 헤더 코멘트로 'reports/runs/ is intentionally NOT ignored — ATC run artifacts are persisted' 명시 + README 의 userData 아티팩트 절에서 '디스크 위치는 repo 안, GUI 가 read-only 로 소비, git clean 류 명령 사용 시 주의' anchor. (4) README 의 트러블슈팅 표는 실제 사용자가 새 노트북 setup 직후 1주일 안에 마주칠 가능성이 높은 5-7 항목만 — 'Cannot find module gui/dist/main' (path-drift 잔여), '.dmg Gatekeeper 차단' (notarization 없음), 'catalog stale' (handlerKeys 매니페스트 mismatch), 'single instance 즉시 종료' (의도된 동작), 스케줄 미발화 (launchctl 등록 확인 + 시스템 환경설정). (5) `.gitignore` 의 GUI 섹션은 헤더 코멘트 한 단락으로 '왜 이 경로들이 빌드 산출물인지 + reports/runs/ 는 왜 ignore 안 하는지' 둘 다 명시 — 향후 dist-installer 같은 legacy path 도 방어적으로 포함하여 yml 의 output dir 이 변경되어도 untracked artifact 유출 위험 0. (6) README 는 '안전선 (절대 금지)' 절을 명시적으로 두어 ATC YAML 편집 UI 추가 금지 / renderer env 직접 접근 금지 / win/linux 타겟 추가 금지 등 R-B5.2 + INV-3/4/7/8 부정 요건을 한 화면에 모음 — Claude 가 새 작업 시작 시 README 1회 읽으면 안전선 인지하도록 (RULES 와 중복이지만 README 에 잠깐만 들렀다 가는 사용자도 본다).",
+    "tags": [
+      "T25",
+      "packaging",
+      "readme",
+      "gitignore",
+      "path-drift",
+      "publish-null",
+      "electron-builder",
+      "INV-4",
+      "INV-8",
+      "R-T9.2",
+      "documentation"
+    ]
+  }
+]

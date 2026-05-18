@@ -1,0 +1,54 @@
+# 관부가세 base setting 변경 → bulk-apply → 첫 상품 업로드 설정 탭에서 매치 검증.
+#
+# 사전조건: setup project 가 로그인 + 해구대 진입 완료.
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=DELIVERY_INFO 진입
+#       → "관부가세 설정" SegmentedButton 의 현재 selected 확인
+#       → 다음 옵션으로 cycle 클릭 (부과 대상 아님 → 관부가세 포함 → 관부가세 미포함 → 부과 대상 아님)
+#       → snapshot = 새 selected.
+#   (2) /view2/interested-product 진입.
+#   (3) 첫 카드 1개 체크 + 기본 설정값 적용 → success toast 대기.
+#   (4) 첫 카드 클릭 → 상품 상세 진입.
+#   (5) "업로드 설정" 탭 클릭 → "관부가세 설정" Subheader 노출 대기.
+#   (6) 관부가세 SegmentedButton 의 현재 selected 추출 → snapshot 과 매치 검증.
+#
+# selected button 판정: BaseSegmentedButton 컴포넌트가 active prop 으로 styling 만 변경
+# (DOM 에 aria-pressed 같은 attribute 없음). span 자식의 computed opacity 가 1 (활성) vs 0.4 (비활성)
+# 인 점을 이용해 evaluate 로 판정.
+
+title: 관부가세 base setting 변경 후 첫 수집상품 업로드 설정 탭 매치 검증
+
+description: |
+  관부가세 base setting 변경 → bulk-apply → 첫 수집상품 업로드 설정 탭의 관부가세 SegmentedButton 매치 검증.
+
+  흐름: /view3/base-setting?category=DELIVERY_INFO → 관부가세 SegmentedButton 현재 selected → 다음 옵션으로 cycle 클릭 (3 옵션 순환) → snapshot → 수집상품 첫 카드 체크 + bulk-apply → success toast → 첫 카드 상세 → 업로드 설정 탭 → 관부가세 SegmentedButton selected 추출 → snapshot 매치.
+
+  selected 판정: BaseSegmentedButton 이 aria-pressed 등을 안 쓰므로 span 자식의 computed opacity (1 vs 0.4) 로 판정.
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: bump_and_snapshot_customs_tax
+    do: app.windly.cc/view3/base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto. 관부가세 설정 SegmentedButton 의 현재 selected 옵션 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함 중 1) 추출 → 다음 옵션으로 cycle 하여 click → 새 selected 를 snapshot 으로 기록.
+    expect: snapshot 에 새 selected option text 저장됨
+
+  - id: open_collected_list
+    do: 수집상품 목록 (/view2/interested-product) 진입.
+
+  - id: apply_base_setting_to_first
+    do: 첫 카드 1개 체크 → 상단 More(...) → 기본 설정값 적용 → 모달 적용 클릭 → success toast 대기.
+    expect: success toast 노출
+
+  - id: enter_first_product
+    do: 수집상품 첫 카드 클릭. 상세 URL 도달.
+
+  - id: open_upload_tab
+    do: 상품 상세에서 업로드 설정 탭 클릭. 관부가세 설정 Subheader 노출 대기.
+    expect: 업로드 설정 탭 active + 관부가세 설정 DOM 마운트
+
+  - id: verify_customs_tax_on_product
+    do: 관부가세 SegmentedButton 3개 중 selected 인 button text 추출 (active prop 으로 인해 자식 span opacity ≈ 1 인 button) → snapshot 과 매치 검증.
+    expect: 매치
+
+expected: 관부가세 설정이 글로벌 base setting 의 새 selected 와 정확히 일치. unhandled 0건.

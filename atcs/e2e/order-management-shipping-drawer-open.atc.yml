@@ -1,0 +1,104 @@
+# 주문 관리 - 배송준비중 탭 진입 -> 송장정보 수정 Drawer 노출 검증 (1단계)
+#
+# 시나리오:
+#   배송준비중(INSTRUCT) 탭에 1건 이상의 주문이 있는 상태에서 본 ATC 실행.
+#   (1) 세션 확보 (loginIfNeeded + enterHaegudaeWorkspace, fast-pass)
+#   (2) 배송준비중 탭 직접 진입 (orderStatus=INSTRUCT, viewport 1920x1080)
+#   (3) 로딩 인디케이터(상품을 불러오고 있어요) 종료 대기
+#   (4) 맨 위 OrderItem 의 marketOrderId 기록
+#   (5) 맨 위 row 의 체크박스(label) 클릭 -> 1개 선택됨
+#   (6) Controller 의 송장정보 수정 버튼 클릭 -> ControlDrawer 우측 슬라이드
+#   (7) Drawer header 송장정보 수정 + N개 visible
+#   (8) Drawer 안에 주문번호 {기록된 marketOrderId} visible
+#   (9) 택배사 Dropdown (placeholder 택배사 선택) visible
+#   (10) 송장번호 TextField (placeholder 송장번호 입력) visible
+#   (11) 푸터 취소 / 수정 완료 버튼 visible
+#   (12) 최종 스크린샷
+#
+# 본 ATC 는 실제 입력 + 수정 완료 + 배송중 변경 흐름의 1단계 (drawer 노출까지).
+# 다음 단계 ATC 는 별도 spec 에서 작성.
+#
+# 사전조건:
+#   - 사용자가 배송준비중 탭에 1건 이상의 주문 (방금 ACCEPT->INSTRUCT 변경된 것 등) 보유
+#   - .playwright-userdata 에 로그인 세션 박혀있음
+#   - windly-e2e-fresh project 에서 단독 실행 (setup 우회)
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/OrderManagement/index.tsx
+#       체크박스 선택 + Controller 의 송장정보 수정 버튼 -> setShowDrawerController(true)
+#   - src/features/OrderManagement/Controller/index.tsx (line 131-147)
+#       (status === INSTRUCT || DELIVERING) && 송장정보 수정 버튼 노출
+#   - src/features/OrderManagement/DrawerController/index.tsx
+#       ControlDrawer 컴포넌트 (BaseDrawer anchor=right)
+#   - src/features/OrderManagement/DrawerController/Header.tsx
+#       Text size=h2 송장정보 수정 + Text size=b3 {listNumber}개
+#   - src/features/OrderManagement/DrawerController/DeliveryCompanyDrowdown.tsx
+#       Dropdown placeholder=택배사 선택
+#   - src/features/OrderManagement/DrawerController/index.tsx (line 184-208)
+#       TextField placeholder=송장번호 입력
+
+title: 주문 관리 - 배송준비중 탭 송장정보 수정 Drawer 노출 검증
+
+description: |
+  주문 관리 — 배송준비중 탭 진입 → 송장정보 수정 Drawer 노출까지의 1단계만 검증하는 ATC.
+
+  흐름: 배송준비중 진입 → 첫 OrderItem marketOrderId 기록 → 체크박스 → 송장정보 수정 버튼 → drawer 슬라이드 → header / 주문번호 / 택배사 Dropdown / 송장번호 TextField / 푸터 버튼들 visible 확인.
+
+  drawer 안에서 실제 입력 + 수정 완료 흐름은 다음 단계 ATC (instruct-to-delivering) 가 다룸.
+  사전조건: 배송준비중 1+ 보유.
+inputs: {}
+
+steps:
+  - id: ensure_session
+    do: 로그인 + 해구대 워크스페이스 진입 확인 (loginIfNeeded + enterHaegudaeWorkspace, idempotent fast-pass).
+    expect: 로그인 + 해구대 안 상태.
+
+  - id: open_instruct_tab
+    do: global.windly.cc/view3/order-management?orderStatus=INSTRUCT 로 직접 goto. viewport 1920x1080 으로 키움. 주문 관리 타이틀 visible 확인.
+    expect: /view3/order-management?orderStatus=INSTRUCT 진입 + 주문 관리 타이틀 visible.
+
+  - id: wait_loading_finished
+    do: 로딩 인디케이터 (상품을 불러오고 있어요 텍스트) 가 보이면 hidden 까지 최대 60초 대기. 미노출이면 즉시 통과.
+    expect: 로딩 종료 후 OrderList 또는 EmptyList 안정 렌더.
+
+  - id: verify_has_instruct_order
+    do: 배송준비중 탭 카운트가 1 이상인지 확인. 0 이면 본 ATC 는 사전조건 미충족이므로 FAIL (배송준비중 주문이 1건 이상 있어야 함).
+    expect: 배송준비중 탭 카운트 >= 1.
+
+  - id: record_first_order_id
+    do: 맨 위 OrderItem 의 marketOrderId (긴 숫자) 텍스트 추출 후 in-memory 기록. Drawer 검증에 사용.
+    expect: 정수 marketOrderId 문자열 추출.
+
+  - id: select_first_order_checkbox
+    do: 첫 OrderItem 의 체크박스 label 클릭. CheckBox 컴포넌트는 input display=none + 부모 label 클릭으로 활성. Controller 의 N개 선택됨 라벨이 1개 선택됨 으로 변하는지 확인.
+    expect: 1개 선택됨 라벨 visible.
+
+  - id: click_edit_shipping_info_button
+    do: Controller 의 송장정보 수정 버튼 클릭. EditPencilIcon + 송장정보 수정 텍스트의 button. setShowDrawerController(true) 트리거.
+    expect: 클릭 성공.
+
+  - id: verify_drawer_header
+    do: Drawer header 의 송장정보 수정 (size h2) + 1개 (size b3) 텍스트 두 가지가 visible 한지 확인. 최대 10초 대기.
+    expect: 송장정보 수정 + 1개 모두 visible.
+
+  - id: verify_drawer_order_info
+    do: Drawer 안의 Content 카드에 주문번호 {기록된 marketOrderId} 텍스트가 visible 한지 확인. 즉 올바른 주문이 drawer 에 로드됐는지 검증.
+    expect: 기록된 marketOrderId 가 drawer 안에서 visible.
+
+  - id: verify_delivery_company_dropdown
+    do: 택배사 라벨 + Dropdown (placeholder 택배사 선택) visible 확인. Dropdown 은 enabled 가 show=true 일 때만 데이터 fetch — 한 번 클릭해서 옵션 목록이 펼쳐지는지는 확인 안 함 (1단계라 selector 노출까지만).
+    expect: 택배사 라벨 + placeholder 텍스트 visible.
+
+  - id: verify_tracking_number_input
+    do: 송장번호 라벨 + TextField (placeholder 송장번호 입력) visible 확인.
+    expect: 송장번호 라벨 + placeholder 텍스트 visible.
+
+  - id: verify_footer_buttons
+    do: Drawer 푸터의 취소 + 수정 완료 버튼이 visible 한지 확인.
+    expect: 취소 + 수정 완료 버튼 visible.
+
+  - id: capture_drawer_screenshot
+    do: Drawer 가 열린 상태의 전체 화면 PNG 캡쳐 후 attach.
+    expect: 스크린샷 attach 정상.
+
+expected: 배송준비중 탭 첫 주문 체크 후 송장정보 수정 버튼 클릭 -> ControlDrawer 정상 노출. 헤더/주문번호/택배사 dropdown/송장번호 input/푸터 버튼 모두 visible. unhandled 0건.

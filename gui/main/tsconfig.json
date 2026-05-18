@@ -1,0 +1,29 @@
+{
+  "//": "Dedicated tsconfig for compiling Electron main + preload to commonjs JS under gui/dist/.",
+  "//R-T1.3": "strict TS — any forbidden (R-T1.3 / C1 / .claude/rules/typescript-strict.md).",
+  "//INV-3": "rootDir spans gui/* and lib/* (env access via lib/config — INV-7); never imports tests/recoveries/atcs.",
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "outDir": "../dist",
+    "rootDir": "../..",
+    "noEmit": false,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "./**/*.ts",
+    "../preload/**/*.ts",
+    "../shared/**/*.ts",
+    "../../lib/config.ts",
+    "../../lib/atc-loader.ts",
+    "../../lib/atc-schema.ts"
+  ],
+  "exclude": ["../renderer/**/*", "../dist/**/*", "../vite.config.mts", "node_modules"]
+}

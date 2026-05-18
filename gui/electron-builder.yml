@@ -1,0 +1,65 @@
+# electron-builder config — macOS only (R-T1.2, R-T9.2, INV-8).
+#
+# Design notes:
+#   - Targets: .app (implicit), .dmg, .zip. No win/, no linux/ targets — this is
+#     a personal local-only tool (D10 / CLAUDE.md (b)), packaging for any other
+#     OS is intentionally absent and must not be added without re-opening the
+#     architecture decision in requirements.md.
+#   - Network at startup is disallowed (INV-4); autoUpdater is therefore not
+#     configured.
+#   - The Playwright runtime reads atcs/, tests/, recoveries/, lib/ from the
+#     project repo at spawn time using its working directory — those trees are
+#     intentionally *not* shipped inside the .app. Only the Electron shell
+#     itself (gui/dist) ships. See INV-3 / R-T2.x.
+#   - Hardened runtime + notarization stay disabled because this is a personal
+#     tool with no distribution channel.
+appId: cc.windly.atc-runner
+productName: "Windly ATC Runner"
+directories:
+  output: gui/dist/release
+  buildResources: gui/build
+# Files that ship inside the .app bundle. Everything else (project source,
+# atcs/, tests/, recoveries/, lib/, reports/runs/) is consumed at runtime
+# from the project's working directory.
+#
+# Emit-path note: tsc rootDir spans the repo root (gui/main/tsconfig.json
+# include allows gui/** + lib/config + lib/atc-loader + lib/atc-schema), so
+# the compiled main/preload/shared/lib live at gui/dist/gui/** and
+# gui/dist/lib/**. The renderer (vite build) lives at gui/dist/renderer/**.
+files:
+  - gui/dist/gui/**
+  - gui/dist/lib/**
+  - gui/dist/renderer/**
+  - package.json
+  - "!**/*.map"
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,*.d.ts,*.ts,*.tsx,test/**,tests/**,__tests__/**,docs/**}"
+extraMetadata:
+  main: gui/dist/gui/main/index.js
+mac:
+  # R-T9.2 — only mac targets. Adding win:/linux: here violates INV-8.
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.developer-tools
+  # Local-only personal tool; no notarization / no hardened runtime.
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  identity: null
+asar: true
+# Reserved for future explicit per-bundle extras. Project source must NOT be
+# duplicated here — Playwright reads it from the user's project repo.
+extraResources: []
+# Publish config explicitly disabled.
+#   - INV-4: no network access at startup, which precludes autoUpdater.
+#   - D10 / CLAUDE.md (b): personal local-only tool, no distribution channel.
+#   - electron-builder treats `null` as "do not generate update metadata
+#     (latest-mac.yml) and do not attempt to publish". Setting this here makes
+#     the intent grep-visible — if anyone adds a `publish:` block later it
+#     must come with a re-opened decision in requirements.md.
+publish: null

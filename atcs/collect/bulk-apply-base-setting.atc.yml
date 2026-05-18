@@ -1,0 +1,50 @@
+# 수집상품에서 N개 상품 선택 후 "기본 설정값 적용" 일괄 실행 검증
+#
+# 흐름:
+#   (1) 수집상품 목록 진입 → (2) 카드 N개 체크박스 선택
+#   → (3) 상단 More(...) 메뉴 → "기본 설정값 적용" 클릭 → 확인 모달의 "적용" 클릭
+#   → (4) success toast "N개 상품이 일괄 업데이트 되었습니다." 대기로 검증
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+#           수집상품 목록에 카드 N+개 존재 (없으면 fail).
+#
+# 코드 출처 (sesame):
+#   - src/features/InterestedProduct/InterestedProduct.tsx
+#       AnchoredModalItem "기본 설정값 적용" → setShowBulkSyncBaseSettingModal(true)
+#   - src/features/InterestedProduct/BulkSyncBaseSettingModal/index.tsx
+#       Modal title="기본 설정값 적용", rightButtonText="적용"
+#   - src/features/InterestedProduct/BulkSyncBaseSetting.tsx
+#       handleApplySetting → makeToast(`${result.length}개 상품이 일괄 업데이트 되었습니다.`)
+
+title: 수집상품 N개 선택 후 기본 설정값 적용 일괄 실행
+
+description: |
+  수집상품 목록에서 N개 카드를 체크박스로 선택한 뒤 상단 More(...) 메뉴 → "기본 설정값 적용" 일괄 실행이 정상 동작하는지 검증.
+
+  성공 토스트 "N개 상품이 일괄 업데이트 되었습니다." 가 떠야 PASS.
+
+  입력: product_count (일괄 적용할 상품 수, 2~4 권장).
+  사전조건: 수집상품 목록에 카드 product_count+ 개 존재.
+inputs:
+  product_count:
+    type: number
+    description: 일괄 적용할 상품 수 (2~4 권장, 카드 첫 N개 선택)
+    example: '3'
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭하여 /view2/interested-product 진입
+
+  - id: select_n_products
+    do: 수집상품 카드 첫 inputs.product_count 개 체크박스 선택. 선택 후 상단 More 버튼이 enabled 되는지 확인
+    expect: 체크된 카드 수 = inputs.product_count
+
+  - id: open_apply_base_setting_modal
+    do: 상단 More(...) 버튼 클릭 → 드롭다운에서 "기본 설정값 적용" 항목 클릭. 확인 모달이 노출됨
+    expect: 모달 title "기본 설정값 적용" 노출
+
+  - id: confirm_and_wait_complete
+    do: 확인 모달의 "적용" primary 버튼 클릭 후 success toast "${N}개 상품이 일괄 업데이트 되었습니다." 가 노출될 때까지 대기 (최대 60초)
+    expect: 정확한 N개 매칭 toast 노출 + "일부 상품이 업데이트되지 않았습니다" toast 가 안 뜸
+
+expected: N개 상품이 일괄 업데이트 toast 로 success 검증. unhandled 0건.

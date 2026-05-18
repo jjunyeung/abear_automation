@@ -1,0 +1,54 @@
+# 임의 수집상품 → 에러체크 → 빨간 탭 검출 → (있으면) walk + fix → verify clean.
+#
+# 통합 파이프라인. 진단/수정 양쪽을 한 ATC 로 묶음.
+#
+# 흐름:
+#   (1) 수집상품 메뉴
+#   (2) 첫 .product-card 진입
+#   (3) 에러체크 트리거 (체크마크 svg)
+#   (4) 빨간 탭 식별 (진단 로그 — 어느 탭 / 몇 개)
+#   (5) fix_red_tabs: 빨간 탭이 0 개면 skip. 1 개 이상이면 multi-pass 로
+#       (a) 각 빨간 탭 walkAndFixTab → 자동수정 가능한 에러 fix
+#       (b) 에러체크 재트리거 → 빨간 탭 재식별
+#       (c) 변화 없거나 max pass 도달 시 종료
+#   (6) verify_all_clean: 최종 dot 상태에 빨간 0개 여야 ok.
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#           수집상품 list 에 카드 ≥1 개 존재.
+#
+# 입력: 없음. 첫 카드를 그대로 사용.
+#
+# 비고: source_product_id 로 특정 상품을 fix 하려면 atcs/error-check/product-error-fix.atc.yml.
+#       이 ATC 는 "임의 첫 상품 + 자동수정 가능한 만큼만 자동 수정" 시나리오.
+
+title: 에러체크 → 빨간 탭 진단 → (있으면) 자동 수정 → verify clean
+
+description: |
+  임의 수집상품 → 에러체크 → 빨간 탭 진단 → (있으면) 자동 수정 → verify clean 까지 묶은 통합 파이프라인 ATC.
+
+  흐름: 수집상품 메뉴 → 첫 카드 진입 → 에러체크 트리거 → 빨간 탭 식별 → multi-pass 자동 수정 (탭 walk + fixTabErrors → 에러체크 재트리거) → 최종 빨간 0건 검증.
+
+  입력값 없음 — 첫 카드 그대로 사용. 특정 상품 fix 가 필요하면 product-error-fix.atc.yml 사용.
+  사전조건: 수집상품에 카드 ≥1 개.
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭하여 view2/interested-product 진입
+
+  - id: open_first_product
+    do: 첫 .product-card 의 detail 링크 클릭하여 view2/interested-product/<digits> URL 도달
+
+  - id: trigger_error_check
+    do: 페이지 상단 체크마크 svg 아이콘 버튼 클릭 (에러체크 트리거)
+
+  - id: inspect_red_tabs
+    do: 7개 탭 dot 상태 read 후 빨간 탭 목록을 진단 로그로 출력 (어느 탭 / 몇 개 / 각 탭의 배너 에러 + 자동수정 가능성).
+
+  - id: fix_red_tabs
+    do: 빨간 탭 0개면 skip. 1개 이상이면 multi-pass (max 3) 로 각 빨간 탭 walkAndFixTab 호출 + 에러체크 재트리거. 빨간 탭 수가 줄어들지 않거나 0이 되면 종료.
+
+  - id: verify_all_clean
+    do: 최종 7개 탭 dot 상태에 빨간 탭이 0개인지 확인. 1개라도 남아있으면 fail (어느 탭 + 메시지).
+
+expected: 6개 step 모두 success, unhandled 0건. 자동수정 가능한 에러는 모두 fix 되어 최종 빨간 탭 0개.

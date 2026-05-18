@@ -1,0 +1,69 @@
+# 재고 (옵션별 재고량) base setting 변경 → bulk-apply → 첫 상품 판매가 탭 SalesPriceTable 매치 검증.
+#
+# ⚠️ 알려진 한계 — 이 ATC 는 현재 환경에서 fail 임:
+#   sesame BulkSyncBaseSetting.handleApplySetting (sesame/src/features/InterestedProduct/BulkSyncBaseSetting.tsx)
+#   가 product 에 적용하는 필드 목록에 **defaultStocks / useDefaultStocks / maxPurchasePerPerson 이
+#   포함되지 않음**. "기본 설정값 적용" 클릭이 재고/구매 제한은 옮기지 않으므로 동일 패턴
+#   (base setting 변경 + bulk-apply) 으로 product 검증이 불가능.
+#
+#   재고를 검증하려면:
+#   - 새 URL 수집 시점에 base setting.defaultStocks 가 적용되는지 확인 (수집-단계 시나리오)
+#   - 또는 상품 detail 에서 직접 재고 input 을 변경 + 저장 검증 (product-단계 시나리오)
+#   둘 다 본 ATC 의 base→bulk-apply→product 패턴과 다름.
+#
+# 사전조건: setup project 가 로그인 + 해구대 진입 완료. useDefaultStocks=ON 이어야 base setting
+# 의 defaultStocks 가 옵션별 재고로 일괄 적용됨 (=OFF 면 소싱몰 실제 재고라 base setting 과 무관).
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=STOCK_LIMIT 진입
+#       → "재고" FormField 의 단일 input (defaultStocks) 현재값 +1 → 변경값 snapshot.
+#   (2) /view2/interested-product 진입.
+#   (3) 첫 카드 1개 체크 + 기본 설정값 적용 → success toast.
+#   (4) 첫 카드 클릭 → 상품 상세.
+#   (5) 판매가 탭 클릭 → SalesPriceTable 마운트 대기 (옵션 행 별 재고 input 노출).
+#   (6) 페이지 안 input[value=새 stock] 가 ≥1 인지 확인 (= base setting 의 defaultStocks 가 옵션
+#       행에 적용됨). 옵션 수와 정확 매치까지는 검증하지 않음 (수집 시점/소싱몰별 변동 가능).
+#
+# 검증 제외:
+#   - "구매 제한 / 인당 최대 구매수량" — sesame 상품 detail UI 에 노출되지 않아 UI 검증 불가.
+#     (validation 메시지로만 언급. 실제 표시 위치 확인 안 됨)
+
+title: 재고 base setting 변경 후 첫 수집상품 판매가 탭 옵션 재고 매치 검증
+
+description: |
+  ⚠️ 알려진 한계 — 현재 환경에서 fail 임 (BulkSyncBaseSetting 이 defaultStocks/useDefaultStocks/maxPurchasePerPerson 을 적용 대상에서 제외).
+
+  원래 의도: 재고 (defaultStocks) base setting 변경 → bulk-apply → 첫 수집상품 판매가 탭 SalesPriceTable 의 옵션별 재고 input 이 새 값으로 일괄 적용됐는지 매치 검증.
+
+  대안 (다른 ATC 로 검증해야 함):
+  - 새 URL 수집 시점에 defaultStocks 적용되는지 (수집-단계 시나리오)
+  - 또는 상품 detail 에서 직접 재고 input 변경 + 저장 검증 (product-단계 시나리오)
+
+  useDefaultStocks=ON 이어야 base setting 의 defaultStocks 가 옵션별 재고로 일괄 적용됨.
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: bump_and_snapshot_stock
+    do: app.windly.cc/view3/base-setting?setting=COMMON&category=STOCK_LIMIT 직접 goto. 재고 FormField 의 단일 input (옵션별 재고량 defaultStocks) 의 현재값 +1 (max 10000 이면 -1) 변경 + onBlur → 변경된 값 snapshot.
+    expect: input 변경 + reformat 반영
+
+  - id: open_collected_list
+    do: 수집상품 목록 (/view2/interested-product) 진입.
+
+  - id: apply_base_setting_to_first
+    do: 첫 카드 1개 체크 → 상단 More(...) → 기본 설정값 적용 → 모달 적용 클릭 → success toast 대기.
+    expect: success toast 노출
+
+  - id: enter_first_product
+    do: 수집상품 첫 카드 클릭. 상세 URL 도달.
+
+  - id: open_sales_tab
+    do: 상품 상세에서 판매가 탭 클릭. SalesPriceTable 의 첫 옵션 row 마운트 대기 — input 다수 노출 + 재고 컬럼 헤더.
+    expect: SalesPriceTable mount
+
+  - id: verify_stock_on_product
+    do: 페이지 input 들 중 value 가 snapshot 의 새 stock 값과 정확히 일치하는 input 이 ≥1 개 인지 확인. (옵션이 여러 개라도 useDefaultStocks=ON 이면 모두 같은 값으로 일괄 적용됨)
+    expect: 매치 input ≥1
+
+expected: 재고 base setting 의 defaultStocks 가 첫 수집상품 옵션 재고에 반영됨. unhandled 0건.

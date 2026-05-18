@@ -1,0 +1,130 @@
+/* BatchQueue — shadcn-admin-kit 의 Card + bulk-actions-toolbar + table row 패턴 참고. */
+
+.batch-queue {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--sk-bg);
+  font-size: 13px;
+  color: var(--sk-fg);
+}
+
+/* ── Toolbar (toolbar 인 척 — 위 sticky) ── */
+.batch-queue__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--sk-border);
+  background: var(--sk-muted);
+  flex-shrink: 0;
+}
+
+.batch-queue__title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sk-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── 큐 리스트 = data-table style (행마다 hover, 좌측 status indicator) ── */
+.batch-queue__list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.batch-queue__row {
+  display: grid;
+  grid-template-columns: 28px 28px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius);
+  background: var(--sk-card);
+  transition: background 80ms ease, border-color 80ms ease;
+}
+.batch-queue__row:hover {
+  background: var(--sk-accent);
+  border-color: color-mix(in oklch, var(--sk-border) 60%, var(--sk-fg) 10%);
+}
+
+.batch-queue__status {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.batch-queue__index.bp6-tag {
+  min-width: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.batch-queue__row-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.batch-queue__row-domain.bp6-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.batch-queue__row-title {
+  color: var(--sk-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-queue__row-actions { flex-shrink: 0; }
+
+/* ── 행 진행 상태 ── */
+.batch-queue__row--running {
+  background: color-mix(in oklch, var(--sk-info) 8%, var(--sk-card));
+  border-color: color-mix(in oklch, var(--sk-info) 35%, var(--sk-border));
+}
+.batch-queue__row--running .batch-queue__row-title { font-weight: 600; }
+
+.batch-queue__row--done {
+  opacity: 0.6;
+  background: var(--sk-muted);
+}
+.batch-queue__row--done .batch-queue__row-title {
+  text-decoration: line-through;
+  color: var(--sk-muted-fg);
+}
+
+.batch-queue__row--failed {
+  background: color-mix(in oklch, var(--sk-destructive) 6%, var(--sk-card));
+  border-color: color-mix(in oklch, var(--sk-destructive) 30%, var(--sk-border));
+}
+.batch-queue__row--failed .batch-queue__row-title {
+  color: var(--sk-destructive);
+}

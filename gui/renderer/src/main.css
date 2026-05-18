@@ -1,0 +1,909 @@
+/* Renderer shell layout — split-pane skeleton.
+ * Catalog (left) | Form (center) | Live/Report (right).
+ * R-U2.2: 1440×900 viewport must show Run button without scrolling.
+ */
+
+@import '@blueprintjs/core/lib/css/blueprint.css';
+@import '@blueprintjs/core/lib/css/blueprint-design-tokens.css';
+@import '@blueprintjs/icons/lib/css/blueprint-icons.css';
+@import 'normalize.css';
+
+/* Tailwind v4 — base/preflight 는 Blueprint 와 충돌하므로 제외.
+ * theme/utilities 만 가져와서 shadcn primitives 가 동작하도록.
+ * (Blueprint normalize.css 가 이미 base reset 역할 수행 중) */
+@layer theme, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* shadcn 디자인 토큰 — shadcn-admin-kit/src/index.css 의 :root 값 그대로.
+ * @theme inline 으로 Tailwind v4 의 color- prefix 와 매핑. */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* shadcn-style design tokens (참고: shadcn-admin-kit/src/index.css).
+   카탈로그가 이 토큰을 쓰는 shadcn primitives 로 그려진다. */
+:root {
+  /* shadcn-admin-kit 의 :root 값과 동일 (light theme). */
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* 호환용 — 기존 카탈로그 CSS 가 --sk-* 를 참조. */
+  --sk-radius: var(--radius);
+  --sk-radius-sm: calc(var(--radius) - 4px);
+  --sk-radius-md: calc(var(--radius) - 2px);
+  --sk-bg: var(--background);
+  --sk-fg: var(--foreground);
+  --sk-card: var(--card);
+  --sk-muted: var(--muted);
+  --sk-muted-fg: var(--muted-foreground);
+  --sk-accent: var(--accent);
+  --sk-accent-fg: var(--accent-foreground);
+  --sk-border: var(--border);
+  --sk-input: var(--input);
+  --sk-ring: var(--ring);
+  --sk-primary: var(--primary);
+  --sk-primary-fg: var(--primary-foreground);
+  --sk-destructive: var(--destructive);
+  --sk-row-h: 38px;
+  --sk-info: oklch(0.62 0.16 250);
+}
+
+* { box-sizing: border-box; }
+
+/* Tailwind preflight 미사용 — `border` utility 가 currentColor (=검정) 로 떨어지지
+ * 않도록 모든 요소의 border-color 디폴트를 옅은 회색으로. */
+*, *::before, *::after {
+  border-color: var(--border);
+}
+
+/* heading/p 기본 margin 도 preflight 가 빼주던 것이라 직접 reset.
+ * Radix AccordionPrimitive.Header 가 <h3> 를 써서 위아래 공백을 만들던
+ * 문제도 같이 해결. ReportPanel 마크다운 영역은 따로 복원. */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+p { margin: 0; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #111;
+  background: #fafafa;
+}
+
+.app-shell {
+  display: grid;
+  /* 항상 LNB | 메인 컨텐츠 (gridCols = 'auto 1fr'). gridTemplateColumns 은
+   * App 의 inline style 로 set 되지만 현재는 항상 'auto 1fr' 이므로 fallback 동일. */
+  grid-template-columns: auto 1fr;
+  /* 행: GNB (auto) | 메인 컨텐츠 (1fr). sidebar 는 두 행 모두 span. */
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* LNB + 카탈로그 패널이 들어있는 sidebar — GNB 아래 row 2 에 위치.
+ * GNB 가 없을 때 (설정 화면) 는 row 1 의 auto 가 0 으로 collapse 돼 sidebar 가 전체 높이를 채움. */
+.app-shell__sidebar {
+  grid-row: 2;
+  grid-column: 1;
+}
+
+/* 자동화 워크플로 GNB — 화면 최상단을 풀-너비로 가로지르는 nav 바 (LNB 위에).
+ * 항목들은 inner 컨테이너 안에서 가운데 정렬, 항목 사이에는 chevron 구분자. */
+.app-shell__gnb {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  min-height: 44px;
+}
+
+.app-shell__gnb-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-shell__gnb-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-shell__gnb-sep {
+  color: var(--muted-foreground);
+  opacity: 0.55;
+  margin: 0 2px;
+}
+
+.app-shell__gnb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  letter-spacing: 0.01em;
+}
+.app-shell__gnb-item:hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--accent);
+}
+.app-shell__gnb-item:disabled,
+.app-shell__gnb-item[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.app-shell__gnb-item--active {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.app-shell__gnb-item--active:hover:not(:disabled) {
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.app-shell__gnb-item-label {
+  white-space: nowrap;
+}
+.app-shell__gnb-item-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* form / right 영역은 항상 row 2, col 2 부터 끝까지. */
+.app-shell__form,
+.app-shell__right {
+  grid-row: 2;
+  grid-column: 2 / -1;
+  min-height: 0;
+}
+
+/* ── Bulk-actions popover (카탈로그 하단 floating pill) ──
+ * width:max-content 으로 한국어 텍스트가 절대 줄바꿈되지 않도록.
+ * Tailwind 유틸 의존 제거 — plain CSS 가 가장 안정. */
+.app-shell__bulk-popover {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 30;
+  display: none;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  white-space: nowrap;
+  padding: 8px 14px;
+  background: var(--popover, var(--background));
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateX(-50%);
+}
+.app-shell__bulk-popover--open {
+  display: inline-flex;
+}
+
+.app-shell__bulk-popover-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  word-break: keep-all;
+  letter-spacing: -0.005em;
+}
+
+/* 좌측 사이드바: LNB 아이콘바 + 활성 패널들의 가로 분할 (최대 3개). */
+.app-shell__sidebar {
+  display: flex;
+  flex-direction: row;
+  border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-shell__lnb {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 8px 6px;
+  gap: 4px;
+  border-right: 1px solid var(--border);
+  background: var(--muted);
+}
+
+/* LNB 항목 — 아이콘 + 라벨 항상 표시. 활성 상태는 primary tint. */
+.app-shell__lnb-item {
+  width: 52px;
+  height: 56px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  font: inherit;
+  padding: 0;
+}
+.app-shell__lnb-item:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.app-shell__lnb-item--active {
+  background: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.app-shell__lnb-item--active:hover { background: var(--background); }
+
+.app-shell__lnb-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-shell__lnb-item-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* LNB 위쪽 항목 그룹과 아래쪽(설정) 사이 flex spacer — 설정을 LNB 맨 밑에 고정. */
+.app-shell__lnb-spacer {
+  flex: 1 1 auto;
+}
+
+.app-shell__sidebar-panels {
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+}
+
+.app-shell__sidebar-panel {
+  /* width 는 inline style 로 설정 (App 의 catalogWidth state). 기본 610px. */
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative; /* resizer absolute 위치 기준 */
+  /* 카탈로그 영역을 카드처럼 — 부드러운 옅은 테두리 + 둥근 코너 + 약간의 inset. */
+  margin: 8px 8px 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--background);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 패널 우측 드래그 핸들 — 4px wide, hover 시 강조. 마지막 패널의 핸들은
+ * sidebar 와 form 경계에 위치 → 드래그하면 sidebar 가 커지고 form 이 좁아짐. */
+.app-shell__sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+  background: transparent;
+}
+.app-shell__sidebar-resizer:hover,
+.app-shell__sidebar-resizer:active {
+  background: #2563eb;
+  opacity: 0.5;
+}
+
+.app-shell__sidebar-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  min-height: 30px;
+}
+
+.app-shell__sidebar-panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* sidebar-panel-close 버튼 모양은 Blueprint Button(minimal small) 이 처리. */
+
+.app-shell__sidebar-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__sidebar-panel-body > .catalog-panel,
+.app-shell__sidebar-panel-body > .batch-queue {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-shell__form {
+  overflow-y: auto;
+}
+
+.app-shell__form-empty {
+  padding: 32px;
+  color: #6b7280;
+}
+
+.app-shell__right {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Live/Report 탭 모양은 Blueprint Tabs 가 처리. 컨테이너 padding 만. */
+.app-shell__right-tabbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+.app-shell__right-tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-shell__right-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-shell__live-placeholder {
+  padding: 24px;
+  color: #6b7280;
+}
+
+/* InputForm styling */
+.atc-input-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.atc-input-form__header { margin-bottom: 4px; }
+.atc-input-form__title  {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.atc-input-form__meta {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  display: flex;
+  gap: 8px;
+}
+
+/* ATC YAML 의 description 필드 — 헤더 바로 아래 회색 박스로 표시.
+ * 작성자가 "이 TC 가 뭐 하는지" 적은 메모. 줄바꿈 보존 (pre-line). */
+.atc-input-form__description {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #475569;
+  background: #f8fafc;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 4px;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.atc-input-form__fragment-tag {
+  color: #b45309;
+  border: 1px solid #fcd34d;
+  background: #fef3c7;
+  padding: 0 6px;
+  border-radius: 3px;
+}
+
+.atc-input-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atc-input-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.atc-input-form__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.atc-input-form__description {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* input/error/run 모양은 Blueprint InputGroup/Callout/Button 이 처리. */
+.atc-input-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.atc-input-form__no-inputs {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * SchedulePanel
+ * ──────────────────────────────────────────────────────────────────────── */
+.schedule-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+.schedule-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.schedule-panel__loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.schedule-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-panel__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-panel__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.schedule-panel__card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.schedule-panel__card-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.schedule-panel__card-inputs {
+  font-size: 12px;
+  color: #374151;
+}
+
+.schedule-panel__card-inputs summary {
+  cursor: pointer;
+  user-select: none;
+  color: #6b7280;
+  padding: 2px 0;
+}
+
+.schedule-panel__card-inputs ul {
+  margin: 4px 0 0 0;
+  padding-left: 18px;
+}
+
+.schedule-panel__card-inputs code {
+  background: #f3f4f6;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * ScheduleDialog — 전면 개편 디자인
+ * ──────────────────────────────────────────────────────────────────────── */
+.schedule-dialog .bp6-dialog-body {
+  padding: 0;
+}
+
+.schedule-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 헤더 요약 chip stripe */
+.schedule-dialog__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #f5f8fa;
+  border-bottom: 1px solid #e5e8eb;
+  flex-wrap: wrap;
+}
+
+/* 섹션 (1.TC / 2.언제 / 3.입력값) */
+.schedule-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.schedule-dialog__section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.schedule-dialog__section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: #2d72d2;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.schedule-dialog__section-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.schedule-dialog__section-spacer {
+  flex: 1;
+}
+
+/* 잠금 모드: tag 들만 stack */
+.schedule-dialog__locked-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+/* TC picker */
+.schedule-dialog__picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-dialog__picker-list {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e5e8eb;
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.schedule-dialog__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-dialog__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f5f8fa;
+  border-bottom: 1px solid #ebeef1;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f6b7c;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.schedule-dialog__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1c2127;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.schedule-dialog__row:hover:not(:disabled) {
+  background: #f5f8fa;
+}
+
+.schedule-dialog__row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.schedule-dialog__row--checked {
+  background: rgba(45, 114, 210, 0.08);
+  border-left-color: #2d72d2;
+}
+
+.schedule-dialog__row--checked:hover:not(:disabled) {
+  background: rgba(45, 114, 210, 0.12);
+}
+
+.schedule-dialog__row-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 언제 (when) */
+.schedule-dialog__when {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.schedule-dialog__when-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 30px;
+}
+
+.schedule-dialog__when-label {
+  width: 60px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f6b7c;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.schedule-dialog__time-input {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border: 1px solid #c5cbd3;
+  border-radius: 4px;
+  background: white;
+  color: #1c2127;
+  width: 120px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.schedule-dialog__time-input--wide {
+  width: 200px;
+}
+
+.schedule-dialog__time-input:focus {
+  outline: none;
+  border-color: #2d72d2;
+  box-shadow: 0 0 0 2px rgba(45, 114, 210, 0.2);
+}
+
+.schedule-dialog__time-input:disabled {
+  background: #f5f8fa;
+  cursor: not-allowed;
+}
+
+/* 요일 토글 칩 */
+.schedule-dialog__weekday {
+  min-width: 36px;
+  font-weight: 500;
+}
+
+.schedule-dialog__weekday--weekend {
+  color: #c23030;
+}
+
+.schedule-dialog__weekday--weekend.bp6-active,
+.schedule-dialog__weekday--weekend[aria-pressed='true'] {
+  color: white;
+}
+
+/* 입력값 — 컴팩트한 inline 카드 */
+.schedule-dialog__inputs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.schedule-dialog__atc-card {
+  border: 1px solid #e5e8eb;
+  border-radius: 4px;
+  background: white;
+  overflow: hidden;
+}
+
+.schedule-dialog__atc-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #fafbfc;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.schedule-dialog__atc-card-head:hover {
+  background: #f0f3f6;
+}
+
+.schedule-dialog__atc-card-idx {
+  font-size: 11px;
+  color: #5f6b7c;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule-dialog__atc-card-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.schedule-dialog__atc-card-body {
+  padding: 10px 12px;
+  border-top: 1px solid #ebeef1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-dialog__input-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.schedule-dialog__input-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5f6b7c;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.schedule-dialog__headless-row {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #ebeef1;
+}

@@ -1,0 +1,51 @@
+# 등록상품 맨 위 상품 삭제 → 목록 확인
+#
+# 흐름:
+#   (1) 등록상품 메뉴
+#   → (2) 맨 위 상품 카드의 product code 캡처 (href 에서)
+#   → (3) 그 row 의 체크박스 클릭, 상단 상품 삭제 버튼이 enabled 되는지 확인
+#   → (4) 상품 삭제 버튼 클릭 → 스토어 선택 모달 노출
+#   → (5) 전체 선택 클릭 → 모든 마켓 체크
+#   → (6) 모달의 삭제 버튼 클릭 → 삭제 진행
+#   → (7) 삭제 완료 대기 (토스트/모달 닫힘)
+#   → (8) 캡처한 product code 로 검색 → 결과 0 인지 확인 (목록에서 사라짐)
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+
+title: 등록상품 맨 위 상품 삭제 후 목록에서 사라짐 확인
+
+description: |
+  등록상품 목록 맨 위 상품을 전체 마켓에서 삭제하고, 삭제 후 검색했을 때 결과 0 인지로 사라짐을 검증하는 시나리오.
+
+  흐름: 등록상품 메뉴 → 맨 위 카드 product code 캡처 → 그 row 체크 + 상품 삭제 버튼 → 스토어 선택 모달 → 전체 선택 → 삭제 → 토스트 대기 → 캡처한 ID 로 재검색 → 결과 0 확인.
+
+  입력값 없음 — 맨 위 상품 자동 선택.
+  ⚠️ 등록상품 1건이 실제로 삭제됨 (destructive). 테스트 데이터로만 사용.
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하고 카드 1개 이상 보일 때까지 대기
+
+  - id: capture_top_product_id
+    do: 등록상품 목록 첫 번째 카드의 href 에서 상품 코드 (registered-product 뒤 숫자) 를 추출하여 inputs._captured_id 로 저장
+
+  - id: select_top_checkbox
+    do: 맨 위 row 의 체크박스(첫 번째 셀) 클릭하여 선택. 상단 상품 삭제 버튼이 disabled → enabled 로 전환되는지 확인
+
+  - id: click_delete_button
+    do: 상단 상품 삭제 버튼 클릭하여 스토어 선택 모달 오픈
+
+  - id: select_all_stores
+    do: 모달 안 전체 선택 버튼 클릭하여 모든 마켓 체크박스 활성화
+
+  - id: confirm_delete
+    do: 모달 안 삭제(또는 삭제하기/확인) 버튼 클릭. 추가 confirm 모달이 뜨면 동일하게 삭제/확인 클릭
+
+  - id: wait_deletion
+    do: 삭제 진행 모달 또는 토스트로 완료 시그널이 잡힐 때까지 대기 (최대 120초)
+
+  - id: verify_not_in_list
+    do: 캡처한 상품 코드로 등록상품 페이지에서 다시 검색하여 결과 0개 확인 (또는 첫 카드 href 가 캡처값과 다르면 통과)
+
+expected: 맨 위 상품이 모든 마켓에서 삭제되고 등록상품 목록에서 해당 상품 코드가 더 이상 검색되지 않는다. unhandled 0건.

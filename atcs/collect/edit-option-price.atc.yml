@@ -1,0 +1,16 @@
+title: 수집상품 첫 카드 → 옵션 가격 단건 변경 → 영속성 검증
+
+description: |
+  수집상품 첫 카드 → 상세 → 판매가 탭의 SalesPriceTable 의 첫 옵션 행 가격 input 을 +100 변경 → onBlur 저장 → reload 후 값 유지 확인.
+
+  옵션이 1개도 없는 상품은 skip 처리하여 PASS.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+  - id: open_first_product
+    do: 첫 .product-card 클릭하여 상세 진입
+  - id: bump_option_price
+    do: 판매가 탭 → SalesPriceTable 첫 row 의 가격 input +100 → Tab → 저장 → reload 후 값 유지

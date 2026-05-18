@@ -1,0 +1,12 @@
+[
+  "ensure_session",
+  "open_order_management",
+  "wait_sync_banner_visible",
+  "capture_banner_screenshot",
+  "classify_banner_state",
+  "extract_changed_count",
+  "record_counts_before_click",
+  "click_first_update_button",
+  "verify_orders_added_after_click",
+  "capture_final_screenshot"
+]

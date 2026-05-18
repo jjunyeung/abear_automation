@@ -1,0 +1,16 @@
+title: 알림 drawer 열기 + 닫기 smoke
+
+description: |
+  메인 헤더의 알림 아이콘 (bell svg / aria-label) 클릭 → drawer/popover 가 열리는지 확인 후 닫기 (Esc 또는 outside click).
+
+  minimal smoke — drawer 내용은 검증하지 않고 열림/닫힘만 확인.
+
+inputs: {}
+
+steps:
+  - id: goto_app
+    do: https://app.windly.cc 진입 + 메인 페이지 로드
+  - id: open_notification
+    do: 헤더의 알림 아이콘 (bell svg / 알림 텍스트) 클릭 → drawer/popover 노출
+  - id: close_notification
+    do: Esc 키 또는 outside 영역 클릭으로 drawer 닫힘 확인

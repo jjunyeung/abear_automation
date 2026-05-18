@@ -1,0 +1,37 @@
+node_modules/
+dist/
+.env
+.env.local
+playwright-report/
+test-results/
+.playwright-userdata/
+tests/collect/.url-collect-history.log
+
+# GUI (Electron + Vite) build artifacts
+# - gui/dist/         : tsc(main/preload/lib) + vite build(renderer) output
+# - gui/dist/release/ : electron-builder packaging output (.dmg / .zip) — see gui/electron-builder.yml directories.output
+# - gui/dist-installer/ : legacy electron-builder output path; ignored defensively if anyone re-points the yml
+gui/dist/
+gui/dist-installer/
+gui/node_modules/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# ATC 실행 산출물 — 회사 화면 스크린샷·trace 포함, 용량 매우 큼.
+# batches/ 만 keep (머지된 텍스트 md, 용량 작음).
+reports/runs/
+
+# 외부 reference / 회사 코드 — 본 ATC 레포에 포함하지 않는다.
+# windly_repo: 윈들리 회사 frontend (hub/sesame/windly/koco)
+# automation:  레거시 자동화 폴더 (CLAUDE.md D1 — 패턴만 차용)
+# blueprint/shadcn-admin-kit: 별도 git 프로젝트
+# cloudflare:  빈 디렉토리
+windly_repo/
+automation/
+blueprint/
+shadcn-admin-kit/
+cloudflare/

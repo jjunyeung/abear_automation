@@ -1,0 +1,16 @@
+[
+  "ensure_session",
+  "open_order_management",
+  "wait_sync_banner_visible",
+  "click_first_update_button",
+  "wait_orderlist_settled",
+  "record_first_order_id",
+  "record_counts_before_change",
+  "select_first_order_checkbox",
+  "click_change_to_instruct",
+  "wait_toast_success",
+  "verify_accept_tab_decreased",
+  "click_instruct_tab",
+  "verify_order_in_instruct",
+  "capture_final_screenshot"
+]

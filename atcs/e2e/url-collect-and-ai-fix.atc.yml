@@ -1,0 +1,78 @@
+# URL 수집 → 상세 → AI 추천 + 옵션 A-Z 정규화 → 에러 0 검증 → 업로드 실행 검증.
+#
+# 흐름:
+#   (1) 상품 수집 메뉴   →  (2) URL 수집 카드  →  (3) URL 입력 + 수집
+#   →  (4) BulkImportTable SpinLoader → CheckIcon
+#   →  (5) 닫기 (자동 navigate /view2/interested-product)
+#   →  (6) 첫 카드가 ProductImportingCard → ProductCard 전환 대기 (이미지+제목 visible)
+#   →  (7) 첫 카드 클릭하여 detail 진입
+#   →  (8) 기본 정보 탭에서 AI 상품명 추천 클릭 → 로딩 종료 후 title input 값 변경 검증
+#   →  (9) AI 카테고리 추천 클릭 → 로딩 종료 검증
+#   →  (10) 옵션 탭으로 이동 → 각 옵션 그룹의 A-Z 버튼 클릭 → 하위 모달의 icon 버튼 클릭 →
+#          모든 옵션명이 A,B,C,... 형태로 변경되는지 검증
+#   →  (11) 에러체크 트리거 → 7개 탭 dot 상태에 빨간 0개 검증 (= "에러 없는 상품" 상태 도달)
+#   →  (12) 업로드 트리거: 상단 아이콘 영역에서 체크마크 오른쪽 업로드 버튼 클릭 →
+#          "상품 업로드 유의사항 확인" 모달 → "업로드 하기" 버튼 클릭
+#   →  (13) 업로드 진행 모달에서 마켓별 "성공" / "실패" 텍스트가 안정화될 때까지 대기 →
+#          성공 ≥1 이면 ok, 모두 실패면 fail
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#
+# 입력 (D8): env / CLI 로 매 실행마다 새 URL 필수 (url-collect 와 동일 정책).
+#
+# 비고: 11번 step (verify_clean) 이 통과해야 12번 (업로드) 가 의미 있음 — 에러 없는 상품에서 업로드 검증.
+
+title: URL 수집 → 상세 → AI 추천 + 옵션 A-Z → 에러 0 → 업로드 실행 검증 (e2e)
+
+description: |
+  URL 수집부터 업로드까지의 풀 e2e — 새 URL 수집 → 상세 진입 → AI 상품명/카테고리 추천 → 옵션 A-Z 정규화 → 에러체크 0 검증 → 업로드 트리거 → 마켓별 성공/실패 안정화 대기 → 성공 1+ 확인.
+
+  11번 step (verify_clean) 통과 후 12번 (업로드) 가 의미 있도록 설계 — 에러 없는 상품에서 업로드 검증.
+
+  입력 (env/CLI): product_url (매 실행마다 새 URL 필수).
+inputs:
+  product_url:
+    type: string
+    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지).
+
+steps:
+  - id: open_collect_menu
+    do: 좌측 사이드바 상품 수집 메뉴 클릭하여 view3/product-import 진입
+
+  - id: open_url_collect
+    do: 상품 수집 페이지의 URL 수집 카드 클릭하여 모달 오픈
+
+  - id: submit_url
+    do: URL 입력 필드에 inputs.product_url 입력 후 수집 실행 버튼 클릭
+
+  - id: wait_completion
+    do: BulkImportTable row 의 SpinLoader (a.importing) 가 사라지고 체크 아이콘 (a.success) 으로 바뀔 때까지 대기. error 아이콘 (a.fail) 이면 fail. 최대 5분.
+
+  - id: close_modal_goto_collected
+    do: 모달의 닫기 버튼 클릭 — modalStatus complete 시 자동으로 view2/interested-product 로 navigate.
+
+  - id: wait_first_card_ready
+    do: 페이지의 "수집중" 텍스트가 모두 사라질 때까지 대기 (ProductImportingCard → ProductCard 전환). 첫 .product-card 의 이미지와 제목 텍스트가 visible 인지 확인.
+
+  - id: enter_product_detail
+    do: 첫 .product-card 클릭하여 view2/interested-product/<digits> URL 도달 + detail 페이지 mount (img 존재) 확인.
+
+  - id: ai_recommend_product_name
+    do: 기본 정보 탭에서 "AI 상품명 추천" 버튼 클릭 후 "AI 상품명 다듬기 중" 로딩이 종료될 때까지 대기. 클릭 전후 input 값 비교하여 ≥1개 input 의 값이 변경됐는지 검증.
+
+  - id: ai_recommend_category
+    do: 기본 정보 탭에서 "AI 카테고리 추천" 버튼 클릭 후 "AI 카테고리 추천 중" 로딩이 종료될 때까지 대기.
+
+  - id: apply_alphabet_option_names
+    do: 옵션 탭으로 이동. 각 옵션 그룹의 "A-Z" 버튼 클릭 → 하위 모달 안 icon 버튼 클릭하여 옵션명을 A,B,C,... 로 변환. 모든 처리 후 옵션명 input 값이 ^[A-Z]+$ 패턴 매칭되는지 검증.
+
+  - id: error_check_and_verify_clean
+    do: 에러체크 트리거 → 빨간 탭이 있으면 walkAndFixTab 으로 자동수정 (multi-pass max 3) → 재트리거 → 최종 빨간 탭 0개 검증. AI 추천만으로 안 풀리는 배너 에러 (판매가 배송비 등) 까지 fix.
+
+  - id: trigger_upload
+    do: 상단 아이콘 영역에서 체크마크 오른쪽 업로드 버튼 클릭. "상품 업로드 유의사항 확인" 모달의 "업로드 하기" 버튼 클릭하여 업로드 시작.
+
+  - id: wait_upload_complete
+    do: 업로드 진행 모달에서 마켓별 "성공" / "실패" leaf-text 가 안정화 (3 cycle 변화 없음 + spinner 0) 될 때까지 polling. 성공 ≥1 이면 ok, 모두 실패면 fail.
+
+expected: 13개 step 모두 success, unhandled 0건. 수집 → AI 추천 → 옵션 정규화 → 빨간 탭 0개 → 업로드에서 ≥1 마켓 성공.

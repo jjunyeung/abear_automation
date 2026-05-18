@@ -1,0 +1,23 @@
+[
+  "ensure_session",
+  "open_instruct_tab",
+  "wait_loading_finished",
+  "verify_has_instruct_order",
+  "record_first_order_id",
+  "record_counts_before",
+  "select_first_order_checkbox",
+  "click_edit_shipping_info_button",
+  "verify_drawer_opened",
+  "select_delivery_company",
+  "enter_tracking_number",
+  "click_submit_button",
+  "wait_drawer_closed",
+  "verify_row_shipping_info_updated",
+  "select_first_order_checkbox_again",
+  "click_change_to_delivering",
+  "wait_toast_delivering_success",
+  "verify_instruct_tab_decreased",
+  "click_delivering_tab",
+  "verify_order_in_delivering",
+  "capture_final_screenshot"
+]

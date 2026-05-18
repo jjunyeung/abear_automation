@@ -1,0 +1,146 @@
+[
+  {
+    "scheduleId": "6fe82838-4798-49eb-b1a5-b405049f4133",
+    "firedAt": "2026-05-18T07:30:05.000Z",
+    "completedAt": "2026-05-18T07:31:16.203Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-popup.atc.yml",
+        "runId": "result_2026-05-18_16-30-05_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-vvic-popup.atc.yml",
+        "runId": "result_2026-05-18_16-30-24_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-domeggook-popup.atc.yml",
+        "runId": "result_2026-05-18_16-30-41_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-domeme-popup.atc.yml",
+        "runId": "result_2026-05-18_16-30-58_4",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "dd5fe7d4-8e84-43a1-811d-0e9a2095124f",
+    "firedAt": "2026-05-18T07:55:02.000Z",
+    "completedAt": "2026-05-18T07:55:38.442Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-vvic-popup.atc.yml",
+        "runId": "result_2026-05-18_16-55-02_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-popup.atc.yml",
+        "runId": "result_2026-05-18_16-55-20_2",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "7c375317-fbb9-490a-87a7-fec6c45cdcef",
+    "firedAt": "2026-05-18T08:27:01.000Z",
+    "completedAt": "2026-05-18T08:27:57.648Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-aibuy-popup.atc.yml",
+        "runId": "result_2026-05-18_17-27-01_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-popup.atc.yml",
+        "runId": "result_2026-05-18_17-27-21_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-vvic-popup.atc.yml",
+        "runId": "result_2026-05-18_17-27-39_3",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "f2834d0d-b309-4a9b-890a-6c4049235647",
+    "firedAt": "2026-05-18T08:38:02.000Z",
+    "completedAt": "2026-05-18T08:39:10.462Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-popup.atc.yml",
+        "runId": "result_2026-05-18_17-38-02_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-vvic-popup.atc.yml",
+        "runId": "result_2026-05-18_17-38-36_2",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "8672decd-0f95-4158-aa3f-188b364522ab",
+    "firedAt": "2026-05-18T08:46:02.000Z",
+    "completedAt": "2026-05-18T08:47:03.994Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/url-collect.atc.yml",
+        "runId": "result_2026-05-18_17-46-02_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-domeggook-popup.atc.yml",
+        "runId": "result_2026-05-18_17-46-31_2",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "236a082d-54b1-4102-8f47-2957fb341fa2",
+    "firedAt": "2026-05-18T09:06:00.000Z",
+    "completedAt": "2026-05-18T09:07:42.763Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-1688-popup.atc.yml",
+        "runId": "result_2026-05-18_18-06-00_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/import-direct-vvic-popup.atc.yml",
+        "runId": "result_2026-05-18_18-06-41_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/collect/url-collect.atc.yml",
+        "runId": "result_2026-05-18_18-07-13_3",
+        "exitCode": 1,
+        "overall": "failed"
+      }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "task_id": "T1",
+    "round": 1,
+    "ts": "2026-04-28T08:39:00Z",
+    "key_finding": "TypeScript 6.0.3 (현재 npm latest)는 'moduleResolution: node'를 deprecated 처리하여 tsc --noEmit가 error TS5107로 실패함. compilerOptions에 'ignoreDeprecations: \"6.0\"' 추가하면 통과. 또한 디렉토리명에 한글/공백('windly 자동화')이 있어 'npm init -y'가 'Invalid name' 에러로 실패 — package.json은 직접 작성해야 함.",
+    "applied_to_next": "T2~T7 작성자: (1) tsconfig는 이미 ignoreDeprecations 적용됨, 추가 설정 시 TS6 deprecation 주의. (2) 모든 shell 명령에서 cwd quoting 필수: cd \"/Users/a1/windly 자동화\". (3) 향후 lib/recoveries/reporters에 .ts 파일 추가 시 자동으로 typecheck에 포함됨(include glob). (4) zod v4 / yaml v2 / @playwright/test v1.59.1 설치됨 — API 호환성 확인 필요(zod v4는 v3 대비 일부 breaking change)."
+  },
+  {
+    "task_id": "T2",
+    "round": 2,
+    "ts": "2026-04-28T00:00:00Z",
+    "key_finding": "zod v4.3.6 검증 사항: (a) `z.record(keyType, valueType)` 두-인자 형식이 v4 표준이며 한 인자 형식은 deprecated/제거 — `z.record(z.string(), inputSchemaSchema)` 형태로 작성해야 함. (b) `.default({})`를 record 위에 체이닝하면 입력에서 키 누락 시 빈 객체로 채워지고 출력 타입은 `Record<string,T>` (옵셔널 아님). (c) ZodError는 v4에서도 `.issues` 배열 노출 — issue 객체 사용 시 `result.error.issues`. (d) z.infer로 추론된 타입을 export하면 수동 interface 중복 0건 달성 가능. (e) 한글/공백 cwd에서 `npx tsx -e '...'` 인라인 실행 OK — 따옴표 escape만 주의.",
+    "applied_to_next": "T3~T6 (lib/atc-loader.ts, lib/runner.ts, lib/recovery-registry.ts, lib/config.ts, lib/logger.ts) 작성자: (1) ATC YAML 로드 시 `import { atcSchema } from '../lib/atc-schema'` 후 `atcSchema.parse(raw)` 패턴 사용 — 런타임 검증 + 타입 추론 동시 달성. (2) 에러 처리 시 `import { ATCError, UnhandledATCError, RecoveryFailedError } from '../lib/errors'` — runner는 매칭 실패 시 UnhandledATCError throw, recover() 실패 시 RecoveryFailedError throw가 표준. (3) RecoveryContext 필드는 정확히 4개(error_key, page_url, last_step_id, screenshot_path) — runner가 모두 채워서 recover()에 전달해야 함. (4) `recover(page: Page, ctx: RecoveryContext): Promise<void>` 시그니처는 `recoveries/<id>.ts`에서 강제 — Page는 `@playwright/test`에서 import, ctx는 `lib/errors`에서 import. (5) ErrorKey는 KnownErrorKey 유니온 + 브랜드 string fallback이라 새 키를 즉시 사용 가능하지만, 자동완성 위해 신규 키는 KnownErrorKey에 추가 권장."
+  },
+  {
+    "task_id": "T3",
+    "round": 3,
+    "ts": "2026-04-28T00:00:00Z",
+    "key_finding": "TS 6.0 + moduleResolution:'node' 환경에서 @types/node가 설치되어 있어도 `process`/`fs`/`require` 글로벌이 자동 인식되지 않아 TS2591 발생. tsconfig.json에 `\"types\": [\"node\"]` 명시가 필요. 명시 후 tsc --noEmit 통과. 이 변경은 다른 글로벌 타입 자동 포함을 막지 않음 (현재 의존성: dom lib + node types만 필요). 또한 runner에서 처음에 RecoveryFailedError/UnhandledATCError를 throw하지 않고 결과 객체를 직접 반환하는 설계를 선택 — runner는 절대 throw하지 않고 모든 실패가 RunResult.overall='failed'로 흘러 reporter가 동일 경로 처리. T2 가이드의 'throw' 패턴은 옵션이지 강제는 아님 (RunResult가 더 단순하고 reporter 친화적).",
+    "applied_to_next": "T4 이후 작성자: (1) tsconfig는 `types: [\"node\"]` 추가됨 — Playwright fixture 파일(@playwright/test)도 정상 인식. 만약 다른 패키지의 글로벌 타입(@types/X)을 또 쓸 일이 생기면 types 배열에 'X'를 추가해야 함. (2) runner.ts는 `runATC(opts): Promise<RunResult>` 시그니처 — never throws. spec 파일/reporter는 result.overall과 result.steps[i].status('success'|'failed'|'recovered'|'unhandled'|'skipped')만 보면 됨. (3) StepHandler 계약: outcome `{ ok: true } | { ok: false, error_key, message? }` 반환. throw해도 runner가 잡아서 'failed' status로 기록(error_key 없음 = 사실상 unhandled 동등). spec 핸들러는 가급적 명시적 outcome 반환을 권장. (4) RecoveryRegistry.load(dir)는 디렉토리 부재 시 빈 registry 반환 (no throw) — vertical slice 미작성 단계도 안전. (5) require()로 ts 동적 로드는 ts-node/Playwright 컴파일러 환경에서만 동작 — 순수 tsc 컴파일 산출물에서는 .js로 변환된 파일을 가리켜야 함 (현재 프레임워크는 Playwright runner 컨텍스트에서만 실행되므로 OK)."
+  },
+  {
+    "task_id": "T8",
+    "round": 4,
+    "ts": "2026-04-28T17:57:00Z",
+    "key_finding": "Vertical slice (R-A1.2 / R-A2.2 / R-A2.3) 의 표준 3블록 패턴이 spec 파일에서 확정됨: (a) `loadATC(ATC_PATH)` — atc-loader 가 zod 검증 후 ATC 객체 반환, (b) `StepHandlers` 매핑 — ATC.steps[].id ↔ StepHandler 함수 (서명: (page,inputs)=>Promise<{ok:true}|{ok:false,error_key,message?}>), (c) `runATC({atc,page,inputs,handlers})` 호출 후 결과를 `test.info().attach('arc-result', { body: JSON.stringify(result), contentType: 'application/json' })` 로 reporter 에 전달. attachment 이름은 정확히 'atc-result' (atc-reporter.ts 의 `att.name !== 'atc-result'` guard 와 일치). spec 마지막에 `if (result.overall !== 'success') throw new Error(...)` 로 Playwright pass/fail 신호. 또한 spec 의 typecheck 가 깨끗하려면 `inputs[key]` 접근 시 noUncheckedIndexedAccess 호환 위해 `typeof rawUrl === 'string'` 좁히기를 사용. ATC YAML 의 `inputs.<name>.example` 값은 zod 의 inputSchemaSchema 가 string 으로 받음 (URL 도 string 으로 표기). 또한 `recoveries/missing_image.ts` 는 의도적 throw 로 D12 경로를 시연 — 정상 복구는 사용자가 TODO 채울 때 자연스럽게 작동.",
+    "applied_to_next": "T9, T10 작성자 또는 새 ATC 추가 시: (1) 본 spec (tests/collect/product-error-check.spec.ts) 을 그대로 템플릿 복사 → ATC_PATH 와 handlers 두 곳만 변경하면 새 ATC spec 완성. (2) atc-reporter 의 wire protocol 은 'atc-result' 단일 attachment + JSON.stringify(RunResult). 새 spec 에서 다른 attachment name 쓰면 reporter 가 무시함. (3) 새 recovery 파일 추가 시 `import type { RecoveryContext } from '../lib/errors'` (lib 가 sibling 이므로 경로 한 단계). recoveries/<id>.ts 는 단일 export `recover` 만 — recovery-registry 가 require 로 자동 로드. (4) ATC YAML 의 도메인 디렉토리는 정확히 D9 의 5개 (collect/error-check/fix/upload/e2e) 중 하나여야 playwright.config.ts 의 testMatch 가 spec 을 인식. 새 도메인 도입 시 playwright.config.ts 도 동시 수정 필요. (5) `npx playwright test --list --project=<name>` 으로 spec 검출 빠르게 확인 (브라우저 안 뜸). (6) spec 핸들러에서 inputs 접근은 `inputs['key']` (bracket) — TypeScript noUncheckedIndexedAccess 환경 (현재는 비활성이지만 켜질 가능성 대비) + Record<string, unknown> 타입 모두 안전."
+  }
+]

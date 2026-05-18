@@ -1,0 +1,12 @@
+[
+  "open_base_setting_price",
+  "bump_rounding_multiple",
+  "bump_market_fee",
+  "bump_discount_rate",
+  "bump_alipay_fee",
+  "bump_third_party_shipping",
+  "bump_margin",
+  "bump_tariff_rate",
+  "bump_tariff_base_price",
+  "verify_persist"
+]

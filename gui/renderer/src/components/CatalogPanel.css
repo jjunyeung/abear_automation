@@ -1,0 +1,119 @@
+/* CatalogPanel — Blueprint Section + HTMLTable 스타일 보강. */
+
+.catalog-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.catalog-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+/* InputGroup 이 좁아질 수 있게 min-width:0. flex-shrink 는 기본 1 이라 OK. */
+.catalog-panel__header > .bp6-input-group {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* 카운트 Tag — 자기 폭은 그대로 유지 (절대 잘리지 않게). */
+.catalog-panel__header > .bp6-tag {
+  flex-shrink: 0;
+}
+
+.catalog-panel__empty {
+  padding: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.catalog-panel__scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+.catalog-panel__section {
+  margin: 0 0 8px;
+}
+.catalog-panel__section:last-child {
+  margin-bottom: 0;
+}
+
+/* Blueprint Section 의 collapse 내부도 가로 overflow 차단 — 긴 제목이 부모를
+ * 밀어내서 catalog-panel 전체에 가로 스크롤이 생기는 것 방지. */
+.catalog-panel__section .bp6-section-card,
+.catalog-panel__section .bp6-collapse {
+  overflow-x: hidden;
+}
+
+.catalog-panel__table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.catalog-panel__table tbody tr {
+  cursor: default;
+}
+.catalog-panel__table tbody tr[data-selected="true"] {
+  background: var(--accent);
+}
+.catalog-panel__table tbody tr[data-checked="true"] {
+  background: var(--muted);
+}
+
+.catalog-panel__cell-check {
+  width: 36px;
+  padding-left: 12px !important;
+  padding-right: 0 !important;
+  vertical-align: middle !important;
+}
+
+.catalog-panel__cell-title {
+  cursor: pointer;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  vertical-align: middle !important;
+}
+
+.catalog-panel__cell-status {
+  width: 72px;
+  padding-right: 12px !important;
+  text-align: right !important;
+  vertical-align: middle !important;
+}
+
+.catalog-panel__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.catalog-panel__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.catalog-panel__title--fragment {
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.catalog-panel__fragment-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  padding: 0 6px;
+}

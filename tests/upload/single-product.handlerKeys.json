@@ -1,0 +1,9 @@
+[
+  "open_collected_list",
+  "search_product",
+  "open_detail",
+  "trigger_upload",
+  "wait_upload_complete",
+  "open_registered_list",
+  "verify_in_registered"
+]

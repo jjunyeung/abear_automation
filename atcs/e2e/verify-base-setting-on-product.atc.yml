@@ -1,0 +1,59 @@
+# 첫 수집상품의 판매가 탭 BaseSettingItem 들이 글로벌 base setting 과 일치하는지 검증.
+#
+# 사전조건:
+#   - setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#   - 직전에 "기본 설정값 적용" (atcs/collect/bulk-apply-base-setting.atc.yml) 이 첫 카드에
+#     성공적으로 실행된 상태가 권장 — 그래야 base setting 변경분이 상품에 반영되어 있음.
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=PRICE_SETTING 진입 → 6개 input 값 snapshot
+#       (구매처 수수료 / 판매처 수수료 / 판매가 단위(올림) / 판매가 할인율 / 마진 / 관세 (rate + base))
+#   (2) /view2/interested-product 수집상품 목록 진입
+#   (3) 첫 카드 클릭하여 /view2/interested-product/{id} 상품 상세 진입
+#   (4) "판매가" 탭 클릭 → SalesTab → MarketSalesPrice → BaseSettingBox 노출 대기
+#   (5) BaseSettingBox 안 6개 BaseSettingItem 의 content 텍스트 추출 → snapshot 과 비교 검증
+#
+# 비교 형식 (sesame/.../MarketSalesPrice.tsx 의 표시 규칙 따름):
+#   - "구매처수수료" / "판매처수수료" / "판매가 할인율" / "마진" (RATE):
+#       formatNumberToPercentType(fraction) + "%" → 예: 0.06 → "6%"
+#   - "판매가 단위(올림)" / "마진" (AMOUNT):
+#       formatMarketPriceValue(won) + "원" → 예: 800 → "800원", 1000 → "1,000원"
+#   - "관세 기준":
+#       isTariffEmpty(rate==0 && base==0) ? "없음" : "{base}원 이상, {rate}%"
+#
+# 검증되지 않는 base setting 필드 (BaseSettingBox 에 항목 없음):
+#   - 해외배송비(배대지) — 별도 표시 위치
+#   - 환율 — 통화 KRW 면 미노출
+
+title: 첫 수집상품 판매가 탭의 BaseSettingItem 들이 글로벌 base setting 과 일치하는지 검증
+
+description: |
+  첫 수집상품의 판매가 탭 BaseSettingItem 6개가 글로벌 base setting 의 값 (구매처/판매처 수수료, 판매가 단위, 할인율, 마진, 관세) 과 정확히 일치하는지 매치 검증.
+
+  흐름: /view3/base-setting 진입 → 6개 input 값 snapshot → 수집상품 첫 카드 진입 → 판매가 탭 → BaseSettingBox 의 6개 BaseSettingItem 텍스트 추출 → snapshot 과 비교.
+
+  비교 형식 (RATE → "X%", AMOUNT → "X,XXX원", 관세 → "{base}원 이상, {rate}%" 또는 "없음").
+  권장 사전조건: 직전에 bulk-apply-base-setting 이 첫 카드에 적용된 상태.
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: snapshot_base_setting
+    do: app.windly.cc/view3/base-setting?setting=COMMON&category=PRICE_SETTING 직접 goto. 6개 input (구매처 수수료 / 판매처 수수료 / 판매가 단위(올림) / 판매가 할인율 / 마진 / 관세(%) / 관세 적용 기준가) 값을 읽어 spec.ts module-level snapshot 에 저장.
+    expect: 6개 입력값 모두 비어있지 않음
+
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭하여 /view2/interested-product 진입
+
+  - id: enter_first_product
+    do: 수집상품 목록 첫 카드 (a[href*="/view2/interested-product/"]) 클릭. /view2/interested-product/{id} URL 매칭 + 상세 페이지 마운트 확인.
+
+  - id: open_sales_tab
+    do: 상품 상세에서 "판매가" 탭 버튼 클릭. SalesTab 의 BaseSettingBox 안 "판매가 단위(올림)" 같은 항목 노출 대기 (최대 15초).
+    expect: BaseSettingBox 마운트 (= "판매가 단위(올림)" text 노출)
+
+  - id: verify_base_settings_on_product
+    do: BaseSettingBox 안 6개 BaseSettingItem (구매처수수료 / 판매처수수료 / 판매가 단위(올림) / 판매가 할인율 / 마진 / 관세 기준) 의 content 텍스트를 추출하여 step 1 의 snapshot 과 일치하는지 확인. 모든 mismatch 모아 한 번에 보고.
+    expect: 6개 항목 모두 글로벌 base setting 값과 매치
+
+expected: 6개 base setting 항목이 첫 수집상품 판매가 탭에서 글로벌 설정값과 정확히 일치. unhandled 0건.

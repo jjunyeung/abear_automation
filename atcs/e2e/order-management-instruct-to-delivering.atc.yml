@@ -1,0 +1,154 @@
+# 주문 관리 - 배송준비중(INSTRUCT) -> 배송중(DELIVERING) 전체 흐름
+#
+# 시나리오:
+#   배송준비중 탭에 1건 이상의 주문이 있는 상태에서 본 ATC 실행.
+#   (1)  세션 확보
+#   (2)  배송준비중 탭 진입
+#   (3)  로딩 종료 + 첫 주문 marketOrderId 기록
+#   (4)  INSTRUCT / DELIVERING 탭 카운트 baseline 기록
+#   (5)  첫 주문 체크 -> 송장정보 수정 버튼 -> drawer 열림
+#   (6)  Dropdown 택배사 선택 (env ATC_DELIVERY_COMPANY)
+#         택배사 dropdown trigger 클릭 -> 검색 input 에 택배사명 입력 -> 옵션 클릭
+#   (7)  송장번호 입력 (env ATC_TRACKING_NUMBER)
+#   (8)  수정 완료 클릭 -> drawer 닫힘 + onResetDispatchList
+#   (9)  row 의 택배사/송장번호 셀이 입력값으로 갱신됐는지 확인
+#   (10) 첫 주문 다시 체크 (수정 완료 시 체크 풀림)
+#   (11) 배송중으로 변경 버튼 클릭 -> postProductOrderShippingDispatch
+#   (12) 토스트 총 N개의 상품을 배송중으로 변경했습니다 확인
+#   (13) INSTRUCT 탭 카운트 -1 + 주문 ID 사라짐 검증
+#   (14) 배송중 탭 클릭 -> orderStatus=DELIVERING URL 도달
+#   (15) 그 주문 ID 가 DELIVERING 탭에 visible + 카운트 +1 검증
+#   (16) 최종 스크린샷
+#
+# 입력값 주입 (env 변수, D8 우선순위: CLI > fixture > prompt 의 env-variant):
+#   ATC_DELIVERY_COMPANY: 택배사 이름. windly DeliveryCompanyDropdown 옵션 label 과
+#                        정확히 매치되어야 함 (예: 'CJ대한통운', '한진택배', '롯데택배').
+#   ATC_TRACKING_NUMBER: 송장번호. 윈들리 useControlShipping 의 검증 통과 형식.
+#                        주의: 진짜 마켓 API 로 송장이 전송될 수 있음 (테스트 환경 검증 후 사용).
+#
+#   실행 예:
+#     ATC_DELIVERY_COMPANY=CJ대한통운 ATC_TRACKING_NUMBER=1234567890 \
+#       npx playwright test --project=windly-e2e-fresh \
+#         tests/e2e/order-management-instruct-to-delivering.spec.ts
+#
+# 사전조건:
+#   - 배송준비중 탭에 1건 이상의 주문
+#   - .playwright-userdata 에 로그인 세션 박혀있음
+#   - windly-e2e-fresh project 에서 단독 실행
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/OrderManagement/DrawerController/index.tsx
+#       handleUpdateDeliveryInfo -> handleTrackingNumberValidate + handleDeliveryInofo
+#       -> onResetDispatchList + onClose
+#   - src/features/OrderManagement/Controller/index.tsx (line 36, 169)
+#       DEFAULT_STATUS_BUTTON.INSTRUCT = 배송중으로 변경
+#   - src/features/OrderManagement/Controller/hooks/useController.ts (line 46-66)
+#       INSTRUCT 상태에서 postProductOrderShippingDispatch (trackingNumber + deliveryCompany 필수)
+#   - src/components/Dropdown/Option/OptionGroup/index.tsx
+#       dropdown 펼침 시 search input (placeholder=검색하기) 노출 + 옵션 필터
+
+title: 주문 관리 - 배송준비중에서 배송중으로 (송장 입력 + 상태 변경 + 탭 이동)
+
+description: |
+  주문 관리 — 배송준비중(INSTRUCT) → 배송중(DELIVERING) 전체 흐름 e2e.
+
+  흐름: 배송준비중 탭 진입 → 첫 주문 marketOrderId 기록 → 송장정보 수정 drawer 오픈 → 택배사 (env ATC_DELIVERY_COMPANY) Dropdown 선택 → 송장번호 (env ATC_TRACKING_NUMBER) 입력 → 수정 완료 → row 갱신 확인 → "배송중으로 변경" → 토스트 확인 → INSTRUCT 카운트 -1 → 배송중 탭에서 같은 주문 visible + 카운트 +1.
+
+  입력 (env): ATC_DELIVERY_COMPANY (택배사명, DeliveryCompanyDropdown 의 label 과 정확 매치 필요).
+  사전조건: 배송준비중 1+ 보유.
+inputs:
+  delivery_company:
+    type: string
+    description: 택배사 이름. env ATC_DELIVERY_COMPANY 로 주입. 윈들리 Dropdown 옵션 label 과 정확 매치.
+    example: CJ대한통운
+  tracking_number:
+    type: string
+    description: 송장번호. env ATC_TRACKING_NUMBER 로 주입. 마켓 API 가 진짜로 처리할 수 있음.
+    example: '1234567890'
+
+steps:
+  - id: ensure_session
+    do: 로그인 + 해구대 진입 (idempotent fast-pass).
+    expect: 세션 확보 + 해구대 안.
+
+  - id: open_instruct_tab
+    do: global.windly.cc/view3/order-management?orderStatus=INSTRUCT 직접 goto + viewport 1920x1080 + 주문 관리 타이틀 visible.
+    expect: INSTRUCT URL 도달 + 타이틀 visible.
+
+  - id: wait_loading_finished
+    do: 로딩 인디케이터 (상품을 불러오고 있어요) 가 보이면 hidden 까지 60초 대기.
+    expect: 로딩 종료 + 안정화.
+
+  - id: verify_has_instruct_order
+    do: 배송준비중 탭 카운트 >= 1 확인. 0이면 FAIL.
+    expect: 배송준비중 카운트 >= 1.
+
+  - id: record_first_order_id
+    do: 첫 OrderItem 의 marketOrderId 텍스트 추출 + in-memory 기록.
+    expect: 정수 marketOrderId 기록 완료.
+
+  - id: record_counts_before
+    do: 배송준비중 / 배송중 두 탭 카운트 기록 (baseline). 후속 검증용.
+    expect: 두 카운트 모두 정수 추출.
+
+  - id: select_first_order_checkbox
+    do: 첫 OrderItem 의 체크박스 label 클릭. 1개 선택됨 확인.
+    expect: 1개 선택됨 visible.
+
+  - id: click_edit_shipping_info_button
+    do: Controller 의 송장정보 수정 버튼 클릭. setShowDrawerController(true) 트리거.
+    expect: drawer 열림 시작.
+
+  - id: verify_drawer_opened
+    do: drawer 헤더 텍스트 송장정보 수정 + 1개 visible 확인 (최대 10초).
+    expect: drawer header visible.
+
+  - id: select_delivery_company
+    do: Drawer 안의 택배사 Dropdown trigger (placeholder 택배사 선택) 클릭 -> 펼친 후 search input (placeholder 검색하기) 에 입력값 fill -> 매칭 옵션 첫 항목 클릭. trigger 텍스트가 선택된 옵션 label 로 변하는지 확인.
+    expect: dropdown selected = 입력 택배사명.
+
+  - id: enter_tracking_number
+    do: Drawer 안의 송장번호 TextField (placeholder 송장번호 입력) 에 입력값 fill. inputValue 가 입력값으로 갱신 확인.
+    expect: tracking number 입력값 그대로 input 에 표시.
+
+  - id: click_submit_button
+    do: Drawer 푸터 수정 완료 버튼 클릭. handleUpdateDeliveryInfo -> validate -> handleDeliveryInofo 호출 -> 성공 시 onResetDispatchList + onClose 호출.
+    expect: 클릭 성공.
+
+  - id: wait_drawer_closed
+    do: Drawer header 송장정보 수정 텍스트가 hidden 될 때까지 최대 15초 대기. drawer close = 성공 신호. close 안 되면 validate 실패 (택배사/송장번호 형식 문제) 등 가능성.
+    expect: drawer 닫힘.
+
+  - id: verify_row_shipping_info_updated
+    do: row 의 택배사 셀에 입력 택배사명 텍스트 + 송장번호 셀에 입력 송장번호 텍스트가 visible 한지 확인. 두 값 모두 row 안에서 매치되어야 PASS.
+    expect: row 에 택배사/송장 입력값 모두 노출.
+
+  - id: select_first_order_checkbox_again
+    do: 수정 완료로 체크 풀렸으므로 첫 OrderItem 체크박스 label 다시 클릭. 1개 선택됨 visible 확인.
+    expect: 1개 선택됨 visible.
+
+  - id: click_change_to_delivering
+    do: Controller 의 배송중으로 변경 버튼 클릭. handleShippingItems -> postProductOrderShippingDispatch API 호출.
+    expect: 버튼 클릭 성공.
+
+  - id: wait_toast_delivering_success
+    do: 토스트 총 N개의 상품을 배송중으로 변경했습니다 visible 까지 15초 대기. 빠르게 사라질 수 있어 캐치 못하면 warn 만 + PASS.
+    expect: 토스트 캐치 시도.
+
+  - id: verify_instruct_tab_decreased
+    do: 배송준비중 카운트 -1 + 기록된 marketOrderId 가 INSTRUCT 화면에서 사라졌는지 최대 10초 polling.
+    expect: 카운트 -1 + ID 미노출.
+
+  - id: click_delivering_tab
+    do: 배송중 탭 (배송중 텍스트의 TabItem) 클릭 -> orderStatus=DELIVERING URL 도달.
+    expect: orderStatus=DELIVERING URL.
+
+  - id: verify_order_in_delivering
+    do: 배송중 탭에서 기록된 marketOrderId visible + 배송중 카운트가 baseline +1 인지 확인 (15초 polling).
+    expect: ID visible + 카운트 +1.
+
+  - id: capture_final_screenshot
+    do: 최종 결과 PNG 캡쳐 후 attach.
+    expect: 스크린샷 attach 정상.
+
+expected: 배송준비중 첫 주문 -> 송장 입력 -> 수정 완료 -> 배송중으로 변경 -> DELIVERING 탭으로 이동 일관성 확인. 카운트 -1/+1 및 ID 노출 일관성 유지. unhandled 0건.

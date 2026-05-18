@@ -1,0 +1,15 @@
+[
+  "ensure_session",
+  "open_instruct_tab",
+  "wait_loading_finished",
+  "verify_has_instruct_order",
+  "record_first_order_id",
+  "select_first_order_checkbox",
+  "click_edit_shipping_info_button",
+  "verify_drawer_header",
+  "verify_drawer_order_info",
+  "verify_delivery_company_dropdown",
+  "verify_tracking_number_input",
+  "verify_footer_buttons",
+  "capture_drawer_screenshot"
+]

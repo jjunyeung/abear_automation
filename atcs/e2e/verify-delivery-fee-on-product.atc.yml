@@ -1,0 +1,57 @@
+# 배송비 base setting 변경 → bulk-apply → 첫 상품 판매가 탭 배송비 카드 매치 검증.
+#
+# 사전조건: setup project 가 로그인 + 해구대 진입 완료.
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=DELIVERY_INFO 진입 → 4개 input 변경
+#       (deliveryPriceUnitQuantity +1, defaultDeliveryPrice/returnDeliveryPrice/exchangeDeliveryPrice +100)
+#       → 변경된 값 snapshot.
+#   (2) /view2/interested-product 수집상품 목록 진입.
+#   (3) 첫 카드 1개 체크 + 기본 설정값 적용 → success toast 대기.
+#   (4) 첫 카드 클릭하여 상품 상세 진입.
+#   (5) 판매가 탭 클릭 + "배송비" CardLayout 펼침 (defaultState=false 라 기본 펼침이지만 안전 처리).
+#   (6) 배송비 카드 안 4개 input.value 추출 → snapshot 과 매치 검증.
+#
+# 라벨 매핑 (windly base setting ↔ sesame 상품 detail):
+#   defaultDeliveryPrice:        "기본 배송비" ↔ "기본 배송비"
+#   returnDeliveryPrice:         "반품 배송비" ↔ "반품 배송비"
+#   exchangeDeliveryPrice:       "교환 배송비" ↔ "교환 배송비"
+#   deliveryPriceUnitQuantity:   "배송비 조건" ↔ "배송비 조건"
+#
+# 사용자 요구 timing: fill 후 잠깐 대기 후 onBlur (Tab) — React state 반영 시간 확보.
+
+title: 배송비 base setting 변경 후 첫 수집상품 판매가 탭 배송비 카드 매치 검증
+
+description: |
+  배송비 base setting (기본/반품/교환 배송비, 배송비 조건) 변경 → bulk-apply → 첫 수집상품 판매가 탭 배송비 카드 매치 검증.
+
+  흐름: /view3/base-setting?category=DELIVERY_INFO → 4개 input 변경 (deliveryPriceUnitQuantity +1, defaultDeliveryPrice/returnDeliveryPrice/exchangeDeliveryPrice +100) → snapshot → 수집상품 첫 카드 체크 + bulk-apply → success toast → 첫 카드 상세 → 판매가 탭 → 배송비 CardLayout 펼침 → 4개 input.value 추출 → snapshot 매치.
+
+  라벨 매핑: 기본/반품/교환 배송비 + 배송비 조건 (windly ↔ sesame 동일 라벨).
+  입력값 없음.
+inputs: {}
+
+steps:
+  - id: bump_and_snapshot_delivery
+    do: app.windly.cc/view3/base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto. 4개 input (기본 배송비 +100, 반품 배송비 +100, 교환 배송비 +100, 배송비 조건 +1) 변경 + onBlur 저장 → 변경된 값 snapshot. 배송비 조건은 배송비 유형이 유료 + 수량별 적용 일 때만 enabled.
+    expect: 4개 input 변경 + reformat 반영
+
+  - id: open_collected_list
+    do: 수집상품 목록 (/view2/interested-product) 진입. 첫 카드 노출 대기.
+
+  - id: apply_base_setting_to_first
+    do: 첫 카드 1개 체크 → 상단 More(...) → 기본 설정값 적용 → 모달 적용 클릭 → success toast 대기.
+    expect: success toast 노출
+
+  - id: enter_first_product
+    do: 수집상품 첫 카드 클릭. 상세 URL /view2/interested-product/{id} 도달 + 마운트 확인.
+
+  - id: open_sales_tab
+    do: 상품 상세에서 판매가 탭 클릭. 배송비 CardLayout (defaultState=false → 기본 펼침) 의 4개 input 노출 대기.
+    expect: 판매가 탭 active + 기본 배송비 input DOM 마운트
+
+  - id: verify_delivery_on_product
+    do: 배송비 카드 안 4개 input (기본 배송비 / 반품 배송비 / 교환 배송비 / 배송비 조건) 의 value 추출 → snapshot 과 매치 검증.
+    expect: 4개 모두 매치
+
+expected: 4개 배송비 필드가 글로벌 base setting 과 정확히 일치. unhandled 0건.

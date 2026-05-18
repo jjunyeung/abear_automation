@@ -1,0 +1,43 @@
+# 임의 수집상품 진입 → 에러체크 → 빨간 탭만 순회하며 에러 위치 + 자동수정 가능 여부 진단.
+#
+# 이 ATC 는 진단 전용 (수정 X). 실제 수정은 atcs/error-check/product-error-fix.atc.yml 사용.
+#
+# 흐름:
+#   (1) 수집상품 메뉴  →  (2) 첫 카드 클릭하여 detail 진입
+#   →  (3) 에러체크 트리거
+#   →  (4) 7개 탭 status read → 빨간 탭만 추출, 각 빨간 탭 진입하여
+#         (a) 에러 배너 메시지 (raw + parsed kind/fieldLabel/limit)
+#         (b) 빨간 보더 input/textarea 의 bounding box + 인접 라벨
+#         (c) 자동수정 가능 패턴 매칭 (kind != unknown && fieldLabel 있음)
+#         결과를 로그로 출력.
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#           수집상품 list 에 카드 ≥1 개 존재.
+#
+# 입력: 없음. 첫 카드를 그대로 사용.
+
+title: 임의 수집상품 → 에러체크 → 빨간 탭 위치/수정가능성 진단
+
+description: |
+  임의 수집상품 진입 → 에러체크 → 빨간 탭만 순회하며 에러 위치/자동수정 가능 여부를 진단하는 read-only ATC. 수정은 하지 않음.
+
+  각 빨간 탭마다 (a) 에러 배너 메시지 (raw + parsed kind/fieldLabel/limit) (b) 빨간 보더 input 위치 (c) 자동수정 가능 패턴 매칭 결과를 로그로 출력.
+
+  실제 수정을 원하면 product-error-fix.atc.yml 사용.
+  입력값 없음 — 첫 카드 사용.
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭하여 view2/interested-product 진입
+
+  - id: open_first_product
+    do: 첫 .product-card 의 detail 링크 클릭하여 view2/interested-product/<digits> URL 도달
+
+  - id: trigger_error_check
+    do: 페이지 상단 체크마크 svg 아이콘 버튼 클릭 (에러체크 트리거)
+
+  - id: inspect_red_tabs
+    do: 7개 탭 dot 상태 read 후 빨간 탭만 순회. 각 빨간 탭 진입하여 에러 배너 메시지 + 빨간 보더 필드 위치 + 자동수정 가능성을 로그로 보고.
+
+expected: 4개 step 모두 success, unhandled 0건. 빨간 탭 전부에 대해 진단 출력 완료.
