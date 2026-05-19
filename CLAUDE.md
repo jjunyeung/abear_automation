@@ -53,13 +53,13 @@
 
 ---
 
-## (c) 아키텍처 결정 요약 (D1-D12)
+## (c) 아키텍처 결정 요약 (D1-D13)
 
 | ID  | 결정                                                                                    |
 |-----|-----------------------------------------------------------------------------------------|
 | D1  | 기존 `/Users/a1/automation` 패턴만 차용 (ATC 개념·확장 로딩·도메인 디렉토리)            |
 | D2  | 패키지 매니저 = `npm` 단독                                                              |
-| D3  | ATC DSL = YAML + 구조적 step (느슨, Claude가 정규화). 고정 키 5개: title/description?/inputs/steps/expected (description 은 GUI 표시용 메모, 실행 무영향) |
+| D3  | ATC DSL = YAML + 구조적 step (느슨, Claude가 정규화). 고정 키 6개: title/description?/inputs/outputs?/steps/expected (description 은 GUI 표시용 메모, 실행 무영향. outputs 는 spec.ts 의 `emitOutput()` 으로 채워 GUI 큐의 같은 batch 안 뒤 TC 의 `inputs.<name>.from: previous` 자리에 자동 주입 — 사용자 직접 입력값이 우선). |
 | D4  | 복구 후 재개 = **실패 step부터** (ATC 작성자가 `on_recovery.restart_from`으로 override 가능) |
 | D5  | 복구 등록 = `recoveries/<id>.ts` + ATC step의 `on_error: [<id>, ...]` 명시              |
 | D6  | 리포트 = `reports/runs/{runId}/` 안 `.md` + `.json` + Playwright html                   |
@@ -69,6 +69,7 @@
 | D10 | CI/CD = scope 외, **로컬 전용**                                                         |
 | D11 | unhandled 에러 = 즉시 실패 + 리포트 'unhandled' 기록, **자동 복구 시도 X**              |
 | D12 | 복구 자체 실패 = **1회만** 시도, 본 ATC도 실패 (재귀 복구 없음)                          |
+| D13 | TC 간 값 전달 = GUI 큐 안에서만. 출력 쪽 = `outputs:` 선언 + spec 의 `emitOutput()` 호출. 입력 쪽 = `inputs.<name>.from: previous`. 같은 batch (= 한 번의 "전체 실행") 내 직전 TC 의 output 이 빈 칸에만 자동 채워짐. 사용자가 큐 뷰에서 직접 입력하면 항상 그 값이 우선. 단일 실행/스케줄 spawn 등 batch 가 아닌 경로에서는 자동 주입 X. |
 
 상세 GWT는 `.hoyeon/specs/atc-framework/requirements.md` 참조.
 
@@ -90,15 +91,19 @@
 1. /atc-new 호출 (또는 사용자 의도 듣고 직접):
    - 도메인 분류 → atcs/<domain>/<name>.atc.yml
    - 도메인 후보: collect, error-check, fix, upload, e2e (D9)
-   - YAML 작성: title / inputs (schema only, D8) / steps / expected
+   - YAML 작성: title / inputs (schema only, D8) / outputs? / steps / expected
    - 각 step: { id, do (한국어 자연어), on_error?, on_recovery?, expect? }
    - **login / enter_workspace step 은 적지 않는다** — setup project 가 미리 처리 ((j) 참조)
    - 진입·검색·상세 진입 같은 공통 액션은 `lib/windly-actions.ts` 헬퍼 사용 ((k) 참조)
    - 큰 시나리오는 작은 ATC 들의 `composes` 컴포지션으로 ((l) 참조)
+   - 뒤 TC 와 값(예: source_product_id) 을 이어 쓰고 싶으면 (D13):
+     - 발급하는 TC: 최상위 `outputs:` 에 같은 이름으로 선언 + spec.ts 에서 `emitOutput('<name>', value)` 호출
+     - 받는 TC: `inputs.<name>.from: previous` 만 추가하면 GUI 큐의 같은 batch 안 자동 주입
 2. 대응 spec 작성: tests/<domain>/<name>.spec.ts
    - vertical slice exemplar (tests/collect/product-error-check.spec.ts) 패턴 그대로
    - StepHandlers 정의 — step.id ↔ Playwright 액션 매핑 (login/enter_workspace 핸들러 불필요)
    - runATC() 호출 → test.info().attach('atc-result', ...) 호출 (필수, 리포터가 이걸 읽음)
+   - outputs 선언했으면 step 안에서 `emitOutput()` 호출 (lib/atc-output.ts) — runner 가 끝에서 한 번에 수확
 3. 실행:
    npx playwright test --project=windly-<domain> tests/<domain>/<name>.spec.ts
    (npm run atc -- ... 는 spec.ts 만 매칭 가능 — atc.yml 직접 못 넘김)

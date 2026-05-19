@@ -49,7 +49,7 @@
 import { spawn } from 'node:child_process';
 import type { ChildProcessByStdio } from 'node:child_process';
 import type { Readable } from 'node:stream';
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { Notification, type BrowserWindow } from 'electron';
 import {
@@ -63,6 +63,7 @@ import {
 } from '../shared/ipc';
 import { runPreflight } from './preflight';
 import { getLockPath, recordSkip } from './userdata';
+import { loadATC } from '../../lib/atc-loader';
 
 // Matches Playwright's terminal summary line, e.g. "  3 failed" / "1 failed"
 // AND generic "Error:" leadings that escape exit code = 0 paths.
@@ -81,6 +82,8 @@ interface ActiveProcess {
   combinedTail: string;
   lockPath: string;
   runId: string | null;
+  /** 같은 batch 안에서만 outputs → from:previous 자동 주입이 동작. */
+  batchSessionId?: string;
 }
 
 export interface EnqueueResult {
@@ -103,6 +106,39 @@ const pending: RunQueueItem[] = [];
 let active: ActiveProcess | null = null;
 let activeItem: RunQueueItem | null = null;
 let queueIdCounter = 0;
+
+/**
+ * Batch outputs pool — sessionId 별로 같은 batch 안의 앞 TC 들이 emit 한 output
+ * 값을 누적. 같은 sessionId 를 가진 뒤 TC 가 startNext 진입 시 자기 ATC YAML 의
+ * `inputs.<name>.from === 'previous'` 자리에 값을 자동 주입 (사용자가 큐 뷰에서
+ * 이미 채워둔 값이 있으면 그 값이 우선).
+ *
+ * 라이프사이클:
+ *   - 첫 enqueueRun(batchSessionId=X) 호출 시 빈 객체로 초기화 (아직 outputs 없음)
+ *   - 한 TC 가 close 되면 reports/runs/<runId>/<runId>.json 를 파싱해 outputs 머지
+ *   - 더 이상 같은 sessionId 의 pending 이 없을 때 (즉 batch 종료) 자동 GC
+ *   - 단일 실행 / 스케줄러 spawn 등 batchSessionId 미설정인 경우는 아예 사용 X
+ */
+const batchOutputs = new Map<string, Record<string, string>>();
+
+/**
+ * queueId → 그 TC 의 `inputs.<name>.from === 'previous'` 키 목록.
+ * enqueueRun 에서 한 번 계산 → startNext 가 spawn 직전 자동 주입에 사용.
+ * RunQueueItem 자체에 노출하지 않는 이유: IPC 표면을 작게 유지 + 렌더러는 알 필요 없음.
+ */
+const fromPreviousByQueueId = new Map<string, string[]>();
+
+/**
+ * 같은 batchSessionId 의 pending + active 가 더 있는지 확인.
+ * 모두 끝났으면 batchOutputs 항목을 비워 메모리 누수 방지.
+ */
+function gcBatchIfDone(sessionId: string): void {
+  if (active?.batchSessionId === sessionId) return;
+  for (const p of pending) {
+    if (p.batchSessionId === sessionId) return;
+  }
+  batchOutputs.delete(sessionId);
+}
 
 let targetWindow: BrowserWindow | null = null;
 
@@ -302,6 +338,23 @@ function maybeCaptureRunId(proc: ActiveProcess, line: string): boolean {
 }
 
 /**
+ * ATC YAML 의 `inputs.<name>.from === 'previous'` 키 목록을 뽑아낸다. 실패는
+ * 항상 빈 배열 — 자동 주입은 best-effort, 실패해도 사용자 입력 그대로 spawn.
+ */
+function extractFromPreviousKeys(atcAbsPath: string): string[] {
+  try {
+    const atc = loadATC(atcAbsPath);
+    const out: string[] = [];
+    for (const [name, spec] of Object.entries(atc.inputs)) {
+      if (spec.from === 'previous') out.push(name);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Enqueue a run. Returns `{ok:false}` only when preflight fails — in which
  * case nothing is enqueued and no spawn happens (R-U3.1 gate).
  */
@@ -323,8 +376,23 @@ export async function enqueueRun(args: AtcRunArgs): Promise<EnqueueOutcome> {
     skipReason: null,
     runId: null,
     pid: null,
+    batchSessionId: args.batchSessionId,
   };
   pending.push(item);
+
+  if (args.batchSessionId !== undefined) {
+    // ATC YAML 에서 from:previous 키들을 미리 뽑아 둔다. startNext 가 spawn 직전 주입.
+    const absPath = path.isAbsolute(args.atcPath)
+      ? args.atcPath
+      : path.join(resolveRepoRoot(), args.atcPath);
+    const keys = extractFromPreviousKeys(absPath);
+    if (keys.length > 0) fromPreviousByQueueId.set(queueId, keys);
+    // 새 batch 의 첫 entry 면 pool 초기화 (이전 batch 잔존 방지).
+    if (!batchOutputs.has(args.batchSessionId)) {
+      batchOutputs.set(args.batchSessionId, {});
+    }
+  }
+
   // Kick the pump: if idle, start immediately; otherwise it waits.
   startNext();
   return { ok: true, queueId };
@@ -368,6 +436,26 @@ function startNext(): void {
     sendDone(next.queueId, -1, null);
     startNext();
     return;
+  }
+
+  // outputs → inputs.from='previous' 자동 주입 (사용자 입력값이 이김).
+  // batchSessionId 가 있고, 그 batch 안에 앞 TC 가 emit 한 output 이 있으면
+  // 빈 칸인 from:previous input 에만 채운다.
+  if (next.batchSessionId !== undefined) {
+    const pool = batchOutputs.get(next.batchSessionId) ?? {};
+    const keys = fromPreviousByQueueId.get(next.queueId) ?? [];
+    for (const k of keys) {
+      const existing = next.inputs[k];
+      const hasUserValue = typeof existing === 'string' && existing.length > 0;
+      if (hasUserValue) continue;
+      const fromPool = pool[k];
+      if (typeof fromPool === 'string' && fromPool.length > 0) {
+        next.inputs[k] = fromPool;
+        process.stderr.write(
+          `[run-queue] inject from:previous ${k}=${fromPool} (batch=${next.batchSessionId})\n`,
+        );
+      }
+    }
   }
 
   // Diagnostic — always echo to main stderr so user can see in the terminal
@@ -418,6 +506,7 @@ function startNext(): void {
     combinedTail: '',
     lockPath: lock,
     runId: null,
+    batchSessionId: next.batchSessionId,
   };
   active = proc;
   activeItem = next;
@@ -494,14 +583,89 @@ function startNext(): void {
       activeItem.pid = null;
     }
 
+    const finishedSessionId = proc.batchSessionId;
+    const runId = proc.runId;
+
+    // 같은 batch 안에서 outputs 수확. 성공 / 실패 무관하게 가능한 만큼 파싱
+    // (실패한 TC 도 부분 emit 했을 수 있음 — runner 가 모든 return path 에서
+    //  outputs 를 채우도록 보장).
+    if (
+      finishedSessionId !== undefined &&
+      runId !== null &&
+      exitCode >= 0
+    ) {
+      try {
+        const reportPath = path.join(
+          resolveRepoRoot(),
+          'reports',
+          'runs',
+          runId,
+          `${runId}.json`,
+        );
+        if (existsSync(reportPath)) {
+          const harvested = harvestOutputsFromReport(reportPath);
+          if (Object.keys(harvested).length > 0) {
+            const pool = batchOutputs.get(finishedSessionId) ?? {};
+            for (const [k, v] of Object.entries(harvested)) pool[k] = v;
+            batchOutputs.set(finishedSessionId, pool);
+            process.stderr.write(
+              `[run-queue] harvest outputs (batch=${finishedSessionId}): ${JSON.stringify(harvested)}\n`,
+            );
+          }
+        }
+      } catch (err) {
+        // Best-effort: 파싱 실패는 다음 TC 의 from:previous 가 비는 효과만 있음
+        const message = err instanceof Error ? err.message : String(err);
+        process.stderr.write(`[run-queue] harvest outputs error: ${message}\n`);
+      }
+    }
+    // 이 queueId 의 from:previous 메타는 더 이상 필요 없음.
+    fromPreviousByQueueId.delete(proc.queueId);
+
     active = null;
     activeItem = null;
-    const runId = proc.runId;
     sendDone(proc.queueId, exitCode, exitCode >= 0 ? runId : null);
+
+    // batch 종료 GC: 같은 sessionId 의 pending 이 더 없으면 pool 정리.
+    if (finishedSessionId !== undefined) gcBatchIfDone(finishedSessionId);
 
     // Pump the next pending run (R-B6.1 sequential progression).
     startNext();
   });
+}
+
+/**
+ * `<runId>.json` 에서 첫 ATC 의 outputs 만 꺼낸다. 한 spawn = 1 ATC 가 기본
+ * 패턴이라 1개 ATC 만 있으면 충분 — 다중 ATC 가 한 spawn 안에 들어있는 경우는
+ * (atc-multi.mjs / composes) GUI 단일 큐 entry 와 의미가 분리되어 있어 후순위.
+ *
+ * outputs 값은 string | number | boolean | null 이지만 ATC_INPUT_* env 로
+ * stringify 해서 넘기므로 여기서도 String() 통일 (run-queue 의 in-memory pool
+ * 은 Record<string, string>).
+ */
+function harvestOutputsFromReport(reportPath: string): Record<string, string> {
+  const raw = readFileSync(reportPath, 'utf8');
+  const parsed: unknown = JSON.parse(raw);
+  if (typeof parsed !== 'object' || parsed === null) return {};
+  const root = parsed as Record<string, unknown>;
+  const atcs = root.atcs;
+  if (!Array.isArray(atcs) || atcs.length === 0) return {};
+  const out: Record<string, string> = {};
+  for (const atc of atcs) {
+    if (typeof atc !== 'object' || atc === null) continue;
+    const result = (atc as Record<string, unknown>).result;
+    if (typeof result !== 'object' || result === null) continue;
+    const outputs = (result as Record<string, unknown>).outputs;
+    if (typeof outputs !== 'object' || outputs === null) continue;
+    for (const [k, v] of Object.entries(outputs)) {
+      if (typeof k !== 'string' || k.length === 0) continue;
+      if (v === null || v === undefined) continue;
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        out[k] = String(v);
+      }
+    }
+  }
+  return out;
 }
 
 function safeRemoveLock(p: string): void {

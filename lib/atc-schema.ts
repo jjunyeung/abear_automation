@@ -20,6 +20,25 @@ export const inputSchemaSchema = z.object({
   type: z.string(),
   description: z.string().optional(),
   example: z.string().optional(),
+  /**
+   * `previous` 면 GUI 큐의 같은 batch 안에서 앞 TC 가 emit 한 같은 이름의
+   * output 을 자동 주입 (사용자가 큐 뷰에서 직접 입력하면 그 값이 우선).
+   * 단일 실행 / 배치 첫 TC 처럼 앞선 output 이 없으면 fallback 으로 사용자
+   * 입력값 (CLI 인자 / 큐 폼) 을 그대로 사용.
+   */
+  from: z.literal('previous').optional(),
+});
+
+/**
+ * Schema for a single ATC output declaration (`outputs.<name>`).
+ *
+ * spec.ts 가 실행 중 `emitOutput(name, value)` 로 값을 채우면 GUI 큐가 같은
+ * batch 안에서 뒤 TC 의 `inputs.<name>.from === 'previous'` 자리에 자동 주입.
+ * 선언은 카탈로그/큐 뷰가 "이 TC 가 뭘 내놓는지" 미리 보여주기 위한 메타.
+ */
+export const outputSchemaSchema = z.object({
+  type: z.string(),
+  description: z.string().optional(),
 });
 
 /** Schema for a single ATC step (`steps[i]`). */
@@ -62,6 +81,12 @@ export const atcSchema = z
      */
     description: z.string().optional(),
     inputs: z.record(z.string(), inputSchemaSchema).default({}),
+    /**
+     * 이 TC 가 실행 중 `emitOutput()` 으로 내놓는 값들의 스키마 선언. 선언이
+     * 있어야 GUI 가 "이 TC 는 X 를 내놓는다" 미리 표시할 수 있고, 뒤 TC 의
+     * `inputs.<name>.from === 'previous'` 와 매칭된다 (이름 단위).
+     */
+    outputs: z.record(z.string(), outputSchemaSchema).default({}),
     steps: z.array(stepSchema).default([]),
     composes: z.array(z.string()).optional(),
     expected: z.string().optional(),
@@ -83,3 +108,6 @@ export type ATCStep = z.infer<typeof stepSchema>;
 
 /** Inferred runtime type for an ATC input schema entry. */
 export type ATCInputSchema = z.infer<typeof inputSchemaSchema>;
+
+/** Inferred runtime type for an ATC output schema entry. */
+export type ATCOutputSchema = z.infer<typeof outputSchemaSchema>;

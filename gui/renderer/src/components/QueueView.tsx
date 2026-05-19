@@ -22,6 +22,8 @@ export interface InputSpec {
   type: string;
   description?: string;
   example?: string;
+  /** 'previous' 면 같은 batch 안에서 앞 TC 가 emit 한 같은 이름의 output 을 자동 주입. */
+  from?: 'previous';
 }
 interface AtcBody {
   title: string;
@@ -36,6 +38,11 @@ function isInputSpec(v: unknown): v is InputSpec {
     typeof (v as { type: unknown }).type === 'string'
   );
 }
+function narrowFromPrevious(v: unknown): 'previous' | undefined {
+  if (typeof v !== 'object' || v === null) return undefined;
+  const f = (v as { from?: unknown }).from;
+  return f === 'previous' ? 'previous' : undefined;
+}
 function narrowAtcBody(raw: unknown): AtcBody {
   if (typeof raw !== 'object' || raw === null) {
     return { title: '', inputs: {} };
@@ -46,7 +53,12 @@ function narrowAtcBody(raw: unknown): AtcBody {
   const inputs: Record<string, InputSpec> = {};
   if (typeof inputsRaw === 'object' && inputsRaw !== null) {
     for (const [key, value] of Object.entries(inputsRaw)) {
-      if (isInputSpec(value)) inputs[key] = value;
+      if (isInputSpec(value)) {
+        // narrowAtcBody 가 unknown → InputSpec 좁히는 1회 통과지점이라
+        // 여기서 from 도 같이 좁혀둔다 (QueueView 가 다른 카드들과 공유하는 캐시).
+        const from = narrowFromPrevious(value);
+        inputs[key] = from === 'previous' ? { ...value, from } : value;
+      }
     }
   }
   return { title, inputs };
@@ -214,12 +226,30 @@ export function QueueView({
                       {inputNames.map((name) => {
                         const spec = body.inputs[name];
                         const fieldId = `q-${idx}-${name}`;
+                        const isFromPrevious = spec.from === 'previous';
+                        // 큐 위치가 1번 (= 인덱스 0) 이면 앞 TC 자체가 없으므로
+                        // 자동 주입을 기대할 수 없다. 사용자가 직접 채워야 함.
+                        const cantAutoFill = isFromPrevious && idx === 0;
+                        const placeholder = isFromPrevious
+                          ? cantAutoFill
+                            ? `← 앞 TC 없음, 직접 입력 (${spec.example ?? ''})`.trim()
+                            : `← 앞 TC 가 emit 한 값 자동 채움 (${spec.example ?? '비워두면 자동'})`
+                          : (spec.example ?? '');
                         return (
                           <div key={name} className="grid gap-1.5">
                             <Label htmlFor={fieldId}>
                               <span className="font-mono text-[12px]">
                                 {name}
                               </span>
+                              {isFromPrevious && (
+                                <Badge
+                                  variant="outline"
+                                  className="ml-2 border-sky-300 bg-sky-50 px-1.5 font-mono text-[10px] text-sky-800"
+                                  title="같은 batch 안에서 앞 TC 가 emit 한 같은 이름의 output 을 자동 주입"
+                                >
+                                  ← 앞 TC
+                                </Badge>
+                              )}
                               {spec.description && (
                                 <span className="ml-2 font-normal text-muted-foreground">
                                   — {spec.description}
@@ -229,7 +259,7 @@ export function QueueView({
                             <Input
                               id={fieldId}
                               type={htmlInputType(spec.type)}
-                              placeholder={spec.example ?? ''}
+                              placeholder={placeholder}
                               value={tcInputs[name] ?? ''}
                               onChange={(e): void =>
                                 onInputChange(

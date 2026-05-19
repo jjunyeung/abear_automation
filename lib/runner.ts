@@ -36,6 +36,11 @@ import type { ErrorKey, RecoveryContext } from './errors';
 import type { ATC } from './atc-schema';
 import { RecoveryRegistry } from './recovery-registry';
 import { logger } from './logger';
+import {
+  getEmittedOutputs,
+  resetEmittedOutputs,
+  type OutputValue,
+} from './atc-output';
 
 /** Per-step terminal status recorded in the run report. */
 export type StepStatus = 'success' | 'failed' | 'recovered' | 'unhandled' | 'skipped';
@@ -56,6 +61,12 @@ export interface RunResult {
   steps: StepResult[];
   overall: 'success' | 'failed';
   inputs_used: Record<string, unknown>;
+  /**
+   * spec.ts 가 `emitOutput()` 으로 채운 "다음 TC 가 받아갈" 값들. 빈 객체면
+   * 이 TC 는 어떤 output 도 발급하지 않은 것. GUI 큐가 같은 batch 의 뒤 TC
+   * 입력 자동 주입에 사용 (inputs.<name>.from === 'previous' 매칭).
+   */
+  outputs: Record<string, OutputValue>;
 }
 
 /** Outcome shape a StepHandler MUST return. */
@@ -97,6 +108,10 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
   const registry = opts.registry ?? RecoveryRegistry.load(recoveriesDir);
   const results: StepResult[] = [];
 
+  // spec.ts 가 `emitOutput()` 으로 채울 buffer 를 리셋. 끝에서 getEmittedOutputs()
+  // 로 한 번에 읽어 RunResult.outputs 로 옮긴다.
+  resetEmittedOutputs();
+
   let i = 0;
   while (i < atc.steps.length) {
     const step = atc.steps[i];
@@ -113,7 +128,7 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         message,
       });
       logger.error(message);
-      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs };
+      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 
     let outcome: StepOutcome;
@@ -129,7 +144,7 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         message,
       });
       logger.error(message);
-      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs };
+      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 
     if (outcome.ok) {
@@ -158,7 +173,7 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         message,
       });
       logger.error(`✗ unhandled error '${String(ekey)}' at step '${step.id}'`);
-      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs };
+      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 
     // D12: 복구 1회 시도
@@ -174,7 +189,7 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         message,
       });
       logger.error(message);
-      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs };
+      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 
     const ctx: RecoveryContext = {
@@ -207,7 +222,7 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         message,
       });
       logger.error(message);
-      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs };
+      return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 
     // ── D4: 복구 후 재개 지점 결정 ────────────────────────────────────────
@@ -224,5 +239,5 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
     // 기본: i 그대로 → 실패한 step부터 다시 (D4 default)
   }
 
-  return { atc_title: atc.title, steps: results, overall: 'success', inputs_used: inputs };
+  return { atc_title: atc.title, steps: results, overall: 'success', inputs_used: inputs, outputs: getEmittedOutputs() };
 }

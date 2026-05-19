@@ -50,6 +50,8 @@ export interface RunQueueItem {
   skipReason: string | null;
   runId: string | null;
   pid: number | null;
+  /** 같은 batch 안의 TC 들끼리 outputs → inputs 자동 주입을 묶는 id. */
+  batchSessionId?: string;
 }
 
 export interface CalendarInterval {
@@ -151,6 +153,12 @@ export interface AtcRunArgs {
    * 은 false (headed) — D7 의 안전한 기본을 깨지 않는다.
    */
   headless?: boolean;
+  /**
+   * 한 batch (= 큐 "전체 실행" 한 묶음) 안에서 같은 id 를 공유하는 TC 들끼리
+   * outputs → inputs.from='previous' 자동 주입이 동작한다. 단일 실행 (InputForm)
+   * 이나 스케줄러 spawn 등은 미설정 — 미설정이면 자동 주입 X.
+   */
+  batchSessionId?: string;
 }
 /**
  * `atc:run` returns the queueId on success, or a structured preflight-failure

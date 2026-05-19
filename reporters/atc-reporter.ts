@@ -71,6 +71,12 @@ interface RunResult {
   steps: StepResult[];
   overall: 'success' | 'failed';
   inputs_used: Record<string, unknown>;
+  /**
+   * spec.ts 가 `emitOutput()` 으로 채운 값들. 같은 batch 의 뒤 TC 가
+   * `inputs.<name>.from === 'previous'` 로 받아간다. 옛 reporter 결과를 다시
+   * 읽을 수도 있으니 optional 로 둔다.
+   */
+  outputs?: Record<string, string | number | boolean | null>;
 }
 
 /** Reporter-internal record that pairs an attachment with its test context. */
@@ -166,6 +172,11 @@ class ATCReporter implements Reporter {
       lines.push('');
       lines.push(`- spec: \`${item.spec_file}\``);
       lines.push(`- 입력: \`${JSON.stringify(item.result.inputs_used)}\``);
+      const outputs = item.result.outputs ?? {};
+      if (Object.keys(outputs).length > 0) {
+        // 같은 batch 의 뒤 TC 가 이 줄로 자동 주입 받음 (inputs.<name>.from === 'previous').
+        lines.push(`- 출력: \`${JSON.stringify(outputs)}\``);
+      }
       lines.push(
         `- 결과: ${item.result.overall === 'success' ? '✅ 성공' : '❌ 실패'}`,
       );

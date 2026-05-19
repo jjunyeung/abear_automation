@@ -310,6 +310,12 @@ function App(): JSX.Element {
 
   const handleRunBatch = useCallback(async (): Promise<void> => {
     if (batchOrder.length === 0) return;
+    // 같은 batch 안의 TC 들끼리만 outputs → inputs.from='previous' 자동 주입을
+    // 묶는 id. 매 "전체 실행" 마다 새로 생성 — main 의 run-queue 가 같은 id 들을
+    // 한 pool 로 인식 (gui/main/run-queue.ts 의 batchOutputs).
+    const batchSessionId = `batch-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
     // Race 방지: ref 를 setState 보다 먼저 직접 갱신해서 onRunHistoryUpdated
     // 가 첫 entry 도착 시점에 무조건 batch 분기를 타도록.
     batchRunningRef.current = true;
@@ -363,6 +369,7 @@ function App(): JSX.Element {
             specPath: item.specPath,
             inputs: batchInputs[atcPath] ?? {},
             headless,
+            batchSessionId,
           });
           if (result.ok) {
             // RunView 는 활성 큐 목록 전체를 보여준다.
