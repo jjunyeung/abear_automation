@@ -52,6 +52,7 @@ import type { IconName } from '@blueprintjs/icons';
 import {
   CalendarClock,
   ListTree,
+  Link as LinkIcon,
   Settings as SettingsIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -78,6 +79,7 @@ import { ScheduleDialog } from './components/ScheduleDialog';
 import { SchedulePanel } from './components/SchedulePanel';
 import { SecondInstanceToast } from './components/SecondInstanceToast';
 import { SettingsPanel } from './components/SettingsPanel';
+import { UrlPoolPanel } from './components/UrlPoolPanel';
 import { ErrorToast } from './components/ErrorToast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './main.css';
@@ -87,7 +89,7 @@ FocusStyleManager.onlyShowFocusOnTabs();
 
 type RightTab = 'live' | 'report';
 type CenterView = 'edit' | 'queue';
-type FocusZone = 'catalog' | 'queue' | 'live' | 'schedule' | 'settings';
+type FocusZone = 'catalog' | 'queue' | 'live' | 'schedule' | 'url-pool' | 'settings';
 
 export type BatchItemStatus = 'pending' | 'running' | 'done' | 'failed';
 export interface BatchItemProgress {
@@ -109,6 +111,7 @@ interface LnbItem {
 const LNB_ITEMS_TOP: readonly LnbItem[] = [
   { zone: 'catalog', icon: ListTree, label: '자동화' },
   { zone: 'schedule', icon: CalendarClock, label: '스케줄' },
+  { zone: 'url-pool', icon: LinkIcon, label: 'URL 풀' },
 ];
 const LNB_ITEMS_BOTTOM: readonly LnbItem[] = [
   { zone: 'settings', icon: SettingsIcon, label: '설정' },
@@ -740,9 +743,9 @@ function App(): JSX.Element {
         )}
       </aside>
 
-      {/* GNB — 화면 최상단 풀-너비. 설정/스케줄 화면에서는 숨김 (자동화 workflow GNB 라 무관).
+      {/* GNB — 화면 최상단 풀-너비. 설정/스케줄/URL 풀 화면에서는 숨김 (자동화 workflow GNB 라 무관).
        * 숨길 때 row 1 의 auto 가 0 으로 collapse 돼 sidebar 가 전체 높이를 채움. */}
-      {focus !== 'settings' && focus !== 'schedule' && (
+      {focus !== 'settings' && focus !== 'schedule' && focus !== 'url-pool' && (
       <header className="app-shell__gnb" aria-label="자동화 워크플로 GNB">
         <div className="app-shell__gnb-inner">
           {GNB_ITEMS.map(({ zone, label, icon }, index) => {
@@ -822,6 +825,10 @@ function App(): JSX.Element {
                 setFocusOverride('live');
               }}
             />
+          ) : focus === 'url-pool' ? (
+            <ErrorBoundary label="UrlPoolPanel">
+              <UrlPoolPanel />
+            </ErrorBoundary>
           ) : focus === 'queue' ? (
             <QueueView
               order={batchOrder}

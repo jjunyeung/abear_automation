@@ -23,10 +23,12 @@ export const inputSchemaSchema = z.object({
   /**
    * `previous` 면 GUI 큐의 같은 batch 안에서 앞 TC 가 emit 한 같은 이름의
    * output 을 자동 주입 (사용자가 큐 뷰에서 직접 입력하면 그 값이 우선).
+   * `pool` 이면 GUI 의 URL 풀 (`data/url-pool.txt`) head 에서 매 spawn 직전 1개
+   * 를 consume 해서 자동 주입 (사용자 입력값 / from:previous 자동주입이 우선).
    * 단일 실행 / 배치 첫 TC 처럼 앞선 output 이 없으면 fallback 으로 사용자
    * 입력값 (CLI 인자 / 큐 폼) 을 그대로 사용.
    */
-  from: z.literal('previous').optional(),
+  from: z.enum(['previous', 'pool']).optional(),
 });
 
 /**

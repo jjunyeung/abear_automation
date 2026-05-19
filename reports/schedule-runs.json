@@ -142,5 +142,75 @@
         "overall": "failed"
       }
     ]
+  },
+  {
+    "scheduleId": "44109037-cf75-481b-ba52-833f692d6594",
+    "firedAt": "2026-05-19T02:10:02.000Z",
+    "completedAt": "2026-05-19T02:12:42.324Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-19_11-10-02_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/error-check/check-and-fix.atc.yml",
+        "runId": "result_2026-05-19_11-11-06_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/single-product.atc.yml",
+        "runId": "result_2026-05-19_11-11-55_3",
+        "exitCode": 1,
+        "overall": "failed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "28870e51-9286-4a81-b45f-3ade804b7b09",
+    "firedAt": "2026-05-19T03:30:04.000Z",
+    "completedAt": "2026-05-19T03:38:38.022Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-19_12-30-04_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/error-check/check-and-fix.atc.yml",
+        "runId": "result_2026-05-19_12-32-49_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/single-product.atc.yml",
+        "runId": "result_2026-05-19_12-33-45_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/registered-check.atc.yml",
+        "runId": "result_2026-05-19_12-34-25_4",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-19_12-35-04_5",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/delete-top-product.atc.yml",
+        "runId": "result_2026-05-19_12-35-51_6",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
   }
 ]

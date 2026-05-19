@@ -628,16 +628,11 @@ test('등록상품 상품명 수정 후 재업로드', async ({ page }) => {
   test.setTimeout(15 * 60_000);
 
   const atc = loadATC(ATC_PATH);
-  const exId = atc.inputs['source_product_id']?.example ?? '';
-  const exName = atc.inputs['new_name']?.example ?? '';
-  const pickFirstNonEmpty = (...vals: (string | undefined)[]): string =>
-    vals.find((v) => typeof v === 'string' && v.length > 0) ?? '';
+  // example 은 GUI placeholder 전용 — 빈 값이면 핸들러의 missing_input 분기로 명시 fail.
+  // (GUI 큐의 from: previous 자동 주입은 ATC_INPUT_* env 로 도착하므로 여전히 동작.)
   const inputs: Record<string, unknown> = {
-    source_product_id: pickFirstNonEmpty(
-      process.env['ATC_INPUT_SOURCE_PRODUCT_ID'],
-      exId,
-    ),
-    new_name: pickFirstNonEmpty(process.env['ATC_INPUT_NEW_NAME'], exName),
+    source_product_id: process.env['ATC_INPUT_SOURCE_PRODUCT_ID'] ?? '',
+    new_name: process.env['ATC_INPUT_NEW_NAME'] ?? '',
   };
 
   const result = await runATC({ atc, page, inputs, handlers });

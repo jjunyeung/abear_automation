@@ -19,6 +19,7 @@ inputs:
     type: string
     description: 윈들리 내부 상품 코드 (등록상품 목록에서 검색할 ID)
     example: '235442266'
+    from: previous
 
 steps:
   - id: open_registered_list

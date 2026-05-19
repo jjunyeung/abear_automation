@@ -683,6 +683,64 @@ html, body, #root {
   padding: 8px 0;
 }
 
+/* 선택된 TC 의 실행 순서 + ▲▼ reorder. lockSelection 잠금 모드와
+   picker 모드 모두 공유. */
+.schedule-dialog__order-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  background: #fafbfc;
+}
+.schedule-dialog__order-list--empty {
+  padding: 12px;
+  text-align: center;
+}
+.schedule-dialog__order-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: white;
+  border: 1px solid #e5e8eb;
+  font-size: 12px;
+}
+.schedule-dialog__order-idx {
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: center;
+}
+.schedule-dialog__order-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.schedule-dialog__order-actions {
+  flex-shrink: 0;
+}
+
+/* 섹션 3 입력 카드 head + 옆에 붙은 ▲▼ 버튼 그룹 묶음 */
+.schedule-dialog__atc-card-head-wrap {
+  display: flex;
+  align-items: stretch;
+}
+.schedule-dialog__atc-card-head-wrap > .schedule-dialog__atc-card-head {
+  flex: 1;
+}
+.schedule-dialog__atc-card-reorder {
+  padding-right: 4px;
+  display: flex;
+  align-items: center;
+  background: #fafbfc;
+}
+
 /* TC picker */
 .schedule-dialog__picker {
   display: flex;

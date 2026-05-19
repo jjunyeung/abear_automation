@@ -23,7 +23,8 @@
     "../shared/**/*.ts",
     "../../lib/config.ts",
     "../../lib/atc-loader.ts",
-    "../../lib/atc-schema.ts"
+    "../../lib/atc-schema.ts",
+    "../../lib/url-pool.ts"
   ],
   "exclude": ["../renderer/**/*", "../dist/**/*", "../vite.config.mts", "node_modules"]
 }

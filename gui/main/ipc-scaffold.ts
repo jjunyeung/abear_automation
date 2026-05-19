@@ -32,6 +32,9 @@ import {
   type AtcRunResult,
   type PreRunError,
   type BatchReportOpenArgs,
+  type PoolAddArgs,
+  type PoolMutationResult,
+  type PoolRemoveArgs,
   type ReportMergeArgs,
   type ReportMergeResult,
   type RunOpenArgs,
@@ -57,6 +60,7 @@ import {
 } from './schedule-manager';
 import { listScheduleRuns } from './schedule-runs';
 import { getCatalogSnapshot, reloadCatalog } from './catalog';
+import { handlePoolAdd, handlePoolList, handlePoolRemove } from './pool-handlers';
 import { mergeReports, openBatchFile } from './report-merge';
 import { readScreenshot } from './screenshot';
 import { reportError } from './error-bus';
@@ -153,6 +157,20 @@ export function registerIpcScaffold(): void {
   bindInvoke(INVOKE_CHANNELS.screenshotRead, 'T11', async (_event, payload) => {
     const args = payload as ScreenshotReadArgs;
     const out: ScreenshotReadResult = await readScreenshot(args.absPath);
+    return out;
+  });
+  // URL pool (data/url-pool.txt) — list/add/remove. headPop 은 run-queue 가 직접 호출.
+  bindInvoke(INVOKE_CHANNELS.poolList, 'url-pool', async () => {
+    return handlePoolList();
+  });
+  bindInvoke(INVOKE_CHANNELS.poolAdd, 'url-pool', async (_event, payload) => {
+    const args = payload as PoolAddArgs;
+    const out: PoolMutationResult = handlePoolAdd(args);
+    return out;
+  });
+  bindInvoke(INVOKE_CHANNELS.poolRemove, 'url-pool', async (_event, payload) => {
+    const args = payload as PoolRemoveArgs;
+    const out: PoolMutationResult = handlePoolRemove(args);
     return out;
   });
 

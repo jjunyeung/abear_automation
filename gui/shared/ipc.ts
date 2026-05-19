@@ -224,6 +224,26 @@ export interface ScreenshotReadResult {
   dataUrl: string;
 }
 
+/**
+ * URL pool — data/url-pool.txt 에 보관된 URL 큐. 매 ATC 실행마다 새 URL 이
+ * 필요한 시나리오 (e2e/url-collect-and-ai-fix 등) 가 자동으로 head 1개 consume.
+ *
+ * 모든 응답은 갱신된 전체 풀 (= 사용자에게 보여줄 latest 상태) 을 함께 반환 —
+ * 별도 query 없이 한 번의 IPC 만으로 UI 가 새로 그려지도록.
+ */
+export interface PoolAddArgs {
+  urls: readonly string[];
+}
+export interface PoolRemoveArgs {
+  url: string;
+}
+export interface PoolMutationResult {
+  /** 작업 직후 풀 전체 (FIFO 순서 유지). */
+  urls: string[];
+  /** add 시 새로 추가된 개수 / remove 시 삭제된 개수. 0 면 no-op. */
+  affected: number;
+}
+
 // ---------- Send channel signatures (renderer → main, fire-and-forget) ----------
 
 export interface AtcKillArgs {
@@ -344,6 +364,10 @@ export const INVOKE_CHANNELS = {
   reportMerge: 'report:merge',
   // R-U7.1 — main process resolves a sandboxed PNG path to a base64 data URL.
   screenshotRead: 'screenshot:read',
+  // URL pool — data/url-pool.txt 의 read/add/remove. headPop 은 run-queue 가 직접 호출 (IPC X).
+  poolList: 'pool:list',
+  poolAdd: 'pool:add',
+  poolRemove: 'pool:remove',
 } as const;
 
 export const SEND_CHANNELS = {
@@ -366,6 +390,8 @@ export const PUSH_CHANNELS = {
   // failures relayed from `gui/main/error-bus.ts` to the renderer's
   // ErrorToast so the app reports problems instead of crashing silently.
   appUncaughtError: 'app:uncaught-error',
+  // URL pool — run-queue 의 headPop 이후 풀이 변경됐음을 알린다.
+  poolUpdated: 'pool:updated',
 } as const;
 
 export type InvokeChannel = (typeof INVOKE_CHANNELS)[keyof typeof INVOKE_CHANNELS];
@@ -396,6 +422,12 @@ export interface AtcAPI {
   runReport(args: RunReportArgs): Promise<RunReportResult>;
   reportMerge(args: ReportMergeArgs): Promise<ReportMergeResult>;
   screenshotRead(args: ScreenshotReadArgs): Promise<ScreenshotReadResult>;
+  /** URL pool 전체 (FIFO 순서). */
+  poolList(): Promise<string[]>;
+  /** URL 들을 풀 뒤에 append. 중복은 자동 제거. 갱신된 전체 풀 + 추가 개수 반환. */
+  poolAdd(args: PoolAddArgs): Promise<PoolMutationResult>;
+  /** 정확 매치되는 URL 을 풀에서 제거. 갱신된 전체 풀 + 제거 개수 반환. */
+  poolRemove(args: PoolRemoveArgs): Promise<PoolMutationResult>;
   // send (fire-and-forget)
   atcKill(args: AtcKillArgs): void;
   runOpen(args: RunOpenArgs): void;
@@ -412,4 +444,6 @@ export interface AtcAPI {
   onAppSecondInstance(handler: () => void): () => void;
   onAppCloseAttempt(handler: (e: AppCloseAttemptEvent) => void): () => void;
   onAppUncaughtError(handler: (e: AppUncaughtErrorEvent) => void): () => void;
+  /** URL pool 이 run-queue 의 headPop 으로 변경됐을 때 push. */
+  onPoolUpdated(handler: (urls: string[]) => void): () => void;
 }

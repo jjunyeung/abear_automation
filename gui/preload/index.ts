@@ -29,6 +29,9 @@ import {
   type PushChannel,
   type RunHistoryEntry,
   type BatchReportOpenArgs,
+  type PoolAddArgs,
+  type PoolMutationResult,
+  type PoolRemoveArgs,
   type ReportMergeArgs,
   type ReportMergeResult,
   type RunOpenArgs,
@@ -85,6 +88,11 @@ const api: AtcAPI = {
     ipcRenderer.invoke(INVOKE_CHANNELS.reportMerge, args),
   screenshotRead: (args: ScreenshotReadArgs): Promise<ScreenshotReadResult> =>
     ipcRenderer.invoke(INVOKE_CHANNELS.screenshotRead, args),
+  poolList: (): Promise<string[]> => ipcRenderer.invoke(INVOKE_CHANNELS.poolList),
+  poolAdd: (args: PoolAddArgs): Promise<PoolMutationResult> =>
+    ipcRenderer.invoke(INVOKE_CHANNELS.poolAdd, args),
+  poolRemove: (args: PoolRemoveArgs): Promise<PoolMutationResult> =>
+    ipcRenderer.invoke(INVOKE_CHANNELS.poolRemove, args),
 
   atcKill: (args: AtcKillArgs): void => {
     ipcRenderer.send(SEND_CHANNELS.atcKill, args);
@@ -117,6 +125,8 @@ const api: AtcAPI = {
     subscribe<AppCloseAttemptEvent>(PUSH_CHANNELS.appCloseAttempt, handler),
   onAppUncaughtError: (handler: (e: AppUncaughtErrorEvent) => void): (() => void) =>
     subscribe<AppUncaughtErrorEvent>(PUSH_CHANNELS.appUncaughtError, handler),
+  onPoolUpdated: (handler: (urls: string[]) => void): (() => void) =>
+    subscribe<string[]>(PUSH_CHANNELS.poolUpdated, handler),
 };
 
 contextBridge.exposeInMainWorld('atcAPI', api);

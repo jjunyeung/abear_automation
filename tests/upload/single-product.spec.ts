@@ -347,14 +347,10 @@ test('단건 상품 업로드 후 등록상품 목록 검증', async ({ page }) 
 
   const atc = loadATC(ATC_PATH);
 
-  const example = atc.inputs['source_product_id']?.example ?? '';
-  const pickFirstNonEmpty = (...vals: (string | undefined)[]): string =>
-    vals.find((v) => typeof v === 'string' && v.length > 0) ?? '';
+  // example 은 GUI placeholder 전용 — 빈 값이면 핸들러의 missing_input 분기로 명시 fail.
+  // (GUI 큐의 from: previous 자동 주입은 ATC_INPUT_* env 로 도착하므로 여전히 동작.)
   const inputs: Record<string, unknown> = {
-    source_product_id: pickFirstNonEmpty(
-      process.env['ATC_INPUT_SOURCE_PRODUCT_ID'],
-      example,
-    ),
+    source_product_id: process.env['ATC_INPUT_SOURCE_PRODUCT_ID'] ?? '',
   };
 
   const result = await runATC({ atc, page, inputs, handlers });

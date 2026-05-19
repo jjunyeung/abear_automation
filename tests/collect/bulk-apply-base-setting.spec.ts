@@ -201,14 +201,10 @@ test('수집상품 N개 선택 후 기본 설정값 적용 일괄 실행', async
   test.setTimeout(5 * 60_000);
 
   const atc = loadATC(ATC_PATH);
-  const example = atc.inputs['product_count']?.example ?? '3';
-  const pickFirstNonEmpty = (...vals: (string | undefined)[]): string =>
-    vals.find((v) => typeof v === 'string' && v.length > 0) ?? '';
+  // example/hardcoded default 제거 — placeholder 가 silent 하게 실제 값으로 둔갑하는 함정 방지.
+  // 빈 값은 핸들러 책임으로 위임.
   const inputs: Record<string, unknown> = {
-    product_count: pickFirstNonEmpty(
-      process.env['ATC_INPUT_PRODUCT_COUNT'],
-      example,
-    ),
+    product_count: process.env['ATC_INPUT_PRODUCT_COUNT'] ?? '',
   };
 
   const result = await runATC({ atc, page, inputs, handlers });

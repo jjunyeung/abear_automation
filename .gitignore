@@ -7,6 +7,9 @@ test-results/
 .playwright-userdata/
 tests/collect/.url-collect-history.log
 
+# URL 풀 (GUI 가 관리, 사용자별 휘발성 데이터).
+data/url-pool.txt
+
 # GUI (Electron + Vite) build artifacts
 # - gui/dist/         : tsc(main/preload/lib) + vite build(renderer) output
 # - gui/dist/release/ : electron-builder packaging output (.dmg / .zip) — see gui/electron-builder.yml directories.output

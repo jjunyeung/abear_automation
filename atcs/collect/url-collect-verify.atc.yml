@@ -23,7 +23,8 @@ description: |
 inputs:
   product_url:
     type: string
-    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지).
+    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지). GUI 의 URL 풀에서 head 1개씩 자동 consume.
+    from: pool
 
 steps:
   - id: open_collect_menu

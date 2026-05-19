@@ -21,8 +21,9 @@ description: |
 inputs:
   product_url:
     type: string
-    description: 수집할 티몰/타오바오/라쿠텐 상품 URL
+    description: 수집할 티몰/타오바오/라쿠텐 상품 URL. GUI 의 URL 풀에서 head 1개씩 자동 consume.
     example: https://detail.tmall.com/item.htm?id=865028697626
+    from: pool
 
 steps:
   - id: open_collect_menu

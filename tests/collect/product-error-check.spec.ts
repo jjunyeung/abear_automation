@@ -146,11 +146,10 @@ test('상품을 수집하고 에러체크를 수행한다 (vertical slice)', asy
   // 1) ATC 로드 (zod 검증 포함 — R-A1.4)
   const atc = loadATC(ATC_PATH);
 
-  // 2) 입력 주입 (D8 우선순위: CLI > fixture > interactive)
-  //    MVP: env override 또는 ATC.example 사용. CLI 주입은 향후 npm script 가 env 로 wiring.
-  const urlExample = atc.inputs['url']?.example ?? '';
+  // 2) 입력 주입 — example 폴백 제거 (GUI placeholder 가 silent 하게 실제 값으로 둔갑하는 함정 방지).
+  //    빈 값이면 핸들러에서 명시 fail. GUI 큐의 from: previous 자동 주입은 env 로 도착하므로 그대로 동작.
   const inputs: Record<string, unknown> = {
-    url: process.env['ATC_INPUT_URL'] ?? urlExample,
+    url: process.env['ATC_INPUT_URL'] ?? '',
   };
 
   // 3) 실행 (runner 는 throw 안 함 — 모든 결과는 RunResult 안에)

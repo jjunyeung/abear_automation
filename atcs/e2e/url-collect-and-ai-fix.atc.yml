@@ -33,7 +33,14 @@ description: |
 inputs:
   product_url:
     type: string
-    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지).
+    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지). GUI 의 URL 풀에서 head 1개씩 자동 consume.
+    from: pool
+
+outputs:
+  source_product_id:
+    type: string
+    description: |
+      enter_product_detail step 에서 도달한 /view2/interested-product/<digits> URL 의 digits. 같은 batch 의 뒤 TC (upload/single-product, upload/registered-check 등) 가 from previous 로 받아간다.
 
 steps:
   - id: open_collect_menu

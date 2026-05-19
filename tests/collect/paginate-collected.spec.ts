@@ -76,14 +76,10 @@ test('수집상품 목록 페이지네이션 이동', async ({ page }) => {
   test.setTimeout(3 * 60_000);
 
   const atc = loadATC(ATC_PATH);
-  const example = atc.inputs['page_number']?.example ?? '3';
-  const pickFirstNonEmpty = (...vals: (string | undefined)[]): string =>
-    vals.find((v) => typeof v === 'string' && v.length > 0) ?? '';
+  // example/hardcoded default 제거 — placeholder 가 silent 하게 실제 값으로 둔갑하는 함정 방지.
+  // 빈 값은 핸들러 책임으로 위임.
   const inputs: Record<string, unknown> = {
-    page_number: pickFirstNonEmpty(
-      process.env['ATC_INPUT_PAGE_NUMBER'],
-      example,
-    ),
+    page_number: process.env['ATC_INPUT_PAGE_NUMBER'] ?? '',
   };
 
   const result = await runATC({ atc, page, inputs, handlers });

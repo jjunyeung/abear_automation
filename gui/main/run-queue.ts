@@ -64,6 +64,8 @@ import {
 import { runPreflight } from './preflight';
 import { getLockPath, recordSkip } from './userdata';
 import { loadATC } from '../../lib/atc-loader';
+import { headPop as poolHeadPop, listPool } from '../../lib/url-pool';
+import { broadcastPoolUpdated } from './pool-handlers';
 
 // Matches Playwright's terminal summary line, e.g. "  3 failed" / "1 failed"
 // AND generic "Error:" leadings that escape exit code = 0 paths.
@@ -127,6 +129,13 @@ const batchOutputs = new Map<string, Record<string, string>>();
  * RunQueueItem 자체에 노출하지 않는 이유: IPC 표면을 작게 유지 + 렌더러는 알 필요 없음.
  */
 const fromPreviousByQueueId = new Map<string, string[]>();
+
+/**
+ * queueId → 그 TC 의 `inputs.<name>.from === 'pool'` 키 목록.
+ * spawn 직전 빈 칸인 키들에 한해 `lib/url-pool` 의 headPop() 으로 1개씩 consume.
+ * batchSession 과 무관 — 풀은 글로벌이고 단일 실행에도 적용된다.
+ */
+const fromPoolByQueueId = new Map<string, string[]>();
 
 /**
  * 같은 batchSessionId 의 pending + active 가 더 있는지 확인.
@@ -355,6 +364,23 @@ function extractFromPreviousKeys(atcAbsPath: string): string[] {
 }
 
 /**
+ * ATC YAML 의 `inputs.<name>.from === 'pool'` 키 목록을 뽑아낸다. 실패는
+ * 항상 빈 배열 — best-effort.
+ */
+function extractFromPoolKeys(atcAbsPath: string): string[] {
+  try {
+    const atc = loadATC(atcAbsPath);
+    const out: string[] = [];
+    for (const [name, spec] of Object.entries(atc.inputs)) {
+      if (spec.from === 'pool') out.push(name);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Enqueue a run. Returns `{ok:false}` only when preflight fails — in which
  * case nothing is enqueued and no spawn happens (R-U3.1 gate).
  */
@@ -380,11 +406,15 @@ export async function enqueueRun(args: AtcRunArgs): Promise<EnqueueOutcome> {
   };
   pending.push(item);
 
+  // from:pool 은 batch 와 무관 — 단일 실행에도 적용된다 (URL 풀이 글로벌).
+  const absPath = path.isAbsolute(args.atcPath)
+    ? args.atcPath
+    : path.join(resolveRepoRoot(), args.atcPath);
+  const poolKeys = extractFromPoolKeys(absPath);
+  if (poolKeys.length > 0) fromPoolByQueueId.set(queueId, poolKeys);
+
   if (args.batchSessionId !== undefined) {
     // ATC YAML 에서 from:previous 키들을 미리 뽑아 둔다. startNext 가 spawn 직전 주입.
-    const absPath = path.isAbsolute(args.atcPath)
-      ? args.atcPath
-      : path.join(resolveRepoRoot(), args.atcPath);
     const keys = extractFromPreviousKeys(absPath);
     if (keys.length > 0) fromPreviousByQueueId.set(queueId, keys);
     // 새 batch 의 첫 entry 면 pool 초기화 (이전 batch 잔존 방지).
@@ -457,6 +487,34 @@ function startNext(): void {
       }
     }
   }
+
+  // from:pool 자동 주입 — 사용자 입력 / from:previous 가 모두 빈 키만 대상.
+  // 시도 시점에 consume (성공/실패 무관 — `.url-collect-history.log` 와 같은 정책).
+  // 풀이 비어 있으면 그대로 빈 값으로 spawn → spec.ts 의 missing_input 분기로 fail.
+  const poolKeys = fromPoolByQueueId.get(next.queueId) ?? [];
+  if (poolKeys.length > 0) {
+    let consumed = false;
+    for (const k of poolKeys) {
+      const existing = next.inputs[k];
+      const hasValue = typeof existing === 'string' && existing.length > 0;
+      if (hasValue) continue;
+      const popped = poolHeadPop();
+      if (popped === null) {
+        process.stderr.write(
+          `[run-queue] from:pool ${k} requested but URL 풀이 비어있음 — 빈 값으로 spawn\n`,
+        );
+        continue;
+      }
+      next.inputs[k] = popped;
+      consumed = true;
+      process.stderr.write(`[run-queue] inject from:pool ${k}=${popped}\n`);
+    }
+    if (consumed) {
+      // UI 즉시 동기화 — 사용자가 URL 풀 패널을 띄워두고 있으면 한 줄 사라짐.
+      broadcastPoolUpdated(listPool());
+    }
+  }
+  fromPoolByQueueId.delete(next.queueId);
 
   // Diagnostic — always echo to main stderr so user can see in the terminal
   // running `npm run gui` what command we're spawning + cwd. webContents.send

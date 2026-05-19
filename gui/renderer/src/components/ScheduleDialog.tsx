@@ -158,6 +158,85 @@ function offsetMinutesToLocal(min: number): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+/**
+ * 선택된 TC 의 실행 순서를 보여주고 ▲▼ 로 reorder 시킨다. lockSelection 인 경우
+ * onRemove=null 로 넘겨 ✕ 를 감춘다 (편집 모드에서 카탈로그 픽 자체가 잠겼으므로
+ * 잔여 항목 제거도 동결).
+ *
+ * D13 의 outputs → inputs.from='previous' 자동 주입은 순서에 의존하므로 사용자가
+ * 의도적으로 잡을 수 있어야 한다 — 예: 수집 #1 → 등록 #2 가 되도록.
+ */
+function OrderedSelectedList({
+  items,
+  onMove,
+  onRemove,
+  disabled,
+}: {
+  items: readonly CatalogItem[];
+  onMove: (atcPath: string, direction: -1 | 1) => void;
+  onRemove: ((atcPath: string) => void) | null;
+  disabled: boolean;
+}): JSX.Element {
+  if (items.length === 0) {
+    return (
+      <div className="schedule-dialog__order-list schedule-dialog__order-list--empty">
+        <span className="bp5-text-muted">선택된 TC 가 없습니다.</span>
+      </div>
+    );
+  }
+  return (
+    <ol className="schedule-dialog__order-list">
+      {items.map((c, idx) => {
+        const title = narrowTitle(c.atc) || c.atcPath.split('/').pop();
+        const isFirst = idx === 0;
+        const isLast = idx === items.length - 1;
+        return (
+          <li key={c.atcPath} className="schedule-dialog__order-row">
+            <Tag minimal round className="schedule-dialog__order-idx">
+              #{idx + 1}
+            </Tag>
+            <Tag minimal>{c.domain}</Tag>
+            <span className="schedule-dialog__order-title" title={c.atcPath}>
+              {title}
+            </span>
+            {c.isFragment && (
+              <Tag minimal intent="warning" title="조각 ATC (composes 용)">
+                ƒ
+              </Tag>
+            )}
+            <ButtonGroup minimal className="schedule-dialog__order-actions">
+              <Button
+                icon="chevron-up"
+                small
+                disabled={disabled || isFirst}
+                onClick={(): void => onMove(c.atcPath, -1)}
+                title="위로 이동"
+              />
+              <Button
+                icon="chevron-down"
+                small
+                disabled={disabled || isLast}
+                onClick={(): void => onMove(c.atcPath, 1)}
+                title="아래로 이동"
+              />
+              {onRemove !== null && (
+                <Button
+                  icon="cross"
+                  small
+                  intent="danger"
+                  disabled={disabled}
+                  onClick={(): void => onRemove(c.atcPath)}
+                  title="선택 해제"
+                />
+              )}
+            </ButtonGroup>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export function ScheduleDialog({
   isOpen,
   onClose,
@@ -297,6 +376,30 @@ export function ScheduleDialog({
   const handleClearSelection = (): void => {
     setSelectedPaths([]);
     setPerAtcInputs({});
+  };
+
+  // 선택된 TC 의 실행 순서를 위/아래로 한 칸 이동. lockSelection 여부와 무관.
+  // D13 outputs → inputs.from='previous' 자동 주입이 순서에 의존하기 때문에
+  // 사용자가 의도적으로 순서를 잡을 수 있어야 한다 (예: 수집 → 등록).
+  const handleMovePath = (atcPath: string, direction: -1 | 1): void => {
+    setSelectedPaths((prev) => {
+      const idx = prev.indexOf(atcPath);
+      if (idx < 0) return prev;
+      const target = idx + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = prev.slice();
+      const [item] = next.splice(idx, 1);
+      next.splice(target, 0, item!);
+      return next;
+    });
+  };
+  const handleRemovePath = (atcPath: string): void => {
+    setSelectedPaths((prev) => prev.filter((p) => p !== atcPath));
+    setPerAtcInputs((prev) => {
+      const next = { ...prev };
+      delete next[atcPath];
+      return next;
+    });
   };
 
   const handleInputChange =
@@ -466,17 +569,12 @@ export function ScheduleDialog({
           </header>
 
           {lockSelection === true ? (
-            <div className="schedule-dialog__locked-list">
-              {selectedItems.length === 0 ? (
-                <span className="bp5-text-muted">선택된 TC 가 없습니다.</span>
-              ) : (
-                selectedItems.map((c) => (
-                  <Tag key={c.atcPath} minimal large icon="document" intent="primary">
-                    [{c.domain}] {narrowTitle(c.atc) || c.atcPath.split('/').pop()}
-                  </Tag>
-                ))
-              )}
-            </div>
+            <OrderedSelectedList
+              items={selectedItems}
+              onMove={handleMovePath}
+              onRemove={null}
+              disabled={submitting}
+            />
           ) : (
             <div className="schedule-dialog__picker">
               <InputGroup
@@ -538,6 +636,14 @@ export function ScheduleDialog({
                   </div>
                 ))}
               </div>
+              {selectedItems.length >= 2 && (
+                <OrderedSelectedList
+                  items={selectedItems}
+                  onMove={handleMovePath}
+                  onRemove={handleRemovePath}
+                  disabled={submitting}
+                />
+              )}
             </div>
           )}
         </section>
@@ -712,26 +818,48 @@ export function ScheduleDialog({
                   const values = perAtcInputs[c.atcPath] ?? {};
                   const filledCount = names.filter((n) => (values[n] ?? '') !== '').length;
                   const complete = filledCount === names.length;
+                  const isFirst = idx === 0;
+                  const isLast = idx === selectedItems.length - 1;
                   return (
                     <div key={c.atcPath} className="schedule-dialog__atc-card">
-                      <button
-                        type="button"
-                        className="schedule-dialog__atc-card-head"
-                        onClick={(): void => toggleExpand(c.atcPath)}
-                      >
-                        <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={12} />
-                        <span className="schedule-dialog__atc-card-idx">#{idx + 1}</span>
-                        <span className="schedule-dialog__atc-card-title">
-                          {narrowTitle(c.atc) || c.atcPath.split('/').pop()}
-                        </span>
-                        <Tag
-                          minimal
-                          intent={complete ? 'success' : 'none'}
-                          icon={complete ? 'tick' : undefined}
+                      <div className="schedule-dialog__atc-card-head-wrap">
+                        <button
+                          type="button"
+                          className="schedule-dialog__atc-card-head"
+                          onClick={(): void => toggleExpand(c.atcPath)}
                         >
-                          {filledCount}/{names.length}
-                        </Tag>
-                      </button>
+                          <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={12} />
+                          <span className="schedule-dialog__atc-card-idx">#{idx + 1}</span>
+                          <span className="schedule-dialog__atc-card-title">
+                            {narrowTitle(c.atc) || c.atcPath.split('/').pop()}
+                          </span>
+                          <Tag
+                            minimal
+                            intent={complete ? 'success' : 'none'}
+                            icon={complete ? 'tick' : undefined}
+                          >
+                            {filledCount}/{names.length}
+                          </Tag>
+                        </button>
+                        {selectedItems.length >= 2 && (
+                          <ButtonGroup minimal className="schedule-dialog__atc-card-reorder">
+                            <Button
+                              icon="chevron-up"
+                              small
+                              disabled={submitting || isFirst}
+                              onClick={(): void => handleMovePath(c.atcPath, -1)}
+                              title="위로 이동"
+                            />
+                            <Button
+                              icon="chevron-down"
+                              small
+                              disabled={submitting || isLast}
+                              onClick={(): void => handleMovePath(c.atcPath, 1)}
+                              title="아래로 이동"
+                            />
+                          </ButtonGroup>
+                        )}
+                      </div>
                       <Collapse isOpen={expanded}>
                         <div className="schedule-dialog__atc-card-body">
                           {names.map((name) => {

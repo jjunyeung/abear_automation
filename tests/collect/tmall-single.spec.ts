@@ -279,16 +279,13 @@ test('티몰 단건 수집 후 수집상품 목록 검증', async ({ page }) => 
 
   const atc = loadATC(ATC_PATH);
 
-  const example = atc.inputs['product_url']?.example ?? '';
-  // dotenv 가 빈 변수를 빈 문자열로 로드하므로 ?? 만으로는 fallthrough 안 됨.
-  const pickFirstNonEmpty = (...vals: (string | undefined)[]): string =>
-    vals.find((v) => typeof v === 'string' && v.length > 0) ?? '';
+  // example 은 GUI placeholder 전용 — 빈 값이면 핸들러에서 명시 fail.
+  // dotenv 가 빈 변수를 빈 문자열로 로드하므로 둘 다 ?? 만으론 부족 → 명시 falsy 체크.
+  // 두 env 이름 (ATC_INPUT_PRODUCT_URL / 레거시 ATC_INPUT_URL) 모두 지원 유지.
+  const envUrl =
+    process.env['ATC_INPUT_PRODUCT_URL'] || process.env['ATC_INPUT_URL'] || '';
   const inputs: Record<string, unknown> = {
-    product_url: pickFirstNonEmpty(
-      process.env['ATC_INPUT_PRODUCT_URL'],
-      process.env['ATC_INPUT_URL'],
-      example,
-    ),
+    product_url: envUrl,
   };
 
   const result = await runATC({ atc, page, inputs, handlers });

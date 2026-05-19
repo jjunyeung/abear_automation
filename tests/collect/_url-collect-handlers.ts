@@ -22,6 +22,7 @@ import type { Page } from '@playwright/test';
 import type { StepHandler } from '../../lib/runner';
 import type { ErrorKey } from '../../lib/errors';
 import { goToCollectImportMenu } from '../../lib/windly-actions';
+import { emitOutput } from '../../lib/atc-output';
 
 export const HISTORY_LOG_PATH = join(__dirname, '.url-collect-history.log');
 
@@ -337,6 +338,15 @@ export const enterProductDetailStep: StepHandler = async (page, _inputs) => {
   console.log(
     `[url-collect-verify] detail 진입 성공: ${page.url()}, img ${imgCount}개`,
   );
+
+  // D13: 같은 batch 의 뒤 TC (upload/single-product 등) 가 inputs.source_product_id.from: previous
+  // 로 받아갈 수 있도록 URL 의 digits 부분을 emit. atc.yml 에 outputs 선언이 없는 ATC 에서는
+  // 단순히 buffer 에 쌓였다가 무시되므로 부수효과 없음.
+  const idMatch = page.url().match(/\/view2\/interested-product\/(\d+)/);
+  if (idMatch !== null) {
+    emitOutput('source_product_id', idMatch[1]);
+  }
+
   return { ok: true as const };
 };
 
