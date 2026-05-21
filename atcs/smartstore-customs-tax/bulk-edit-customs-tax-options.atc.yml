@@ -1,0 +1,35 @@
+# 스스 관부가세 step3 화면의 옵션 3개 가시 검증.
+#
+# 출처: TC export Case 3596 "관부가세 옵션 3개가 정상 노출된다" (P0)
+# 코드 출처 (sesame view2):
+#   CustomsTaxForm SegmentedButton 3개: "부과 대상 아님" / "관부가세 포함" / "관부가세 미포함".
+
+title: 스스 관부가세 옵션 3개 노출 검증
+
+description: |
+  관부가세 화면 진입 → 옵션 3개 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) 가시 검증.
+  TC 원본: Case No 3596 / 등록상품 › 수정 업로드 › 스마트스토어 관부가세 옵션 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: select_only_smartstore
+    do: step1 에서 스마트스토어만 선택 후 다음 → step2
+
+  - id: select_customs_tax_form
+    do: step2 에서 관부가세 라디오 선택 후 다음 → step3
+
+  - id: verify_three_options
+    do: 옵션 3개 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) 가시 검증
+    expect: 3개 텍스트 모두 visible
+
+expected: 옵션 3개 노출. unhandled 0건.

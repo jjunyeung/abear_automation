@@ -1,0 +1,36 @@
+# 수정 업로드 모달 step1 스스 미선택 시 step2 의 스스 관련 form 비활성 검증.
+#
+# 출처: TC export Case 3600 "스마트스토어 관련 수정 항목은 비활성화된다" (P0)
+# 코드 출처 (sesame view2):
+#   StepChoiceForm.tsx: checkDisableForm:
+#     'smartStoreReviewPoint' / 'smartStorePolicy' → !market.includes('smartstore')
+#     'smartStoreCustomsTax' → !market.includes('smartstore') && !market.includes('esm')
+
+title: 등록상품 수정 업로드 step1 스스 미선택 시 step2 스스 form 비활성 검증
+
+description: |
+  step1 에서 스마트스토어 외 마켓 1개 선택 + step2 진입 → step2 의 SmartStore 관련 form 들이
+  disabled radio 로 표시되는지 검증.
+
+  TC 원본: Case No 3600 / 등록상품 › 수정 업로드 › 스마트스토어 미선택 비활성 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: enter_step2_no_ss
+    do: step1 에서 스스 외 마켓 1개만 선택 + 다음 → step2 진입
+
+  - id: verify_ss_forms_disabled
+    do: step2 의 disabled input[type=radio] 개수 ≥1 검증
+    expect: disabled radio ≥1 존재 (스스 관련 form 들)
+
+expected: 스스 미선택 시 step2 스스 form 들 비활성. unhandled 0건.

@@ -1,0 +1,26 @@
+# 톡스토어 상품명 input 값 입력 동작.
+#
+# TC 원본:
+#   - Case No 1081 / 수집상품 › 톡스토어 › 기본정보 / P0 (상품명 입력)
+#   - Case No 1084 / 수집상품 › 톡스토어 › 기본정보 / P0 (상품명 입력)
+
+title: 톡스토어 상품명 입력
+
+description: |
+  기본 정보 탭 → 톡스토어 상품명 input 에 값 입력 → 입력값이 input value 에 반영 검증.
+  TC 원본: Case No 1081, 1084 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_info_tab
+    do: 기본 정보 탭 클릭
+
+  - id: input_talkstore_name
+    do: 톡스토어 상품명 input 에 테스트 값 입력 → 반영 검증
+    expect: 입력한 값이 input value 에 반영됨
+
+expected: 톡스토어 상품명 입력 동작. unhandled 0건.

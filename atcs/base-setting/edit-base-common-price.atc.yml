@@ -1,0 +1,86 @@
+# 기본 설정 > 공통설정 > 판매가 — 8개 필드를 step 만큼만 변경 후 저장/영속성 검증
+#
+# 흐름:
+#   (1) /view3/base-setting?setting=COMMON&category=PRICE_SETTING 직접 진입
+#       → PriceSettingTab 의 8개 input 마운트 대기
+#       (ExchangeRate 통화별 dynamic + 비즈니스 영향 큼 → 제외)
+#   (2~9) 각 필드 현재값 읽기 → step 만큼 ± → fill → Tab → onBlur 저장 → input reformat 확인
+#         원 필드 step = +100, % 필드 step = +1
+#   (10) page.reload() 후 8개 input 모두 변경값 유지되는지 검증 (영속성)
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
+#
+# 코드 출처 (windly-frontend-web):
+#   - src/features/BaseSetting/index.tsx (Layout title="기본 설정", 탭=COMMON 기본)
+#   - src/features/BaseSetting/Common/index.tsx ("공통설정" SidePanel)
+#   - src/features/BaseSetting/Common/PriceSettingTab/index.tsx (= 판매가 탭 내용)
+#   - src/features/BaseSetting/Common/PriceSettingTab/PriceAndProfit/index.tsx
+#       3개 TextField — label "판매가 단위(올림)" / "판매처 수수료" / "판매가 할인율"
+#       각 onBlur → handleBlurAndUpdateBaseSetting(key, option)
+#   - src/features/BaseSetting/Common/constants/formattingOptions.ts
+#       SalesPriceRoundingMultipleOption (min:100, max:10000, unit:100, type:PRICE)
+#       NaverSmartStoreFeeOption          (min:0,   max:100,   unit:0.01, type:PERCENT)
+#       DiscountRateOption                (min:0,   max:99,    unit:1,    type:PERCENT)
+#   - src/features/BaseSetting/utils/formatter.ts
+#       formatNumberField — 천단위 콤마. 입력 fill 시 콤마 자동 제거 (filterNumberAndDot).
+#       formatNumberToPercentType — DB 의 fraction × 100 (0.05 → "5") 으로 input 표시.
+#
+# "기존과 크게 다르지 않게" 정의 (사용자 지정):
+#   원 필드 (판매가 단위) = +100, % 필드 (판매처 수수료, 판매가 할인율) = +1.
+#   현재값이 max 면 -step, 그 외에는 +step. min 미만 / max 초과 시 clamp 의해 정상화.
+
+title: 기본 설정 > 공통설정 > 판매가 — 8개 필드를 step 변경 후 저장/영속성 검증
+
+description: |
+  기본 설정 > 공통설정 > 판매가 탭의 8개 input 을 각자 step 만큼 (원=+100, %=+1) 변경 후 onBlur 저장 + reformat 확인 → 페이지 reload 후에도 변경값이 유지되는지로 영속성 검증.
+
+  ExchangeRate (통화별 dynamic + 비즈니스 영향 큼) 는 검증 대상에서 제외.
+
+  입력값 없음 — 모든 step 자동 적용.
+inputs: {}
+
+steps:
+  - id: open_base_setting_price
+    do: |
+      base-setting?setting=COMMON&category=PRICE_SETTING 직접 goto.
+      PriceSettingTab 8개 input 모두 마운트 + 값 채워질 때까지 대기 (최대 30초/필드).
+      대상: 판매가 단위 / 판매처 수수료 / 판매가 할인율 / 구매처 수수료 / 해외배송비 / 마진 / 관세 / 관세 기준가
+    expect: 8개 input 모두 visible + 각 input.value 비어있지 않음 (서버 로드 완료)
+
+  - id: bump_rounding_multiple
+    do: 판매가 단위(올림) input 의 현재 표시값 (원, 콤마 포함) 을 읽고, max(10000) 이면 -100, 그 외에는 +100 으로 새 값 정한 뒤 fill + Tab. onBlur API 응답 후 input 값 reformat 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_market_fee
+    do: 판매처 수수료 input 의 현재 표시값 (% 정수) 을 읽고, max(100) 이면 -1, 그 외에는 +1 로 새 값 정한 뒤 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_discount_rate
+    do: 판매가 할인율 input 의 현재 표시값 (% 정수) 을 읽고, max(99) 이면 -1, 그 외에는 +1 로 새 값 정한 뒤 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_alipay_fee
+    do: 구매처 수수료 (OtherFee.alipayFee) input 현재 표시값 (% 정수) 을 읽고 ±1 로 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_third_party_shipping
+    do: 해외배송비(배대지) (ThirdPartyShippingFeeAndMargin.thirdPartyShippingFee) input 현재 표시값 (원) 을 읽고 ±100 으로 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_margin
+    do: 마진 (ThirdPartyShippingFeeAndMargin.marginRate or marginAmount) input 의 unit 텍스트 (% 또는 원) 를 화면에서 감지 → % 면 ±1, 원 이면 ±100 으로 fill + Tab. marginType 은 그대로 유지하여 변경 (RATE/AMOUNT 토글 X). 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_tariff_rate
+    do: 관세(%) (Tariff.tariffRate) input 현재 표시값 (% 정수) 을 읽고 ±1 로 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: bump_tariff_base_price
+    do: 관세 적용 기준가 (Tariff.tariffBasePrice) input 현재 표시값 (원) 을 읽고 ±100 으로 fill + Tab. 저장 반영 확인.
+    expect: input 표시값 = 새 값
+
+  - id: verify_persist
+    do: page.reload() 후 판매가 폼이 다시 마운트되면 8개 input 의 값을 다시 읽어 직전 step 들에서 기록한 new value 와 모두 일치하는지 검증.
+    expect: 8개 input 모두 새로고침 후에도 변경값 유지
+
+expected: 8개 필드가 각자 step (% +1, 원 +100) 만큼 변동되어 저장되고 새로고침 후에도 유지. unhandled 0건.

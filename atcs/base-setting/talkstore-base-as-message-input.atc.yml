@@ -1,0 +1,25 @@
+# 기본설정 톡스토어 A/S 안내 내용 입력.
+#
+# TC 원본:
+#   - Case No 1040 / 기본설정 › 톡스토어 › a/s 정보 / P0
+#   - Case No 1043 / 기본설정 › 톡스토어 › a/s 정보 / P0
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/DeliveryAndAfterService/AfterService/index.tsx
+#   <TextField label="A/S 안내 내용" maxTextLength={1000} ... />
+
+title: 기본설정 톡스토어 A/S 안내 내용 입력
+
+description: |
+  배송 정보 탭 → A/S 안내 내용 input 에 테스트 값 입력 → 반영 검증 + 원복.
+  TC 원본: Case No 1040, 1043 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_tab
+    do: 기본설정 톡스토어 배송 정보 탭 진입
+
+  - id: input_as_message
+    do: A/S 안내 내용 input 에 테스트 값 입력 → 반영 검증
+
+expected: A/S 안내 내용 입력 동작. unhandled 0건.

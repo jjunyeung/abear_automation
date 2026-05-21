@@ -42,28 +42,13 @@ outputs:
     description: |
       enter_product_detail step 에서 도달한 /view2/interested-product/<digits> URL 의 digits. 같은 batch 의 뒤 TC (upload/single-product, upload/registered-check 등) 가 from previous 로 받아간다.
 
+# 처음 7 step (open_collect_menu ~ enter_product_detail) 은 url-collect-verify 와 100% 동일.
+# composes 로 펼침: url-collect-verify 의 steps 가 본 ATC steps 앞에 prepend 됨.
+# 펼친 모든 step.id 의 handler 는 본 spec.ts 가 모두 보유해야 한다 (CLAUDE.md (l)).
+composes:
+  - ../product-collect/url-collect-verify.atc.yml
+
 steps:
-  - id: open_collect_menu
-    do: 좌측 사이드바 상품 수집 메뉴 클릭하여 view3/product-import 진입
-
-  - id: open_url_collect
-    do: 상품 수집 페이지의 URL 수집 카드 클릭하여 모달 오픈
-
-  - id: submit_url
-    do: URL 입력 필드에 inputs.product_url 입력 후 수집 실행 버튼 클릭
-
-  - id: wait_completion
-    do: BulkImportTable row 의 SpinLoader (a.importing) 가 사라지고 체크 아이콘 (a.success) 으로 바뀔 때까지 대기. error 아이콘 (a.fail) 이면 fail. 최대 5분.
-
-  - id: close_modal_goto_collected
-    do: 모달의 닫기 버튼 클릭 — modalStatus complete 시 자동으로 view2/interested-product 로 navigate.
-
-  - id: wait_first_card_ready
-    do: 페이지의 "수집중" 텍스트가 모두 사라질 때까지 대기 (ProductImportingCard → ProductCard 전환). 첫 .product-card 의 이미지와 제목 텍스트가 visible 인지 확인.
-
-  - id: enter_product_detail
-    do: 첫 .product-card 클릭하여 view2/interested-product/<digits> URL 도달 + detail 페이지 mount (img 존재) 확인.
-
   - id: ai_recommend_product_name
     do: 기본 정보 탭에서 "AI 상품명 추천" 버튼 클릭 후 "AI 상품명 다듬기 중" 로딩이 종료될 때까지 대기. 클릭 전후 input 값 비교하여 ≥1개 input 의 값이 변경됐는지 검증.
 

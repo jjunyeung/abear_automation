@@ -82,19 +82,31 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth\.setup\.ts$/,
     },
+    // 도메인 디렉토리 = Excel Category(일반 외) 또는 Main Category(일반) 기준 재정렬됨.
+    // (atc-consolidation-log.md §11 참조)
     {
-      name: 'windly-collect',
-      testMatch: 'tests/collect/**/*.spec.ts',
+      name: 'windly-collected-product',
+      testMatch: 'tests/collected-product/**/*.spec.ts',
       dependencies: ['setup'],
     },
     {
-      name: 'windly-error-check',
-      testMatch: 'tests/error-check/**/*.spec.ts',
+      name: 'windly-product-collect',
+      testMatch: 'tests/product-collect/**/*.spec.ts',
       dependencies: ['setup'],
     },
     {
-      name: 'windly-fix',
-      testMatch: 'tests/fix/**/*.spec.ts',
+      name: 'windly-registered-product',
+      testMatch: 'tests/registered-product/**/*.spec.ts',
+      dependencies: ['setup'],
+    },
+    {
+      name: 'windly-delivery-agency',
+      testMatch: 'tests/delivery-agency/**/*.spec.ts',
+      dependencies: ['setup'],
+    },
+    {
+      name: 'windly-base-setting',
+      testMatch: 'tests/base-setting/**/*.spec.ts',
       dependencies: ['setup'],
     },
     {
@@ -103,28 +115,43 @@ export default defineConfig({
       dependencies: ['setup'],
     },
     {
+      name: 'windly-order-mgmt',
+      testMatch: 'tests/order-mgmt/**/*.spec.ts',
+      // SyncResultBanner / 주문 상태변경 등 setup 이 백엔드 sync 를 미리 처리하면 검증
+      // 윈도우가 사라지는 spec 들은 windly-order-mgmt-fresh 에서 setup 없이 단독 실행.
+      testIgnore: [
+        'tests/order-mgmt/order-management-sync-banner.spec.ts',
+        'tests/order-mgmt/order-management-change-status.spec.ts',
+        'tests/order-mgmt/order-management-shipping-drawer-open.spec.ts',
+        'tests/order-mgmt/order-management-instruct-to-delivering.spec.ts',
+      ],
+      dependencies: ['setup'],
+    },
+    {
+      name: 'windly-windly-shell',
+      testMatch: 'tests/windly-shell/**/*.spec.ts',
+      dependencies: ['setup'],
+    },
+    {
+      name: 'windly-smartstore-customs-tax',
+      testMatch: 'tests/smartstore-customs-tax/**/*.spec.ts',
+      dependencies: ['setup'],
+    },
+    {
       name: 'windly-e2e',
       testMatch: 'tests/e2e/**/*.spec.ts',
-      // SyncResultBanner / 주문 상태변경 등 setup 이 백엔드 sync 를 미리 처리하면 검증
-      // 윈도우가 사라지는 spec 들은 별도 project (windly-e2e-fresh) 에서 setup 없이 단독 실행.
-      testIgnore: [
-        'tests/e2e/order-management-sync-banner.spec.ts',
-        'tests/e2e/order-management-change-status.spec.ts',
-        'tests/e2e/order-management-shipping-drawer-open.spec.ts',
-        'tests/e2e/order-management-instruct-to-delivering.spec.ts',
-      ],
       dependencies: ['setup'],
     },
     // 'fresh' = setup 없이 spec 이 직접 loginIfNeeded + enterHaegudaeWorkspace 를 호출해
     // 진입 첫 페이지가 곧장 본 spec 의 대상이 되는 project. 매번 setup 이 hub/main 페이지를
     // 미리 열면 백엔드가 sync 를 처리해버려 SyncResultBanner 가 안 뜨는 케이스 회피용.
     {
-      name: 'windly-e2e-fresh',
+      name: 'windly-order-mgmt-fresh',
       testMatch: [
-        'tests/e2e/order-management-sync-banner.spec.ts',
-        'tests/e2e/order-management-change-status.spec.ts',
-        'tests/e2e/order-management-shipping-drawer-open.spec.ts',
-        'tests/e2e/order-management-instruct-to-delivering.spec.ts',
+        'tests/order-mgmt/order-management-sync-banner.spec.ts',
+        'tests/order-mgmt/order-management-change-status.spec.ts',
+        'tests/order-mgmt/order-management-shipping-drawer-open.spec.ts',
+        'tests/order-mgmt/order-management-instruct-to-delivering.spec.ts',
       ],
     },
   ],

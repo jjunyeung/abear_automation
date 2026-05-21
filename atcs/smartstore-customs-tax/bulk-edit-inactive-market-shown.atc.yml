@@ -1,0 +1,35 @@
+# 수정 업로드 모달 1단계에서 미연결/등록안됨 마켓이 비활성으로 표시되는지 검증.
+#
+# 출처: TC export Case 3579 "수정 업로드 불가 마켓은 비활성화되어 표시된다" (P0)
+# 코드 출처 (sesame view2):
+#   StepChoiceMarket/index.tsx:
+#     const enabled = computedMarketMap[marketKey] && isIntegrated;
+#     const chipText = enabled ? '등록완료' : isIntegrated ? '등록안됨' : '미연결';
+#     <CheckBox disabled={!enabled} ... />
+#     <Chip text={chipText} ... />
+
+title: 등록상품 수정 업로드 모달 비활성 마켓 표시 검증
+
+description: |
+  모달 1단계에 "미연결" 또는 "등록안됨" chip 이 ≥1 가시 → 일부 마켓이 비활성으로 표시됨.
+
+  TC 원본: Case No 3579 / 등록상품 › 수정 업로드 › 비활성 마켓 표시 / P0
+  사용자 환경에 미연결/등록안됨 마켓이 1개도 없으면 skip 의미로 fail.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: verify_inactive_market_shown
+    do: 모달 1단계에 (미연결|등록안됨) chip ≥1 가시 검증
+    expect: 한 줄 텍스트 미연결 또는 등록안됨 ≥1
+
+expected: 비활성 마켓 표시 ≥1. unhandled 0건.

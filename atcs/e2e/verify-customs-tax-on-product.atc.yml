@@ -30,7 +30,10 @@ inputs: {}
 
 steps:
   - id: bump_and_snapshot_customs_tax
-    do: app.windly.cc/view3/base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto. 관부가세 설정 SegmentedButton 의 현재 selected 옵션 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함 중 1) 추출 → 다음 옵션으로 cycle 하여 click → 새 selected 를 snapshot 으로 기록.
+    do: |
+      base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto.
+      관부가세 SegmentedButton 의 현재 selected (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) →
+      다음 옵션으로 cycle click → 새 selected 를 snapshot 기록.
     expect: snapshot 에 새 selected option text 저장됨
 
   - id: open_collected_list

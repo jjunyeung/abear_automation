@@ -1,0 +1,31 @@
+# 기본설정 톡스토어 A/S 전화번호 형식 에러.
+#
+# TC 원본: Case No 1041 / 기본설정 › 톡스토어 › a/s 정보 / P0
+#   원본 expect: 형식 잘못된 전화번호 입력 시 에러 메시지 노출
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/DeliveryAndAfterService/AfterService/index.tsx:33-37
+#   helpMessage = "연락처 형식이 올바르지 않습니다. (예: 010-1234-5678)"
+#   phoneRegex 안 맞을 때 inline 노출.
+
+title: 기본설정 톡스토어 A/S 전화번호 형식 에러
+
+description: |
+  배송 정보 탭 → A/S 전화번호에 잘못된 형식 입력 → "연락처 형식이 올바르지 않습니다." 노출 검증.
+  TC 원본: Case No 1041 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_tab
+    do: 기본설정 톡스토어 배송 정보 탭 진입
+
+  - id: input_invalid_phone
+    do: A/S 전화번호에 잘못된 형식 (예 abc123) 입력
+
+  - id: verify_format_error_shown
+    do: 형식 에러 메시지 노출 검증
+
+  - id: input_valid_phone
+    do: 올바른 형식 입력하여 원복
+
+expected: 잘못된 형식 입력 시 에러 메시지 노출. unhandled 0건.

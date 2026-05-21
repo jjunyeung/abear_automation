@@ -37,7 +37,11 @@ inputs: {}
 
 steps:
   - id: bump_and_snapshot_attribute
-    do: app.windly.cc/view3/base-setting?setting=COMMON&category=PRODUCT_ATTRIBUTE 직접 goto. 제조사 input 을 unique 값 (TC제조사_<ts>) 으로 fill, 브랜드 input 을 unique 값 (TC브랜드_<ts>) 으로 fill, 미성년자 구매 Dropdown 의 selected 추출 후 cycle 옵션 (가능 ↔ 불가능) 으로 변경. 모두 onBlur/click 후 snapshot 저장.
+    do: |
+      base-setting?setting=COMMON&category=PRODUCT_ATTRIBUTE 직접 goto.
+      3개 필드 변경 + onBlur/click → snapshot:
+        제조사 = TC제조사_<ts> / 브랜드 = TC브랜드_<ts>
+        미성년자 구매 Dropdown = 현재 selected 의 cycle (가능 ↔ 불가능)
     expect: 3개 필드 변경 + reformat 반영
 
   - id: open_collected_list

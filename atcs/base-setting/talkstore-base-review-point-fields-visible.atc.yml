@@ -1,0 +1,30 @@
+# 기본설정 톡스토어 리뷰 포인트 토글 ON 시 텍스트 리뷰/포토 리뷰 필드 노출.
+#
+# TC 원본:
+#   - Case No 1059, 1060, 1061 / 기본설정 › 톡스토어 › 리뷰 포인트 / P0 (% 적립율 / 적립액 입력)
+
+title: 리뷰 포인트 토글 ON 시 필드 노출
+
+description: |
+  리뷰 포인트 탭 → 리뷰 시 포인트 토글 ON → "텍스트 리뷰" + "포토 리뷰" input 노출 → 토글 OFF.
+  TC 원본: Case No 1059, 1060, 1061 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_review_point_tab
+    do: 기본설정 톡스토어 리뷰 포인트 탭 진입
+
+  - id: enable_review_point
+    do: 리뷰 시 포인트 지급 토글 ON
+
+  - id: verify_text_review_visible
+    do: 텍스트 리뷰 input 라벨 노출 검증
+
+  - id: verify_photo_review_visible
+    do: 포토 리뷰 input 라벨 노출 검증
+
+  - id: disable_review_point
+    do: 리뷰 시 포인트 지급 토글 OFF 원복
+
+expected: 리뷰 포인트 ON 시 필드 노출. unhandled 0건.

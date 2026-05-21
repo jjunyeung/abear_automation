@@ -1,0 +1,26 @@
+# Tosstoss 신청서 도메스틱 택배사 요청사항 dropdown - 직접입력 외 옵션 검증.
+#
+# 출처: TC export Case 1409 "요청사항 직접입력 외 선택" (P0)
+# 코드 출처: Receiver/index.tsx
+#   첫 옵션 외 ("배송 전 연락 바랍니다." 등) 선택
+
+title: 배송대행지 토스토스 도메스틱 요청사항 프리셋 옵션 검증
+
+description: |
+  국내 택배사 요청사항 dropdown 펼침 + "배송 전 연락 바랍니다." 옵션 선택.
+  TC 원본: Case No 1409 / 배송대행지 › 신청서 작성 / P0
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: select_preset_option
+    do: 도메스틱 요청사항 dropdown + 배송 전 연락 바랍니다 옵션 선택
+    expect: SelectedBox 텍스트 변경
+
+expected: 프리셋 옵션 선택. unhandled 0건.

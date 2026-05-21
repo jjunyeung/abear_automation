@@ -1,0 +1,37 @@
+# 수정 업로드 모달 1단계 취소 버튼 클릭 시 모달 닫힘 검증.
+#
+# 출처: TC export Case 3585 "취소 버튼 클릭 시 모달이 닫힌다" (P0)
+# 코드 출처 (sesame view2):
+#   BulkEditModal/index.tsx:
+#     const handleClickLeftButton = () => {
+#       if (currentStep === 1) { handleClose(); return; }   // = hideBulkEditModal()
+#       dispatch(backPrevStep());
+#     };
+#   → step1 의 cancelButtonText='취소' 클릭 시 모달 dismiss.
+
+title: 등록상품 수정 업로드 모달 취소 버튼 닫힘 검증
+
+description: |
+  모달 1단계 진입 후 취소 버튼 클릭 → 모달 사라짐 (.banner 비가시) 검증.
+  TC 원본: Case No 3585 / 등록상품 › 수정 업로드 › 취소 버튼 동작 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: click_cancel
+    do: 모달 1단계의 취소 버튼 클릭
+
+  - id: verify_modal_closed
+    do: 모달 닫힘 검증 (.banner 비가시 / 또는 page 의 수정 업로드 toolbar 버튼 다시 visible)
+    expect: .banner 가 hidden 상태로 전이
+
+expected: 취소 → 모달 닫힘. unhandled 0건.

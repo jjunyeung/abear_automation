@@ -1,0 +1,37 @@
+# 톡스토어 포인트 적립액 input 동작.
+#
+# TC 원본:
+#   - Case No 1094 / 수집상품 › 톡스토어 › 업로드 설정 / P0 (리뷰 포인트 수정)
+#   (1092 는 단위 SegmentedButton 으로 별도 spec, 본 spec 은 input 입력 검증)
+#
+# 코드 출처: sesame/src/features/ProductDetail/ProductDetailTabs/UploadTab/TalkstoreUploadSettings/PurchasePoint/index.tsx
+#   <TextField label="포인트 적립액(원)" unit="원" ... />
+#   리뷰 시 포인트 input 도 동일 패턴 (ReviewPoint/index.tsx)
+
+title: 톡스토어 포인트 적립액 input 동작
+
+description: |
+  업로드 설정 탭 → 구매 시 포인트 지급 토글 ON → 포인트 적립액 input 노출 +
+  값 입력 검증.
+  TC 원본: Case No 1094 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_upload_tab
+    do: 업로드 설정 탭 클릭
+
+  - id: enable_purchase_point
+    do: 구매 시 포인트 지급 토글 ON
+
+  - id: input_point_amount
+    do: 포인트 적립액 input 노출 + 값 입력 검증
+    expect: 입력값 반영
+
+  - id: disable_purchase_point
+    do: 구매 시 포인트 지급 토글 OFF 원상복귀
+
+expected: 포인트 적립액 input 동작. unhandled 0건.

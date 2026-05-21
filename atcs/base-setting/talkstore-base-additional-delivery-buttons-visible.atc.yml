@@ -1,0 +1,27 @@
+# 기본설정 톡스토어 추가 배송비 SegmentedButton 노출.
+#
+# TC 원본: Case No 1025 (step 1) / 기본설정 › 톡스토어 › 추가 배송비 / P0
+#   원본 expect: 배송 가능 / 배송 불가 버튼 노출
+#
+# 자동화 범위: 두 버튼 노출만 검증. 클릭 X (실제 데이터 변경 위험).
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/DeliveryAndAfterService/AdditionalDeliveryPrice/index.tsx
+#   <SegmentedButton>배송 가능</SegmentedButton>
+#   <SegmentedButton>배송 불가</SegmentedButton>
+
+title: 톡스토어 추가 배송비 SegmentedButton 노출
+
+description: |
+  배송 정보 탭 → "도서산간 배송 가능 여부" 라벨 + "배송 가능"/"배송 불가" 버튼 노출 검증.
+  TC 원본: Case No 1025 (step 1 부분) / P0
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_tab
+    do: 기본설정 톡스토어 배송 정보 탭 진입
+
+  - id: verify_segmented_buttons
+    do: 배송 가능 / 배송 불가 버튼 노출 검증
+
+expected: 두 버튼 노출. unhandled 0건.

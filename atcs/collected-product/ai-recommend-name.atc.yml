@@ -1,0 +1,18 @@
+title: 수집상품 첫 카드 → AI 상품명 추천 → input 값 변경 확인
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 기본 정보 탭 → "AI 상품명 추천" 버튼 클릭 → 로딩 종료 대기 → 클릭 전/후 input 값 스냅샷 비교하여 ≥1 변경 확인.
+
+  url-collect-and-ai-fix 의 ai_recommend_product_name step 만 분리한 단건. 수집/업로드 없이 AI 호출 자체의 회귀를 빠르게 검증.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+  - id: open_first_product
+    do: 첫 .product-card 클릭하여 상세 진입
+  - id: recommend_name
+    do: 기본 정보 탭 → AI 상품명 추천 버튼 클릭 → 로딩 종료 → input 값 변경 ≥1 확인
+
+expected: AI 상품명 추천 → input 값 변경 확인. unhandled 0건.

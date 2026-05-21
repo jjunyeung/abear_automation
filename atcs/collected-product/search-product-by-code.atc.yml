@@ -1,0 +1,21 @@
+title: 수집상품 목록 → 상품 코드 검색 → 결과 1+ 확인
+
+description: |
+  수집상품 목록 진입 → 상품 코드 검색 모달 → ID 입력 → 검색 → 결과 1+ 카드 확인.
+
+  단순 검색 모달 회귀 — 실행할 때마다 동일 ID 로 재실행 가능 (read-only).
+  결과가 0 이면 fail.
+
+inputs:
+  source_product_id:
+    type: string
+    description: 검색할 상품 코드 (수집상품 ID)
+    example: '235442266'
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+  - id: search
+    do: 상품 코드 검색 모달 → inputs.source_product_id 입력 → 검색하기 클릭 → 결과 카드 1+ 확인
+
+expected: 상품 코드 검색 → 결과 1건 이상 노출 확인. unhandled 0건.

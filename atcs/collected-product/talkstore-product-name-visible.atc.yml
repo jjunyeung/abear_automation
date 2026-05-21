@@ -1,0 +1,31 @@
+# 톡스토어 상품명 input 노출 + 기본값 검증.
+#
+# TC 원본:
+#   - Case No 1079 / 수집상품 › 톡스토어 › 기본정보 / P0 (톡스토어 상품명 + 카테고리 노출)
+#   - Case No 1080 / 수집상품 › 톡스토어 › 기본정보 / P0 (상품명 기본값 + 70자 제한)
+#
+# 사전: 톡스토어 연결 + 톡스토어 마켓 토글 ON (uploaded.talkstore || uploadTargetMarkets.talkstore).
+# 코드 출처: sesame/src/features/ProductDetail/ProductDetailTabs/InfoTab/index.tsx
+#   <TextField label="톡스토어" maxTextLength={70} placeholder={...talkstoreTitle} value={talkstoreTitle} />
+
+title: 톡스토어 상품명 input 노출
+
+description: |
+  수집상품 첫 카드 → 기본 정보 탭 → 톡스토어 label 의 TextField input 노출 검증 +
+  현재 value 가 비어있지 않음 확인 (기본 상품명이 자동 설정됨).
+  TC 원본: Case No 1079, 1080 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_info_tab
+    do: 기본 정보 탭 클릭
+
+  - id: verify_talkstore_name_input
+    do: 톡스토어 label 의 TextField input 가시 검증
+    expect: 톡스토어 상품명 input 노출 + value 가 비어있지 않음
+
+expected: 톡스토어 상품명 input 노출. unhandled 0건.

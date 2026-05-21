@@ -1,0 +1,33 @@
+# 상품 수집 - 직진입 마켓 버튼 popup 검증 (21개 마켓 통합).
+#
+# 출처: TC export "상품수집" 마켓별 popup 시나리오 (각 마켓당 1건)
+# 통합: 21개 import-direct-<market>-popup.atc.yml 파일을 1개로.
+#       spec.ts 측 CASES 배열에 21개 마켓 (1688/aliexpress/amazon-* 9개/domeggook/domeme/
+#       ownerclan/rakuten/taobao/temu/tmall/vvic/1688-aibuy) 등록.
+
+title: 상품 수집 - 직진입 마켓 버튼 popup 검증
+
+description: |
+  윈들리 "상품 수집" 페이지의 마켓 직진입 버튼(SourcingMallButton)이 정상 동작하는지
+  21개 마켓에 대해 일괄 검증. 버튼 클릭 → 새 탭 열림 → 그 탭의 URL hostname 매칭 확인.
+
+  spec.ts 의 CASES 배열에 마켓 라벨(예: '타오바오', '1688', '미국'…)과
+  기대 hostname regex(예: '(^|\.)taobao\.com$') 가 매핑되어 있음.
+
+inputs:
+  mall_label:
+    type: string
+    description: SourcingMallButton 에 표시되는 마켓 라벨 텍스트 (예 '타오바오', '1688', '미국')
+    example: 타오바오
+  host_regex:
+    type: string
+    description: 새 탭의 location.host 가 매칭되어야 할 정규식 source (예 '(^|\\.)taobao\\.com$')
+    example: (^|\.)taobao\.com$
+
+steps:
+  - id: open_collect_menu
+    do: 좌측 사이드바 "상품 수집" 메뉴 클릭하여 /view3/product-import 진입
+  - id: click_mall_verify_popup
+    do: inputs.mall_label 버튼 클릭하고 새 탭이 열리는지 + URL hostname 이 inputs.host_regex 매치 확인
+
+expected: 마켓 버튼 클릭 → 새 탭 + 정상 도메인. unhandled 0건.

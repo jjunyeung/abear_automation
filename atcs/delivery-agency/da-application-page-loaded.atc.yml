@@ -1,0 +1,26 @@
+# 배송대행지 신청서 페이지 진입 + 폼 본체 로드 검증.
+#
+# 출처: TC export Case 1378 "신청 완료 버튼" (P0) 의 prerequisite.
+#       실제 click 케이스는 데이터 영향 — 진입 + 버튼 가시까지만 자동화.
+# 코드 출처 (windly-frontend-web view3):
+#   /view3/delivery-agency/application?agency=tosstoss → Tosstoss/index.tsx
+#   components/Header.tsx → 좌측 < 버튼 (back) + 우측 저장 (submit) 버튼
+#   components/Header.tsx 의 onSubmit prop = handleSubmit (신청 완료 처리)
+
+title: 배송대행지 토스토스 신청서 진입 + 헤더 가시 검증
+
+description: |
+  Tosstoss 신청서 페이지 진입 후 헤더 "배송대행 신청서 작성" 타이틀 + 저장 (신청 완료) 버튼 가시.
+  TC 원본: Case No 1378 / 배송대행지 › 신청서 작성 › 센터 주소 확인 / P0
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: verify_form_header
+    do: 헤더 타이틀 "배송대행 신청서 작성/수정" + 우측 저장 버튼 가시 검증
+    expect: 타이틀 텍스트 + button[text=저장] 가시
+
+expected: 신청서 페이지 진입 + 폼 본체 로드. unhandled 0건.

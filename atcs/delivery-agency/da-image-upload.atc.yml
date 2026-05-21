@@ -1,0 +1,29 @@
+# Tosstoss 신청서 이미지 업로드 검증.
+#
+# 출처: TC export Case 1382 "이미지 업로드" (P0)
+# 코드 출처: Product/UploadImage.tsx
+#   - input[type="file" hidden accept="image/..."]
+#   - 업로드 성공 시 onControlProductForm({ imgUrl }) → <Image src={productImageUrl} />
+
+title: 배송대행지 토스토스 신청서 이미지 업로드 검증
+
+description: |
+  hidden file input 에 1x1 png 업로드 → image src 채워짐 검증.
+  TC 원본: Case No 1382 / 배송대행지 › 신청서 작성 › 이미지 업로드 / P0
+
+  주의: 실제 윈들리 이미지 서버에 1x1 dummy png 가 업로드됨. 부작용 작음 (스토리지 1KB 미만).
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: upload_image
+    do: hidden file input 에 1x1 png buffer setInputFiles 후 image src 채워질 때까지 대기
+    expect: img[src] 가 http(s) URL
+
+expected: 이미지 업로드 성공. unhandled 0건.

@@ -1,0 +1,40 @@
+# Tosstoss 신청서 단일 필드 입력 검증 (16개 필드 통합).
+#
+# 출처: TC export Case 1384~1410 "필드 입력" (P0, 16건)
+# 통합: 16개 da-input-<field>.atc.yml 파일을 1개로. spec.ts 측 CASES 배열에 16개 필드 등록.
+
+title: 배송대행지 토스토스 신청서 필드 입력 검증
+
+description: |
+  Tosstoss 신청서 진입 + 수동 양식 추가 → placeholder 매칭 input 에 값 입력 → 입력값 검증.
+  spec.ts 의 CASES 배열에 16개 필드 (주소/상세주소/브랜드모델/색상/통관고유부호/수량/단가/
+  연락처/이름/우편번호/구매URL/주문번호/송장번호/사이즈/물류센터요청/직접입력요청) 등록.
+
+  TC 원본: Case No 1384~1410 / 배송대행지 › 신청서 작성 › 각 필드 / P0
+
+inputs:
+  placeholder_regex:
+    type: string
+    description: 입력 필드 placeholder 매칭 regex source (예 '주소를\\s*입력해주세요')
+    example: 주소를\s*입력해주세요
+  value:
+    type: string
+    description: 입력할 테스트 값
+    example: 서울시 강남구 테헤란로 123
+  error_key:
+    type: string
+    description: 실패 시 사용할 error key (예 'address_fill_failed')
+    example: address_fill_failed
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: fill_and_verify
+    do: inputs.placeholder_regex 매칭 필드에 inputs.value 입력 후 inputValue 검증
+    expect: 입력값 일치
+
+expected: 필드 입력 동작. unhandled 0건.

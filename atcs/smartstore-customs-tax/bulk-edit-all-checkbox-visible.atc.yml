@@ -1,0 +1,36 @@
+# 수정 업로드 모달 1단계의 "전체 선택" 체크박스가 정상 노출되는지 검증.
+#
+# 출처: TC export Case 3577 "전체 선택 체크박스가 정상 노출된다" (P0)
+# 코드 출처 (sesame view2):
+#   src/features/RegisteredProduct/BulkEditModal/StepChoiceMarket/index.tsx
+#     <Container className="checkbox-all-container">
+#       <CheckBox isAll label="전체 선택" value="all-market" ... />
+#     </Container>
+#
+# 사전조건: setup project 로 로그인 + 해구대 진입 + 등록상품 1건 이상 존재.
+
+title: 등록상품 수정 업로드 모달 1단계 전체 선택 체크박스 노출 검증
+
+description: |
+  등록상품 페이지 → 헤더 전체선택 → 수정 업로드 → 모달 1단계의 "전체 선택" 체크박스 라벨 노출 검증.
+
+  TC 원본: Case No 3577 / 등록상품 › 수정 업로드 › 전체 선택 체크박스 / P0
+  label[for^="checkbox_"] 중 텍스트가 "전체 선택" 인 항목이 보여야 함.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: verify_all_checkbox_visible
+    do: 수정 업로드 모달 1단계의 "전체 선택" label 가시 검증
+    expect: label[for^="checkbox_"] 중 텍스트 "전체 선택" 인 항목이 visible
+
+expected: 모달 1단계 "전체 선택" 체크박스 라벨 가시. unhandled 0건.

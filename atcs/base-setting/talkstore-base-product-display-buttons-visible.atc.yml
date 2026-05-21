@@ -1,0 +1,27 @@
+# 기본설정 톡스토어 상품 노출 및 판매 SegmentedButton 노출.
+#
+# TC 원본:
+#   - Case No 1070 / 기본설정 › 톡스토어 › 상품 노출 및 판매 / P0 (전시상태 변경 부분 — 버튼 노출만)
+#   - Case No 1071 / 기본설정 › 톡스토어 › 상품 노출 및 판매 / P0 (다음 노출 변경 부분 — 버튼 노출만)
+#
+# 자동화 범위: 두 SegmentedButtonField 의 노출/미노출 버튼 노출만 검증.
+# 실제 변경 (저장) 은 데이터 변경 위험으로 제외.
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/ProductSettings/index.tsx
+
+title: 톡스토어 상품 노출 및 판매 버튼 노출
+
+description: |
+  상품 노출 및 판매 탭 → "전시 상태" + "다음 노출" 각각의 "노출"/"미노출" 버튼 노출 검증.
+  TC 원본: Case No 1070, 1071 (버튼 노출 부분만) / P0
+
+inputs: {}
+
+steps:
+  - id: goto_product_setting_tab
+    do: 기본설정 톡스토어 상품 노출 및 판매 탭 진입
+
+  - id: verify_display_segmented_buttons
+    do: 전시 상태 + 다음 노출 라벨 + 노출/미노출 버튼 노출 검증
+
+expected: 전시 / 다음 노출 버튼 노출. unhandled 0건.

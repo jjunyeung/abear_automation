@@ -1,0 +1,18 @@
+title: 수집상품 첫 카드 → 업로드 설정 탭의 마켓 토글 1개 변경 → 영속성
+
+description: |
+  수집상품 첫 카드 → 상세 → 업로드 설정 탭 → 마켓 checkbox/toggle 중 첫 항목의 상태를 반전 → API 호출 안정화 대기 → reload 후 변경 상태 유지 확인.
+
+  마켓 토글은 클릭 시 즉시 API 호출되어 onBlur 가 필요 없음.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+  - id: open_first_product
+    do: 첫 .product-card 클릭하여 상세 진입
+  - id: toggle_first_market
+    do: 업로드 설정 탭 → 마켓 checkbox/role=switch 첫 항목 클릭 → 상태 저장 + reload 후 유지
+
+expected: 업로드 설정 탭 마켓 토글 1개 변경 + 영속성 검증. unhandled 0건.

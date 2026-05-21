@@ -1,0 +1,33 @@
+# 수정 업로드 모달 step2 → step3 진입 검증.
+#
+# 출처: TC export Case 3590 "수정할 정보 입력 단계로 이동할 수 있다" (P0)
+
+title: 등록상품 수정 업로드 모달 step3 진입 검증
+
+description: |
+  step2 에서 첫 EditForm (가격 공식, 배송 정보) 선택 + 다음 → step3 (수정할 정보 입력) 진입.
+  TC 원본: Case No 3590 / 등록상품 › 수정 업로드 › 다음 버튼 이동 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: enter_step2
+    do: step1 전체선택 + 다음으로 step2 진입
+
+  - id: enter_step3
+    do: step2 에서 첫 EditForm 라벨 클릭 + 다음 → step3 진입
+
+  - id: verify_step3_active
+    do: ProgressHeader 의 수정할 정보 입력 활성 + Accordion title 가시 검증
+    expect: 수정할 정보 입력 텍스트 가시 + Accordion title 노출
+
+expected: step3 진입. unhandled 0건.

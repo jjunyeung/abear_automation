@@ -1,0 +1,7 @@
+[
+  "open_registered_list",
+  "select_first_product",
+  "click_bulk_edit_button",
+  "click_cancel",
+  "verify_modal_closed"
+]

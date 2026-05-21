@@ -25,7 +25,7 @@ import {
   waitFirstCardReadyStep,
   enterProductDetailStep,
   requireFreshUrlFromEnv,
-} from '../collect/_url-collect-handlers';
+} from '../product-collect/_url-collect-handlers';
 import {
   clickErrorCheckButton,
   readTabStatuses,

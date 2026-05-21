@@ -1,0 +1,20 @@
+title: 기본 설정 4개 카테고리 탭 순회 진입 smoke
+
+description: |
+  /view3/base-setting 의 4개 카테고리 (PRICE_SETTING / DELIVERY_INFO / MARKET_WEIGHT / PRODUCT_ATTRIBUTE) 를 순서대로 goto → 각 페이지의 고유 라벨이 visible 한지로 진입 성공 확인.
+
+  verify-*-on-product 시리즈가 base setting 진입을 매번 하는데, 진입 자체가 정상인지 빠르게 회귀할 수 있는 smoke.
+
+inputs: {}
+
+steps:
+  - id: price_setting
+    do: category=PRICE_SETTING 진입 + '판매가 단위(올림)' 라벨 visible
+  - id: delivery_info
+    do: category=DELIVERY_INFO 진입 + '기본 배송비' 라벨 visible
+  - id: market_weight
+    do: category=MARKET_WEIGHT 진입 + '스마트스토어' 라벨 visible
+  - id: product_attribute
+    do: category=PRODUCT_ATTRIBUTE 진입 + '제조사' 라벨 visible
+
+expected: 기본 설정 4개 카테고리 탭 순회 진입 성공. unhandled 0건.

@@ -1,0 +1,39 @@
+# 스스 관부가세 옵션 단일 선택 동작 검증.
+#
+# 출처: TC export Case 3597 "관부가세 옵션은 단일 선택으로 동작한다" (P0)
+# 코드 출처 (sesame view2):
+#   CustomsTaxForm SegmentedButton 3개 — 각각 onClick → handleChange(value) → setPayload 단일 값.
+#   BulkEditModal.step3 isNextStepUnavailable: isEmpty(payload.smartStoreCustomsTax).
+
+title: 스스 관부가세 단일 선택 동작 검증
+
+description: |
+  관부가세 step3 → 수정 모드 → 옵션 A 클릭 → 다음 enabled 검증 → 옵션 B 클릭 →
+  다음 enabled 유지 (단일 선택 정상 동작 = 두 옵션 모두 click 가능 + payload 변경).
+  TC 원본: Case No 3597 / 등록상품 › 수정 업로드 › 스마트스토어 관부가세 단일 선택 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: select_only_smartstore
+    do: step1 에서 스마트스토어만 선택 후 다음 → step2
+
+  - id: select_customs_tax_form
+    do: step2 에서 관부가세 라디오 선택 후 다음 → step3
+
+  - id: enter_edit_mode
+    do: step3 의 수정 버튼 클릭 → mode=edit + SegmentedButton 3개 노출
+
+  - id: verify_single_select
+    do: 옵션 A (관부가세 포함) 클릭 → 다음 enabled → 옵션 B (관부가세 미포함) 클릭 → 다음 enabled 유지
+
+expected: 두 옵션 모두 선택 가능 + payload 정상 반영. unhandled 0건.

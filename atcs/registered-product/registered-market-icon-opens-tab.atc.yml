@@ -1,0 +1,30 @@
+# 등록상품 카드의 마켓 아이콘 클릭 → 새 탭 열림 검증.
+#
+# TC 원본: Case No 920 / 등록상품 › 상품삭제 › esm 2.0 / P0
+#   원본 expect: "새로운 페이지가 열리지만, 상품 정보는 노출되지 않음"
+#   (사전조건: 판매자 센터에서 미리 삭제한 상품 — 외부 시스템 의존이라 검증 X)
+#
+# 자동화 범위: 마켓 아이콘 클릭 → 새 탭 popup 이벤트 발생 + URL 비어있지 않음.
+# 외부 페이지 내용 (상품 정보 노출 여부) 은 검증 X.
+#
+# 코드 출처: sesame/src/components/organisms/Buttons/MarketLinkButton.tsx
+#   onClick={() => window.open(url, '_blank')}
+
+title: 등록상품 마켓 아이콘 클릭 시 새 탭 열림
+
+description: |
+  등록상품 첫 카드의 첫 활성 마켓 아이콘 클릭 → 새 탭 popup 이벤트 발생 검증.
+  외부 페이지 내용은 검증 안 함 (판매자 센터 사전 삭제 사전조건 미충족 가능성).
+  TC 원본: Case No 920 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 페이지 진입
+
+  - id: click_market_icon_opens_tab
+    do: 첫 카드의 첫 활성 마켓 아이콘 버튼 클릭 → 새 탭 popup 이벤트 발생 확인
+    expect: 새 탭이 열리고 url 이 비어있지 않음
+
+expected: 마켓 아이콘 클릭 시 외부 URL 새 탭으로 열림. unhandled 0건.

@@ -1,0 +1,31 @@
+# Tosstoss 신청서 통관방법 동작 검증.
+#
+# 출처: TC export Case 1399 "통관방법" (P0)
+# 코드 출처: windly-frontend-web/src/features/DeliveryAgencyApplication/Tosstoss/...
+
+title: 배송대행지 토스토스 신청서 통관방법 검증
+
+description: |
+  통관방법 동작 검증. (자동 생성)
+  TC 원본: Case No 1399 / 배송대행지 › 신청서 작성 / P0
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: cascade_step_1
+    do: 선행 드롭다운 1 선택 (placeholder 지점을\s*선택해\s*주세요)
+
+  - id: cascade_step_2
+    do: 선행 드롭다운 2 선택 (placeholder 운송방법을\s*선택해\s*주세요)
+
+  - id: select_target_dropdown
+    do: 통관방법 드롭다운 클릭 후 첫 옵션 선택
+    expect: SelectedBox 텍스트 변경
+
+expected: 통관방법 동작. unhandled 0건.

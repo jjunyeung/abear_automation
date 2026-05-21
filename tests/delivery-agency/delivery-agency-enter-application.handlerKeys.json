@@ -1,0 +1,14 @@
+[
+  "open_delivery_agency",
+  "click_apply_form",
+  "wait_application_page",
+  "click_load_from_orders",
+  "wait_load_modal",
+  "select_first_order",
+  "click_load_button",
+  "open_category_dropdown",
+  "search_chair_in_category",
+  "select_first_category_result",
+  "agree_caution",
+  "click_submit_and_land"
+]

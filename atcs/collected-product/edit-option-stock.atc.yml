@@ -1,0 +1,18 @@
+title: 수집상품 첫 카드 → 옵션 재고 단건 변경 → 영속성 검증
+
+description: |
+  edit-option-price 의 재고 버전 — SalesPriceTable 의 재고 input 첫 항목 +1 변경 → onBlur 저장 → reload 후 값 유지 확인.
+
+  verify-stock-on-product 가 알려진 한계 (bulk-apply 적용 X) 로 fail 인 걸 우회하는 직접 검증 — 상품 detail 에서 재고 변경/저장 자체는 정상 동작하는지 본다.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 좌측 사이드바 수집상품 메뉴 클릭
+  - id: open_first_product
+    do: 첫 .product-card 클릭하여 상세 진입
+  - id: bump_option_stock
+    do: 판매가 탭 → SalesPriceTable 의 stock input 첫 항목 +1 → Tab → 저장 → reload 후 값 유지
+
+expected: 옵션 재고 단건 변경 + 영속성 검증. unhandled 0건.

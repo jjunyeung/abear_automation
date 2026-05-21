@@ -1,0 +1,20 @@
+# 기본설정 톡스토어 상품 속성 탭 노출.
+#
+# TC 원본: Case 1066 / 기본설정 › 톡스토어 › 상품 속성 / P0
+
+title: 기본설정 톡스토어 상품 속성 탭
+
+description: |
+  /view3/base-setting?setting=TALKSTORE&category=ATTRIBUTE 진입 → "상품 속성" 타이틀 노출 검증.
+  TC 원본: Case 1066 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_tab
+    do: 기본설정 톡스토어 상품 속성 탭 진입
+
+  - id: verify_panel_title
+    do: 패널 타이틀 "상품 속성" 노출 검증
+
+expected: 상품 속성 탭 진입. unhandled 0건.

@@ -1,0 +1,47 @@
+# 사용자가 입력한 URL 을 "URL 수집" 모달에 넣고 수집 완료까지 보는 일반 수집 ATC.
+#
+# 흐름:
+#   (1) 상품 수집 메뉴 이동  →  (2) URL 수집 카드 클릭  →  (3) URL 입력 + 수집 실행
+#   →  (4) 수집 완료 대기 (정상 / 이미 수집됨 / 실패 메시지 감지)
+#
+# 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입 완료.
+#
+# 입력 (D8): CLI > env > prompt. **example 폴백 없음** — 매 실행마다 새 URL 필수.
+#   - product_url : 수집할 상품 URL  (env: ATC_INPUT_PRODUCT_URL, CLI: --product_url=...)
+#
+# 동일 URL 재사용 금지: spec 이 tests/collect/.url-collect-history.log 에 기록된
+# URL 을 거부 → 매 실행마다 새 URL 입력 필수.
+
+title: URL 입력 → URL 수집 모달 → 수집 완료까지 (사용자 지정 링크)
+
+description: |
+  사용자가 입력한 상품 URL 을 윈들리 "URL 수집" 모달에 넣고 수집 완료까지 대기하는 일반 수집 시나리오.
+
+  흐름: 상품 수집 메뉴 → URL 수집 카드 클릭 → URL 입력 → 수집 실행 → 완료 메시지 (정상/이미 수집됨/실패) 감지.
+
+  입력: product_url (매 실행마다 새 URL 필수 — 동일 URL 재사용은 spec 의 history 가 거부).
+inputs:
+  product_url:
+    type: string
+    description: 수집할 상품 URL. 매 실행마다 새 값 필수 (재사용 금지). GUI 의 URL 풀에서 head 1개씩 자동 consume.
+    from: pool
+
+outputs:
+  source_product_id:
+    type: string
+    description: 수집 완료 후 윈들리가 발급한 내부 상품 코드. 같은 batch 의 뒤 TC 가 inputs.source_product_id.from=previous 로 받아감.
+
+steps:
+  - id: open_collect_menu
+    do: 좌측 사이드바 상품 수집 메뉴 클릭하여 view3/product-import 진입
+
+  - id: open_url_collect
+    do: 상품 수집 페이지의 URL 수집 카드 클릭하여 모달 오픈
+
+  - id: submit_url
+    do: URL 입력 필드에 inputs.product_url 입력 후 수집 실행 버튼 클릭
+
+  - id: wait_completion
+    do: BulkImportTable row 의 SpinLoader (a.importing) 가 사라지고 체크 아이콘 (a.success) 으로 바뀔 때까지 대기. error 아이콘 (a.fail) 이면 fail. 최대 5분.
+
+expected: 4개 step 모두 success, unhandled 0건. 수집 row 가 모두 success 아이콘으로 종료.

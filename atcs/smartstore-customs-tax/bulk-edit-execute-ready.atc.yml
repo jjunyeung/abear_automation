@@ -1,0 +1,43 @@
+# 수정 업로드 step3 의 "수정 업로드" 버튼 enabled 상태 검증 (실제 클릭 X).
+#
+# 출처: TC export Case 3598 "수정 업로드를 실행할 수 있다" (P0)
+#
+# 주의: 원본 TC 는 실제 "수정 업로드" 버튼 클릭으로 마켓에 변경사항 전송.
+# 자동화 컨텍스트에서는 production 데이터 변경 회피 — enabled 까지만 검증, 실제 click 안 함.
+
+title: 스스 관부가세 수정 업로드 버튼 enabled 검증
+
+description: |
+  step3 옵션 선택 후 "수정 업로드" 버튼이 enabled 인지까지 검증.
+  실제 클릭은 자동화로 하지 않음 (마켓 실제 업로드 부작용 방지).
+  TC 원본: Case No 3598 / 등록상품 › 수정 업로드 › 수정 업로드 실행 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: select_only_smartstore
+    do: step1 에서 스마트스토어만 선택 후 다음 → step2
+
+  - id: select_customs_tax_form
+    do: step2 에서 관부가세 라디오 선택 후 다음 → step3
+
+  - id: enter_edit_mode
+    do: step3 의 수정 버튼 클릭
+
+  - id: select_one_option
+    do: 옵션 1개 (관부가세 포함) 선택
+
+  - id: verify_submit_ready
+    do: 모달의 수정 업로드 버튼 enabled 검증 (실제 클릭은 안 함)
+    expect: submit isDisabled false
+
+expected: 수정 업로드 버튼 enabled. 실제 마켓 업로드는 사용자 수동. unhandled 0건.

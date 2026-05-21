@@ -1,0 +1,38 @@
+# 수정 업로드 모달 step1 마켓 선택 패턴에 따라 step2 EditForms 활성/비활성 변화 검증.
+#
+# 출처: TC export Case 3601 "선택한 마켓에 해당하는 수정 항목만 활성화된다" (P0)
+# 코드 출처 (sesame view2):
+#   StepChoiceForm.tsx checkDisableForm — smartStore* form 들은 'smartstore' 마켓 포함 여부로 결정.
+
+title: 등록상품 수정 업로드 step1 마켓 선택 따라 step2 form 활성/비활성 변화 검증
+
+description: |
+  같은 모달 안에서 두 시나리오 비교:
+  (1) 스스 포함 전체 선택 → step2 진입 → disabled radio 개수 = D1
+  (2) 모달 취소 후 다시 열고 스스 제외 마켓 1개만 선택 → step2 진입 → disabled = D2
+  D2 > D1 이면 PASS (마켓 선택에 따라 비활성 form 패턴이 변함).
+
+  TC 원본: Case No 3601 / 등록상품 › 수정 업로드 › 선택 마켓 기반 활성 제어 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: round1_open_with_all
+    do: 첫 시도 모달 열기 (수정 업로드 버튼 → step1 → 전체 선택 → 다음 → step2 진입)
+
+  - id: round1_count_disabled
+    do: step2 disabled radio 개수 측정 (D1) 후 취소로 모달 닫기
+
+  - id: round2_open_without_ss
+    do: 둘째 시도 모달 열기 → step1 스스 외 1개만 선택 → 다음 → step2 진입
+
+  - id: round2_count_and_compare
+    do: step2 disabled radio 개수 측정 (D2) 후 D2 > D1 검증
+
+expected: 마켓 선택 패턴에 따라 비활성 form 개수가 변한다. unhandled 0건.

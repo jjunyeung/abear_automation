@@ -1,0 +1,45 @@
+# 등록상품 삭제 — 전체 마켓 선택 후 삭제 트리거 + 진행 indicator 검증.
+#
+# TC 원본:
+#   - Case No 925 / 등록상품 › 상품삭제 / P0 (모달 → 삭제 → 로딩 모달, 전체 마켓 시나리오)
+#   - Case No 926 / 등록상품 › 상품삭제 / P0 (삭제 완료 후 카드 사라짐)
+#
+# 자동화 범위: 925 (트리거 + indicator) 까지만.
+# 926 의 "카드 목록에서 사라짐" 은 백엔드 비동기 task 완료에 의존 (3분+ 가능) — 시간 의존성으로
+# 본 spec 에서는 일관 검증 불가. 사용자가 수동으로 완료 확인.
+#
+# ⚠️ 실제 백엔드 삭제 요청 발생. 첫 카드 1개 + 전체 마켓.
+
+title: 등록상품 삭제 — 전체 마켓 선택 트리거
+
+description: |
+  첫 카드 1개 단독 체크 → 상품 삭제 → 모달 → 전체 마켓 체크 → 삭제 클릭 →
+  모달 닫힘 + 실시간 삭제 indicator 노출 검증.
+  TC 원본: Case No 925, 926 (trigger 부분 cover) / P0
+  ⚠️ 실제 백엔드 삭제 발생. 1 카드.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 페이지 진입
+
+  - id: select_only_first_card
+    do: 첫 카드 1개만 단독 체크
+
+  - id: open_delete_modal
+    do: 툴바의 상품 삭제 버튼 클릭 → 모달 노출
+
+  - id: check_all_markets
+    do: 모달의 전체 선택 체크박스 클릭 (모든 마켓 체크)
+
+  - id: confirm_delete
+    do: 모달의 삭제 버튼 클릭 → 삭제 요청 백엔드 전송
+
+  - id: verify_modal_closed
+    do: 삭제 모달 닫힘 검증
+
+  - id: verify_loading_indicator
+    do: 실시간 삭제 indicator 노출 검증 (best-effort)
+
+expected: 전체 마켓 삭제 트리거 + 모달 닫힘. unhandled 0건.

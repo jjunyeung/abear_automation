@@ -1,0 +1,28 @@
+# 수집상품 톡스토어 업로드 설정 — 리뷰포인트 토글 동작.
+#
+# TC 원본: Case No 1093 / 수집상품 › 톡스토어 › 업로드 설정 / P0
+#   원본 expect: 토글 동작
+#
+# 코드 출처: sesame/src/features/ProductDetail/ProductDetailTabs/UploadTab/TalkstoreUploadSettings/ReviewPoint/index.tsx
+#   <Toggle label="리뷰 시 포인트 지급 여부 설정" ... />
+
+title: 톡스토어 리뷰 포인트 토글 동작
+
+description: |
+  수집상품 첫 카드 → 상세 → 업로드 설정 탭 → 리뷰 시 포인트 지급 토글 클릭 → 상태 변화 검증.
+  TC 원본: Case No 1093 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_upload_tab
+    do: 업로드 설정 탭 클릭
+
+  - id: toggle_review_point
+    do: 리뷰 시 포인트 지급 토글 클릭
+    expect: 토글 상태 변화
+
+expected: 토글 동작. unhandled 0건.

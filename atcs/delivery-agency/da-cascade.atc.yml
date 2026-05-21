@@ -1,0 +1,50 @@
+# Tosstoss 신청서 옵션 조건부 선택 검증 — region × shipping × customs cascade.
+#
+# 출처: TC export Case 1412~1438 "옵션 조건부 선택" (P0, 27건)
+# 통합: 27개 da-cascade-NNNN.atc.yml 파일을 1개로. spec.ts 측 CASES 배열로 27건 실행.
+# 검증: cascade 3단계 정상 선택 + 부가서비스 영역 노출 + disabled checkbox/radio ≥1.
+
+title: 배송대행지 토스토스 cascade 옵션 검증 (region × shipping × customs)
+
+description: |
+  토스토스 신청서에서 region/shipping/customs 3-stage cascade 가
+  정상 동작하고 그 조합에 따라 부가서비스 영역의 비활성 옵션이 노출되는지 검증.
+  spec.ts 의 CASES 배열에 TC 1412~1438 의 27개 조합이 등록되어 있음.
+
+  TC 원본: Case No 1412~1438 / 배송대행지 › 신청서 작성 › 옵션 조건부 선택 / P0
+
+inputs:
+  region:
+    type: string
+    description: 배대지 지점. regex source 로 사용됨 (예 '웨이하이B2B|웨이하이|B2B' 처럼 alternation 가능)
+    example: 칭다오
+  shipping:
+    type: string
+    description: 운송방법. regex source 로 사용됨.
+    example: 허브넷해상|해운
+  customs:
+    type: string
+    description: 통관방법. regex source 로 사용됨.
+    example: 목록통관
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: select_region
+    do: 배대지 지점 = inputs.region 선택
+
+  - id: select_shipping
+    do: 운송방법 = inputs.shipping 선택 (region 의존)
+
+  - id: select_customs
+    do: 통관방법 = inputs.customs 선택 (region+shipping 의존)
+
+  - id: verify_additional_disabled
+    do: 부가서비스 영역 노출 + disabled checkbox/radio ≥1 검증
+    expect: 부가 서비스 요청 텍스트 visible + disabled input ≥1
+
+expected: cascade 정상 + 조건부 비활성 옵션 존재. unhandled 0건.

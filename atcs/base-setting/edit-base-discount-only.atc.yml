@@ -1,0 +1,18 @@
+title: 기본 설정 > 공통설정 > 판매가 → 할인율만 변경 → 영속성 검증
+
+description: |
+  edit-base-common-price 의 단일 필드 분리 버전. "판매가 할인율" 하나만 +1% 변경 + onBlur 저장 + reload 후 값 유지 확인.
+
+  할인율은 %, min=0, max=99 — 최대값이면 -1, 그 외에는 +1.
+
+inputs: {}
+
+steps:
+  - id: open_price
+    do: /view3/base-setting?setting=COMMON&category=PRICE_SETTING 진입 + 할인율 input 마운트 대기
+  - id: bump_discount
+    do: 할인율 input +1 (99 면 -1) → fill + Tab + 저장 대기 → reformat 확인
+  - id: verify_persist
+    do: page.reload() 후 할인율 input 값이 새 값과 동일한지 확인
+
+expected: 기본 설정 판매가 할인율 변경 + 영속성 검증. unhandled 0건.

@@ -1,0 +1,27 @@
+# Tosstoss 신청서 "주문관리에서 불러오기" 버튼 → 모달 노출 검증.
+#
+# 출처: TC export Case 1380 "주문관리에서 불러오기" (P0)
+# 코드 출처:
+#   Product/Buttons.tsx → "주문관리에서 불러오기" 버튼
+#   Product/modals/LoadProductModal/index.tsx → title="주문관리에서 상품 정보 불러오기"
+
+title: 배송대행지 토스토스 주문관리 불러오기 모달 검증
+
+description: |
+  신청서 진입 → "주문관리에서 불러오기" 버튼 → 모달 노출 검증.
+  TC 원본: Case No 1380 / 배송대행지 › 신청서 작성 › 주문관리에서 불러오기 / P0
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: click_load_from_orders
+    do: 주문관리에서 불러오기 버튼 클릭
+
+  - id: verify_modal_open
+    do: 모달 title "주문관리에서 상품 정보 불러오기" 가시 검증
+    expect: 모달 노출
+
+expected: 모달 정상 노출. unhandled 0건.

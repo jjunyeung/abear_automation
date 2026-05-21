@@ -1,0 +1,25 @@
+# 수집상품 판매가 탭 진입 검증.
+#
+# TC 원본: Case No 1089 / 수집상품 › 톡스토어 › 판매가 / P0
+#   원본 expect: 판매가 화면 노출
+
+title: 수집상품 판매가 탭 진입
+
+description: |
+  수집상품 첫 카드 → 상세 → 판매가 탭 클릭 → 화면 노출 검증.
+  TC 원본: Case No 1089 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_sales_tab
+    do: 판매가 탭 클릭
+
+  - id: verify_sales_tab
+    do: 판매가 탭 진입 확인 (판매가 관련 라벨 노출)
+    expect: 판매가 탭 화면 노출
+
+expected: 판매가 탭 진입 성공. unhandled 0건.

@@ -33,7 +33,11 @@ inputs: {}
 
 steps:
   - id: bump_and_snapshot_delivery
-    do: app.windly.cc/view3/base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto. 4개 input (기본 배송비 +100, 반품 배송비 +100, 교환 배송비 +100, 배송비 조건 +1) 변경 + onBlur 저장 → 변경된 값 snapshot. 배송비 조건은 배송비 유형이 유료 + 수량별 적용 일 때만 enabled.
+    do: |
+      base-setting?setting=COMMON&category=DELIVERY_INFO 직접 goto.
+      4개 input 변경 + onBlur 저장 → snapshot:
+        기본 배송비 +100 / 반품 배송비 +100 / 교환 배송비 +100 / 배송비 조건 +1
+      (배송비 조건은 배송비 유형=유료 + 수량별 적용일 때만 enabled)
     expect: 4개 input 변경 + reformat 반영
 
   - id: open_collected_list

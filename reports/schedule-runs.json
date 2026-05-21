@@ -212,5 +212,49 @@
         "overall": "passed"
       }
     ]
+  },
+  {
+    "scheduleId": "28870e51-9286-4a81-b45f-3ade804b7b09",
+    "firedAt": "2026-05-20T03:30:00.000Z",
+    "completedAt": "2026-05-20T03:30:12.242Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-20_12-30-00_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/error-check/check-and-fix.atc.yml",
+        "runId": "result_2026-05-20_12-30-03_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/single-product.atc.yml",
+        "runId": "result_2026-05-20_12-30-05_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/registered-check.atc.yml",
+        "runId": "result_2026-05-20_12-30-07_4",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-20_12-30-08_5",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/delete-top-product.atc.yml",
+        "runId": "result_2026-05-20_12-30-10_6",
+        "exitCode": 1,
+        "overall": "failed"
+      }
+    ]
   }
 ]

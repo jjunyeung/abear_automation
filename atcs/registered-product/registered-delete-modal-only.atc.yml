@@ -1,0 +1,45 @@
+# 등록상품 삭제 모달 — 단일 마켓 체크 후 삭제 버튼 활성 검증 (5 마켓 통합).
+#
+# TC 원본: Case 948~962 / 등록상품 › 상품 삭제 › 상품리스크진단 / P0 (15건)
+#   각 마켓당 사전조건만 다른 P0 3 케이스 묶음 → 1 자동화 케이스로 cover.
+#
+# 자동화 범위: 모달 진입 + 1 마켓 단독 체크 + 삭제 버튼 활성 검증 + 취소로 닫음.
+# 실제 삭제는 트리거 X (외부 마켓 시스템 + 데이터 손실 위험).
+
+title: 등록상품 삭제 모달 — 단일 마켓 선택
+
+description: |
+  등록상품 첫 페이지 전체 선택 → 상품 삭제 모달 → 1 마켓만 체크 →
+  삭제 버튼 활성 확인 → 취소로 닫음.
+  spec.ts 의 CASES 배열에 5 마켓 (smartstore/coupang/esm/street/lotteOn) 등록.
+
+  TC 원본: Case 948~962 (마켓별 사전조건 3건씩 cover, 총 15건)
+
+inputs:
+  market_key:
+    type: string
+    description: 체크할 마켓 키. MARKET_LABEL 의 키 중 하나 (smartstore/coupang/esm/street/lotteOn)
+    example: coupang
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 페이지 진입
+
+  - id: select_first_product
+    do: 헤더 전체 선택 체크박스 클릭하여 1페이지 상품 모두 선택
+
+  - id: open_delete_modal
+    do: 툴바의 상품 삭제 버튼 클릭 → 모달 노출
+
+  - id: check_only_market
+    do: 모달에서 inputs.market_key 에 해당하는 마켓 체크박스만 체크
+    expect: 해당 마켓 1개만 체크된 상태
+
+  - id: verify_delete_enabled
+    do: 삭제 버튼 활성 확인 (클릭 X)
+    expect: 마켓 1개 체크된 상태에서 삭제 버튼이 활성화됨
+
+  - id: close_modal
+    do: 취소 버튼 클릭하여 모달 닫음
+
+expected: 단독 마켓 체크 + 삭제 버튼 활성 확인. 실제 삭제는 발생하지 않음.

@@ -90,7 +90,10 @@
 
 1. /atc-new 호출 (또는 사용자 의도 듣고 직접):
    - 도메인 분류 → atcs/<domain>/<name>.atc.yml
-   - 도메인 후보: collect, error-check, fix, upload, e2e (D9)
+   - 도메인 후보 (Excel Category 기준 재정렬, atc-consolidation-log.md §11):
+     일반 → Main Category: collected-product / product-collect / registered-product / delivery-agency / base-setting / upload / order-mgmt / windly-shell
+     비-일반 → Category: smartstore-customs-tax / popular-product-rec / ai-thumbnail-gen
+     cross-cutting: e2e
    - YAML 작성: title / inputs (schema only, D8) / outputs? / steps / expected
    - 각 step: { id, do (한국어 자연어), on_error?, on_recovery?, expect? }
    - **login / enter_workspace step 은 적지 않는다** — setup project 가 미리 처리 ((j) 참조)
@@ -100,7 +103,7 @@
      - 발급하는 TC: 최상위 `outputs:` 에 같은 이름으로 선언 + spec.ts 에서 `emitOutput('<name>', value)` 호출
      - 받는 TC: `inputs.<name>.from: previous` 만 추가하면 GUI 큐의 같은 batch 안 자동 주입
 2. 대응 spec 작성: tests/<domain>/<name>.spec.ts
-   - vertical slice exemplar (tests/collect/product-error-check.spec.ts) 패턴 그대로
+   - vertical slice exemplar (tests/collected-product/product-error-check.spec.ts) 패턴 그대로
    - StepHandlers 정의 — step.id ↔ Playwright 액션 매핑 (login/enter_workspace 핸들러 불필요)
    - runATC() 호출 → test.info().attach('atc-result', ...) 호출 (필수, 리포터가 이걸 읽음)
    - outputs 선언했으면 step 안에서 `emitOutput()` 호출 (lib/atc-output.ts) — runner 가 끝에서 한 번에 수확
@@ -195,7 +198,7 @@ unhandled 에러는 자동 복구 시도 없이 리포트에만 기록된다 (D1
 
 ## (j) 인증 패턴 — setup project (REFACTOR §1)
 
-모든 도메인 프로젝트(`windly-collect/error-check/fix/upload/e2e`)는 `dependencies: ['setup']` 으로 묶여 있어 ATC 가 시작되기 전 `tests/auth.setup.ts` 가 먼저 1회 실행된다.
+모든 도메인 프로젝트(`windly-collected-product / product-collect / registered-product / delivery-agency / base-setting / upload / order-mgmt / windly-shell / smartstore-customs-tax / e2e`)는 `dependencies: ['setup']` 으로 묶여 있어 ATC 가 시작되기 전 `tests/auth.setup.ts` 가 먼저 1회 실행된다.
 
 ```
 tests/auth.setup.ts

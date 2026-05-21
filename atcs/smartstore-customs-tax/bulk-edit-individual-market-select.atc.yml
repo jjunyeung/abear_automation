@@ -1,0 +1,29 @@
+# 수정 업로드 모달 1단계 개별 마켓 체크박스 토글 가능 검증.
+#
+# 출처: TC export Case 3581 "개별 마켓을 선택할 수 있다" (P0)
+# 코드 출처 (sesame view2):
+#   StepChoiceMarket/index.tsx → 마켓 라벨 클릭 → selected.market 에 add/remove (toggle).
+
+title: 등록상품 수정 업로드 모달 1단계 개별 마켓 선택 검증
+
+description: |
+  모달 진입 → 첫 번째 활성 마켓 라벨 클릭 → page.input:checked 증가.
+  TC 원본: Case No 3581 / 등록상품 › 수정 업로드 › 개별 마켓 선택 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: verify_individual_market_toggle
+    do: 한국어 마켓명 라벨 첫 번째 클릭 시 page input:checked 개수 증가 검증
+    expect: 클릭 전 vs 후 checked delta ≥ 1
+
+expected: 개별 마켓 토글 동작. unhandled 0건.

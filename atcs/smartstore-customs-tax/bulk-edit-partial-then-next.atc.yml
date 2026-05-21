@@ -1,0 +1,39 @@
+# 수정 업로드 모달 1단계에서 일부 마켓만 선택 → 다음 → 2단계 진입 검증.
+#
+# 출처: TC export Case 3582 "일부 마켓만 선택하여 다음 단계로 진행할 수 있다" (P0)
+# 코드 출처 (sesame view2):
+#   BulkEditModal/index.tsx → currentStep 2 일 때 cancelButtonText="이전" / nextButtonText="다음".
+#   ProgressHeader → BulkEditSteps = ['마켓 선택', '수정할 정보 선택', '수정할 정보 입력'].
+#   StepChoiceForm → EditForms 라디오 ("가격 공식, 배송 정보" 등).
+
+title: 등록상품 수정 업로드 모달 일부 마켓 선택 → 2단계 진입 검증
+
+description: |
+  모달 1단계에서 개별 마켓 1개만 선택 → 다음 버튼 → 2단계 진입 확인.
+
+  TC 원본: Case No 3582 / 등록상품 › 수정 업로드 › 일부 마켓 선택 / P0
+  검증: 다음 클릭 후 "수정할 정보 선택" 라디오 ("가격 공식, 배송 정보") 가시.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: select_one_market
+    do: 모달 1단계 마켓 그리드의 첫 번째 개별 마켓 체크박스 클릭 (전체선택 제외)
+
+  - id: click_next
+    do: 모달 다음 버튼 클릭
+
+  - id: verify_step2_entered
+    do: 2단계 "수정할 정보 선택" 화면 진입 검증 (EditForms 라벨 ≥1 가시 + 1단계 .banner 사라짐)
+    expect: 가격 공식, 배송 정보 등 라디오 라벨 가시
+
+expected: 1단계 일부 선택 → 다음 → 2단계 진입. unhandled 0건.

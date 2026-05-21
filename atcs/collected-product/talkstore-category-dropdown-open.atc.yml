@@ -1,0 +1,28 @@
+# 톡스토어 카테고리 Dropdown 열기/닫기 동작.
+#
+# TC 원본:
+#   - Case No 1086 / 수집상품 › 톡스토어 › 기본정보 / P0 (드롭다운 열림 검증)
+#   - Case No 1087 / 수집상품 › 톡스토어 › 기본정보 / P0 (다른 카테고리 선택 — 본 spec 은 열림 검증까지)
+#
+# 자동화 범위: 드롭다운 클릭 → 검색 input + 옵션 list 노출 검증.
+# 실제 카테고리 변경 (1087 의 "선택한 카테고리로 변경" 부분) 은 데이터 변경 위험으로 검증만.
+
+title: 톡스토어 카테고리 Dropdown 열림
+
+description: |
+  기본 정보 탭 → 톡스토어 카테고리 Dropdown 클릭 → 검색 input + 옵션 노출 검증.
+  TC 원본: Case No 1086, 1087 (드롭다운 열림 부분만) / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_info_tab
+    do: 기본 정보 탭 클릭
+
+  - id: open_talkstore_category_dropdown
+    do: 톡스토어 카테고리 Dropdown 버튼 클릭 → 검색 input 또는 옵션 노출
+
+expected: 카테고리 Dropdown 열림. unhandled 0건.

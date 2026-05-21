@@ -1,0 +1,25 @@
+# 기본설정 톡스토어 리뷰 시 포인트 지급 토글 동작.
+#
+# TC 원본:
+#   - Case No 1064 / 기본설정 › 톡스토어 › 리뷰 포인트 / P0 (On)
+#   - Case No 1065 / 기본설정 › 톡스토어 › 리뷰 포인트 / P0 (Off)
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/ReviewPoint/index.tsx:124
+#   <Toggle label="리뷰 시 포인트 지급 여부 설정" ... />
+
+title: 기본설정 톡스토어 리뷰 포인트 지급 토글
+
+description: |
+  리뷰 포인트 탭 → 리뷰 시 포인트 지급 여부 설정 토글 클릭 → 상태 변화 검증 + 원상복귀.
+  TC 원본: Case No 1064, 1065 (On/Off 동일 동작) / P0
+
+inputs: {}
+
+steps:
+  - id: goto_review_point_tab
+    do: 기본설정 톡스토어 리뷰 포인트 탭 진입
+
+  - id: toggle_review_point
+    do: 리뷰 시 포인트 지급 여부 설정 토글 클릭
+
+expected: 토글 동작. unhandled 0건.

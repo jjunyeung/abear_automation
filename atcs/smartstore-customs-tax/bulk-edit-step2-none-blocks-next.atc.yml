@@ -1,0 +1,32 @@
+# 수정 업로드 모달 2단계 항목 미선택 시 다음 버튼 비활성 검증.
+#
+# 출처: TC export Case 3591 "수정 항목을 선택하지 않으면 다음 단계로 진행할 수 없다" (P0)
+# 코드 출처 (sesame view2):
+#   BulkEditModal/index.tsx → step2 isNextStepUnavailable = (selected.form === '').
+
+title: 등록상품 수정 업로드 모달 2단계 항목 미선택 시 다음 버튼 비활성
+
+description: |
+  step2 진입 직후 다음 버튼이 disabled 인지 검증.
+  TC 원본: Case No 3591 / 등록상품 › 수정 업로드 › 수정 항목 미선택 예외 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: enter_step2
+    do: step1 전체선택 + 다음으로 step2 진입
+
+  - id: verify_next_disabled
+    do: step2 진입 직후 다음 버튼 disabled 검증
+    expect: modalNextButton isDisabled true
+
+expected: step2 미선택 시 다음 비활성. unhandled 0건.

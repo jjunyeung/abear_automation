@@ -1,0 +1,28 @@
+# 기본설정 추천 설문 모달 진입.
+#
+# TC 원본:
+#   - Case No 1222 / 업로드 › 업로드 스토어 › 상하단 이미지 / P0 (기본설정 접속 → 추천 팝업)
+#   - Case No 1223 / 업로드 › 업로드 스토어 › 상하단 이미지 / P0 (팝업 내용 확인)
+#
+# 사전: 무료체험 고객 (`me.currentPlan.type === 'FREE'`).
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Common/SurveyBanner/SurveyModal/SurveyIntro.tsx
+#   "나에게 알맞는 설정 추천받기" 타이틀 + "복잡한 설정은 윈들리가 대신..." + 괜찮아요/좋아요 버튼.
+
+title: 기본설정 추천 설문 모달 노출
+
+description: |
+  기본설정 진입 → SurveyBanner 의 "기본설정을 추천" 링크 클릭 → SurveyModal 노출 검증.
+  TC 원본: Case No 1222, 1223 / P0
+  환경 의존: 무료체험 고객 (isFreePlan=true) 가 아니면 banner 자체 X.
+
+inputs: {}
+
+steps:
+  - id: goto_base_setting
+    do: 기본설정 진입
+
+  - id: verify_survey_modal_or_banner
+    do: Survey modal 자동 노출 또는 banner 기본설정을 추천 링크 클릭 → modal 노출 확인
+    expect: 나에게 알맞는 설정 추천받기 텍스트 + 괜찮아요/좋아요 버튼 노출
+
+expected: Survey modal 노출. unhandled 0건.

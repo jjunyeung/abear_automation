@@ -1,0 +1,49 @@
+# 등록상품 삭제 실제 트리거 (모달 → 삭제 클릭 → 모달 닫힘 + indicator 노출).
+#
+# TC 원본: Case No 922, 925 / 등록상품 › 상품삭제 / P0
+#   원본 expect: "삭제 로딩 모달 노출"
+#   (922 = 단일 마켓 선택, 925 = 전체 선택. 트리거 후 동작은 동일)
+#
+# ⚠️ 실제 백엔드 삭제 요청 발생. 첫 카드 1개 + 스마트스토어 단독 체크 (영향 최소화).
+# 실제 삭제 완료 (등록상품 목록에서 사라짐) 는 별도 spec 에서 검증.
+#
+# 코드 출처: sesame/src/components/organisms/Modals/Product/DeleteRegisteredProductsModal/index.tsx
+#   handleDelete → onDeleteStart(checkedSet) → handleStartDeletion → 백엔드 task 등록 + setShow(false)
+# sesame/src/components/organisms/AsyncTaskStatus/Deletion/DeletingProductsIndicator.tsx
+#   "실시간 삭제" 텍스트 + SpinLoader (loading indicator)
+
+title: 등록상품 삭제 실제 트리거 (단일 카드 + 단일 마켓)
+
+description: |
+  첫 카드 1개 단독 체크 → 상품 삭제 → 모달 → 스마트스토어 단독 체크 → 삭제 클릭 →
+  모달 닫힘 + "실시간 삭제" indicator 노출 검증.
+  TC 원본: Case No 922, 925 / P0 (트리거 후 동작 동일)
+  ⚠️ 실제 백엔드 삭제 발생. 영향 최소화 위해 1 카드 1 마켓.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 페이지 진입
+
+  - id: select_only_first_card
+    do: 첫 카드 1개만 단독 체크 (헤더 select-all 아님)
+
+  - id: open_delete_modal
+    do: 툴바의 상품 삭제 버튼 클릭 → 모달 노출
+
+  - id: check_only_market
+    do: 모달에서 스마트스토어만 체크
+
+  - id: confirm_delete
+    do: 모달의 삭제 버튼 클릭 → 삭제 요청 백엔드 전송
+
+  - id: verify_modal_closed
+    do: 삭제 모달이 닫힘 검증
+    expect: 모달 사라짐 (handleDelete → setShow(false))
+
+  - id: verify_loading_indicator
+    do: 실시간 삭제 indicator 노출 검증 (best-effort, 5s 대기)
+    expect: 실시간 삭제 텍스트가 페이지 어딘가에 노출
+
+expected: 삭제 모달 닫힘 + 진행 indicator. unhandled 0건.

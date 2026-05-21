@@ -1,0 +1,39 @@
+# 톡스토어 포인트 적립 단위 (원/%) SegmentedButton 동작.
+#
+# TC 원본: Case No 1092 / 수집상품 › 톡스토어 › 업로드 설정 / P0
+#   원본 expect: 포인트 적립 단위 수정
+#
+# 코드 출처: sesame/src/features/ProductDetail/ProductDetailTabs/UploadTab/TalkstoreUploadSettings/PurchasePoint/index.tsx
+#   <SegmentedButtonField label="포인트 적립 단위 (원/%)">
+#     <SegmentedButton selected={purchasePointType === 'AMOUNT'}>원</SegmentedButton>
+#     <SegmentedButton selected={purchasePointType === 'RATE'}>%</SegmentedButton>
+#
+# 사전: 구매 시 포인트 지급 토글이 ON 이어야 SegmentedButtonField 노출.
+
+title: 톡스토어 포인트 적립 단위 (원/%) 동작
+
+description: |
+  업로드 설정 탭 → 구매 시 포인트 지급 토글 ON → 원/% SegmentedButton 두 개 노출 +
+  양쪽 클릭 동작 검증 → 토글 OFF (원상복귀).
+  TC 원본: Case No 1092 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_upload_tab
+    do: 업로드 설정 탭 클릭
+
+  - id: enable_purchase_point
+    do: 구매 시 포인트 지급 토글 ON 으로 켜기
+
+  - id: verify_and_toggle_unit
+    do: 원/% 두 버튼 노출 + 양쪽 클릭 동작 검증
+    expect: 원/% 두 버튼 모두 노출 + 클릭 가능
+
+  - id: disable_purchase_point
+    do: 구매 시 포인트 지급 토글 OFF 로 원상복귀
+
+expected: SegmentedButton 동작. unhandled 0건.

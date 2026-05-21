@@ -28,6 +28,9 @@ gui/node_modules/
 # batches/ 만 keep (머지된 텍스트 md, 용량 작음).
 reports/runs/
 
+# 엑셀 TC 일괄 import 결과물 — draft 단계, 사람이 검토 후 atcs/ 로 옮긴다.
+tmp/
+
 # 외부 reference / 회사 코드 — 본 ATC 레포에 포함하지 않는다.
 # windly_repo: 윈들리 회사 frontend (hub/sesame/windly/koco)
 # automation:  레거시 자동화 폴더 (CLAUDE.md D1 — 패턴만 차용)

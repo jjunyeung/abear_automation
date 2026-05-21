@@ -1,0 +1,26 @@
+# Tosstoss 신청서 양식 복사 검증.
+#
+# 출처: TC export Case 1396 "복사 버튼 선택" (P0)
+# 코드 출처: Product/components/InputForm.tsx
+#   <Tooltip content="상품 복제"><Button onClick={() => onCopyForm(index)}><CopyIcon /></Button></Tooltip>
+
+title: 배송대행지 토스토스 신청서 복사 검증
+
+description: |
+  양식 추가 → 복사 버튼 클릭 → 양식 2개 (상품 #1 + 상품 #2) 노출 검증.
+  TC 원본: Case No 1396 / 배송대행지 › 신청서 작성 › 복사 버튼 선택 / P0
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭
+
+  - id: copy_form
+    do: 상품 복제 버튼 클릭 → 양식 2개 노출 검증
+    expect: 상품 #1 + 상품 #2 텍스트 visible
+
+expected: 양식 복사 동작. unhandled 0건.

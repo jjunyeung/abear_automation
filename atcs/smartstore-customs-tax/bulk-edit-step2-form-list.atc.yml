@@ -1,0 +1,33 @@
+# 수정 업로드 모달 2단계 EditForms 목록 ≥3개 가시 검증.
+#
+# 출처: TC export Case 3588 "수정 가능한 항목 목록이 정상 노출된다" (P0)
+# 코드 출처 (sesame view2):
+#   constants.ts EditForms: 가격 공식+배송 정보 / 상하단이미지 / 스마트스토어 리뷰포인트 /
+#   스마트스토어 모음전 정책 적용 / 관부가세  (총 5개)
+
+title: 등록상품 수정 업로드 모달 2단계 EditForms 목록 노출 검증
+
+description: |
+  step2 진입 후 EditForms 라디오 라벨 ≥3개 가시 검증.
+  TC 원본: Case No 3588 / 등록상품 › 수정 업로드 › 수정 항목 목록 노출 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: enter_step2
+    do: step1 전체선택 + 다음으로 step2 진입
+
+  - id: verify_form_list
+    do: step2 EditForms 라디오 라벨 ≥3개 가시 검증
+    expect: 가격 공식, 상하단이미지, 관부가세 등 5종 중 ≥3개 visible
+
+expected: 수정 가능 항목 목록 노출. unhandled 0건.

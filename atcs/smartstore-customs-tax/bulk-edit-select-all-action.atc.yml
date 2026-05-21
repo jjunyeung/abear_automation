@@ -1,0 +1,35 @@
+# 수정 업로드 모달 1단계 "전체 선택" 클릭 시 선택 가능한 마켓 모두 선택됨 검증.
+#
+# 출처: TC export Case 3580 "전체 선택 시 선택 가능한 마켓이 모두 선택된다" (P0)
+# 코드 출처 (sesame view2):
+#   StepChoiceMarket/index.tsx → <Container className="checkbox-all-container">
+#     <CheckBox isAll label="전체 선택" value="all-market"
+#               checkedSet={selected.market} setCheckedSet={handleSetMarkets}
+#               allOptions={updatableMarketList} />
+#   동작: 전체 선택 클릭 → updatableMarketList 전체가 selected.market 에 들어감.
+
+title: 등록상품 수정 업로드 모달 1단계 전체 선택 동작 검증
+
+description: |
+  수정 업로드 모달 1단계의 "전체 선택" label 클릭 → 모달 안 input[type=checkbox]:checked
+  개수가 증가해야 함 (선택 가능 마켓 모두 선택).
+
+  TC 원본: Case No 3580 / 등록상품 › 수정 업로드 › 전체 선택 동작 / P0
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 좌측 사이드바 등록상품 메뉴 클릭하여 view2/registered-product 진입
+
+  - id: select_first_product
+    do: 등록상품 목록 헤더의 전체 선택 체크박스 클릭
+
+  - id: click_bulk_edit_button
+    do: 화면 상단의 수정 업로드 버튼 클릭
+
+  - id: verify_select_all_toggles
+    do: 모달 1단계 .checkbox-all-container 안 전체 선택 label 클릭 시 모달 영역 input:checked 개수가 ≥1 증가 검증
+    expect: click 후 새로 checked 된 마켓 체크박스 수 ≥ 1
+
+expected: 전체 선택 클릭 시 마켓 체크박스들이 추가로 선택됨. unhandled 0건.

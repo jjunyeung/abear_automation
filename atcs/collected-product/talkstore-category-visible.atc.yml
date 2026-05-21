@@ -1,0 +1,28 @@
+# 톡스토어 카테고리 Dropdown 노출 검증.
+#
+# TC 원본: Case No 1085 / 수집상품 › 톡스토어 › 기본정보 / P0
+#   원본 expect: 상품명을 기반으로 추천된 카테고리가 입력되어 노출됨
+#
+# 코드 출처: sesame/src/features/ProductDetail/ProductDetailTabs/InfoTab/index.tsx
+#   <Dropdown uniqueKey="talkstore" label="톡스토어 카테고리" ... />
+
+title: 톡스토어 카테고리 Dropdown 노출
+
+description: |
+  기본 정보 탭 → 톡스토어 카테고리 라벨 + Dropdown 노출 검증.
+  TC 원본: Case No 1085 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_info_tab
+    do: 기본 정보 탭 클릭
+
+  - id: verify_talkstore_category_label
+    do: 톡스토어 카테고리 라벨 노출 검증
+    expect: 톡스토어 카테고리 텍스트 노출
+
+expected: 톡스토어 카테고리 Dropdown 노출. unhandled 0건.

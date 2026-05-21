@@ -1,0 +1,28 @@
+# 톡스토어 상품명 빈 입력 onblur → 에러 표시.
+#
+# TC 원본: Case No 1082 / 수집상품 › 톡스토어 › 기본정보 / P0
+#   원본 expect:
+#     - 인풋박스 앞에 ! 아이콘 노출 + 빨간색 테두리
+#     - ! 호버 시 "톡스토어 상품명은 70자 이하로 반드시 입력해주세요." 툴팁
+
+title: 톡스토어 상품명 빈 입력 에러
+
+description: |
+  기본 정보 탭 → 톡스토어 상품명 input 모두 지움 → onBlur → 에러 상태 (TextField status=error).
+  원복: 원래 상품명 다시 입력.
+  TC 원본: Case No 1082 / P0
+
+inputs: {}
+
+steps:
+  - id: open_first_collected_product
+    do: 수집상품 첫 카드 진입
+
+  - id: click_info_tab
+    do: 기본 정보 탭 클릭
+
+  - id: clear_and_verify_error
+    do: 톡스토어 상품명 input 비우기 + onBlur → 에러 표시 검증 + 원복
+    expect: input 가 에러 상태 (TextField status=error)
+
+expected: 빈 입력 onblur 후 에러 상태. unhandled 0건.
