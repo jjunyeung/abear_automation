@@ -21,7 +21,21 @@ export type CatalogStatus =
   | 'failed-recent'
   | 'passed-recent';
 
-export type Domain = 'collect' | 'error-check' | 'fix' | 'upload' | 'e2e';
+// Excel Category 기준 재정렬된 디렉토리 (atc-consolidation-log.md §11):
+//   일반 Category → Main Category 별 (collected-product / product-collect / 등)
+//   비-일반 Category → Category 자체 (smartstore-customs-tax 등)
+//   cross-cutting → e2e
+export type Domain =
+  | 'collected-product'
+  | 'product-collect'
+  | 'registered-product'
+  | 'delivery-agency'
+  | 'base-setting'
+  | 'upload'
+  | 'order-mgmt'
+  | 'windly-shell'
+  | 'smartstore-customs-tax'
+  | 'e2e';
 
 export interface CatalogItem {
   atcPath: string;

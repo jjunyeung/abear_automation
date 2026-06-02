@@ -1,0 +1,13 @@
+title: 인기 상품 추천 페이지 smoke (e2e)
+priority: P2
+description: 인기 상품 추천 페이지 진입 + 키워드/상품 카드 노출 검증.
+
+inputs: {}
+
+steps:
+  - id: open_popular_recommend
+    do: 인기 상품 추천 페이지 진입.
+  - id: verify_page_mounted
+    do: 키워드 목록 또는 상품 카드 노출 확인.
+
+expected: 페이지 마운트. unhandled 0건.

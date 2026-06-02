@@ -21,6 +21,13 @@
   border-radius: 6px;
   background: #fafafa;
 }
+.report-panel__toolbar-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
 .report-panel__runid {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
@@ -179,6 +186,13 @@
   justify-content: space-between;
   gap: 10px;
   margin: 0 0 12px;
+}
+.report-panel__batch-toolbar-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 .report-panel__batch-toolbar-right {
   display: inline-flex;

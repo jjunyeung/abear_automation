@@ -1,0 +1,43 @@
+# 연결설정 / 오픈마켓 — 6개 마켓 연결 페이지 진입 smoke (non-destructive).
+#
+# TC 원본 (P0 — 마켓별 페이지 진입 검증으로 묶음):
+#   - Case No 1007 / 스토어 연결하기 — 다른 마켓의 연결 버튼 visibility
+#   - Case No 1011 / 스토어 URL 입력 — 마켓 페이지 진입
+#   - Case No 1012 / 잘못된 스토어 URL 입력 — 페이지 진입 검증
+#   - 추가: 마켓별 Layout title 노출 = 페이지 진입 성공
+#
+# 6 마켓: 쿠팡 / 11번가 국내 / 11번가 글로벌 / 롯데온 / 인터파크 / (스마트스토어/톡스토어는 별도 ATC)
+#
+# Skip (destructive):
+#   - 실 연결 / 스토어 바로가기 (외부 링크) / API 키 입력 / 초기화
+#
+# 코드 출처: windly-frontend-web/src/features/Connect/Market/*/
+#   - Layout titles: "쿠팡 설정" / "11번가 국내 설정" / "11번가 글로벌 설정" / "롯데온 설정" / "인터파크 설정"
+
+title: 연결설정 / 오픈마켓 5개 마켓 연결 페이지 진입 smoke (TC 1007/1011/1012)
+priority: P0
+
+description: |
+  /view3/connect?setting=MARKET&openMarket=<MARKET> 5종 진입 → 각 마켓의 Layout title 노출 확인.
+  쿠팡 / 11번가 국내 / 11번가 글로벌 / 롯데온 / 인터파크. 실 연결/초기화 destructive 라 skip.
+  TC 원본: Case No 1007, 1011, 1012 / P0 + 마켓별 페이지 진입 회귀.
+
+inputs: {}
+
+steps:
+  - id: enter_coupang_connect
+    do: 쿠팡 마켓 연결 페이지 진입 + title 노출 확인
+
+  - id: enter_elevenstreet_domestic_connect
+    do: 11번가 국내 마켓 연결 페이지 진입 + title 노출 확인
+
+  - id: enter_elevenstreet_global_connect
+    do: 11번가 글로벌 마켓 연결 페이지 진입 + title 노출 확인
+
+  - id: enter_lotteon_connect
+    do: 롯데온 마켓 연결 페이지 진입 + title 노출 확인
+
+  - id: enter_interpark_connect
+    do: 인터파크 마켓 연결 페이지 진입 + title 노출 확인
+
+expected: 5 마켓 모두 페이지 진입 + title 노출. unhandled 0건.

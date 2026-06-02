@@ -1,0 +1,28 @@
+# 스스관부가세 / 기본 설정값 적용 — P2 미작성 TC 3건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p2-스스관부가세-기본-설정값-적용.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p2-스스관부가세-기본-설정값-적용.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 기본 설정값 적용 영역 P2 TC 묶음 (3건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 3건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3561_툴팁-위치-및-가독성
+    do: 툴팁은 항목을 가리지 않도록 정상 위치에 노출된다
+  - id: tc3562_모달-최소화-ui
+    do: 기본 설정값 적용 모달이 최소화된 요약 구조로 노출된다
+  - id: tc3565_다건-적용-성능
+    do: 여러 상품 선택 시에도 기본 설정값 적용 모달이 정상 동작한다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

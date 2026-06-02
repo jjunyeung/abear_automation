@@ -4,6 +4,7 @@
 # 통합: 16개 da-input-<field>.atc.yml 파일을 1개로. spec.ts 측 CASES 배열에 16개 필드 등록.
 
 title: 배송대행지 토스토스 신청서 필드 입력 검증
+priority: P0
 
 description: |
   Tosstoss 신청서 진입 + 수동 양식 추가 → placeholder 매칭 input 에 값 입력 → 입력값 검증.

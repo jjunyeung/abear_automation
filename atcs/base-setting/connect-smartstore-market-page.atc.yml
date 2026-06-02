@@ -1,0 +1,46 @@
+# 연결설정 / 오픈마켓 / 스마트스토어 연결 페이지 진입 (non-destructive).
+#
+# TC 원본 (P0, 4건 - 페이지 진입 + 핵심 필드/버튼 visibility):
+#   - Case No 993 / 설정 / 스토어 연결하기 선택 (버튼 visibility)
+#   - Case No 995 / 설정 / Open API 인증키 입력 (API 연동용 판매자 ID 입력 필드)
+#   - Case No 996 / 설정 / 스토어 연결하기 선택 (연결하기 / 설정 초기화 버튼)
+#   - Case No 1003 / 설정 / 설정 초기화 선택 (연결 환경 시 설정 초기화 버튼)
+#
+# Skip (destructive):
+#   - 994/1002/1008 스토어 바로가기 (외부 링크)
+#   - 997 취소 / 998 확인했어요 / 999 다음에 하기 / 1000 설정하러 가기 (BaseSettingModal 흐름 - 연결 직후 노출)
+#   - 1001/1011 스토어 URL 입력 (TextField 입력 destructive)
+#   - 1004 취소 / 1005 설정 초기화 (실 disconnect)
+#   - 1006 초기화 이유 입력 (실 disconnect 진행)
+#   - 1007/1010/1012 ElevenStreet/Lotteon 등 다른 마켓
+#
+# 코드 출처: windly-frontend-web/src/features/Connect/Market/Naver/
+#   - index.tsx: Layout title="스마트스토어 설정"
+#   - form/ConnectApiForm.tsx: TextField label="API 연동용 판매자 ID" + Button "연결하기" or "설정 초기화"
+# 라우트: /view3/connect?setting=MARKET&openMarket=SMARTSTORE
+
+title: 연결설정 / 스마트스토어 마켓 연결 페이지 (TC 993/995/996/1003)
+priority: P0
+
+description: |
+  /view3/connect?setting=MARKET&openMarket=SMARTSTORE 진입 → 스마트스토어 설정 Layout title +
+  API 연동용 판매자 ID 입력 필드 + 연결하기 또는 설정 초기화 버튼 노출 확인.
+  실제 연결/초기화/외부 링크 destructive 라 skip.
+  TC 원본: Case No 993, 995, 996, 1003 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_smartstore_market_connect
+    do: 스마트스토어 마켓 연결 페이지 진입
+
+  - id: verify_page_title
+    do: 스마트스토어 설정 Layout title 노출 확인
+
+  - id: verify_api_account_id_field
+    do: API 연동용 판매자 ID 입력 필드 라벨 노출 확인
+
+  - id: verify_connect_or_reset_button
+    do: 연결하기 또는 설정 초기화 버튼 노출 확인 (환경에 따라 다른 라벨)
+
+expected: 페이지 진입 + title + 필드 + 버튼 노출. unhandled 0건.

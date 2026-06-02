@@ -1,0 +1,13 @@
+title: 주문 관리 → 배대지 신청서 연결 smoke (e2e)
+priority: P2
+description: 주문 관리 페이지 진입 + 배대지 신청서 연결 버튼 노출 검증.
+
+inputs: {}
+
+steps:
+  - id: open_order_management
+    do: 주문 관리 페이지 진입.
+  - id: verify_da_form_button
+    do: 배대지 신청서 작성/주문 불러오기 같은 연결 버튼 노출 확인.
+
+expected: 연결 인터페이스 노출. unhandled 0건.

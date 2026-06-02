@@ -1,0 +1,42 @@
+# 연결 설정 / 카카오톡 연결 — P0 미작성 TC 10건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/base-setting/p0-연결-설정-카카오톡-연결.spec.ts 에 구현
+#   2. tests/base-setting/p0-연결-설정-카카오톡-연결.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 연결 설정 / 카카오톡 연결 영역 P0 TC 묶음 (10건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 10건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3408_func-카카오톡-계정-연결
+    do: 카카오 계정 연결하기 버튼 클릭 시, 카카오톡 연결 화면이 새 창으로 노출되고, 연결 완료 시 화면이 업데이트 된다.
+  - id: tc3410_func-원들리-채널-친구-추가
+    do: 채널 친구 추가하기 버튼 클릭 시, 원들리 채널 친구 추가 페이지로 이동한다.
+  - id: tc3419_func-카카오-계정-연결-해제-모달-확인
+    do: 연결 해제 버튼 클릭 시, 카카오 계정 연결이 해제되고 연결 설정 > 카카오톡 화면의 초기 상태로 돌아간다.
+  - id: tc3421_func-링크-이동
+    do: 카카오톡 주문알림 섹션에서 실제 알림 화면 미리보기 링크 클릭 시 외부 페이지로 이동 확인
+  - id: tc3423_func-계정-연결-시작
+    do: 카카오 계정 연결 섹션에서 카카오 계정 연결하기 버튼 클릭 시 카카오 로그인 화면으로 이동 확인
+  - id: tc3424_func-채널-친구-추가
+    do: 원들리 채널 친구 추가 섹션에서 채널 친구 추가하기 버튼 클릭 시 원들리 채널 추가 페이지로 이동 확인
+  - id: tc3425_func-토글-동작
+    do: 주문알림 받기 토글 클릭 시 on 상태 후 off 상태로 전환되며 기능 제한 모달 노출 확인
+  - id: tc3426_func-토글-동작
+    do: AI 상품수집 완료 알림 받기 토글 클릭 시 on 상태 후 off 상태로 전환되며 기능 제한 모달 노출 확인
+  - id: tc3427_func-플랜-업그레이드
+    do: 기능 제한 모달에서 프로 플랜으로 모든 제한 풀기 버튼 클릭 시 플랜 업그레이드 페이지로 이동 확인
+  - id: tc3428_func-모달-닫기
+    do: 기능 제한 모달에서 괜찮아요, 그냥 수동으로 확인할게요. 링크 클릭 시 모달이 닫히는지 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

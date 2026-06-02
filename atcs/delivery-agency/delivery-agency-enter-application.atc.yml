@@ -34,6 +34,7 @@
 #   - .../LoadProductModal/List/index.tsx — productOrders.length<=0 시 "불러올 상품이 없어요"
 
 title: 배송대행지 → 신청서 작성 → 카테고리 선택 → 동의 → 신청 완료 + 메인 화면 랜딩
+priority: P2
 
 description: |
   배송대행지 메뉴 → "신청서 작성" 버튼 → 작성 페이지 진입 → "주문관리에서 불러오기" → 첫 번째 주문 선택 → "불러오기" 클릭하여 모달 닫힘까지 e2e 검증.

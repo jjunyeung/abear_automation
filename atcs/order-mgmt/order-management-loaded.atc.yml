@@ -23,6 +23,7 @@
 #       DEFAULT_EMPTY_MESSAGE.ACCEPT = '신규주문인 상품이 없어요'
 
 title: 주문 관리 진입 → 로딩 종료 → 결과 화면 확인
+priority: P2
 
 description: |
   주문 관리 페이지 진입 → 로딩 인디케이터 종료 → 결과 화면이 정상적으로 렌더되는지만 빠르게 확인하는 minimal smoke test.

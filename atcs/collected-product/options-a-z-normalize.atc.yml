@@ -1,4 +1,5 @@
 title: 수집상품 첫 카드 → 옵션 탭 → A-Z 정규화 동작 확인
+priority: P2
 
 description: |
   수집상품 첫 카드 → 상세 → 옵션 탭 → A-Z 버튼 1개 이상 발견 시 첫 번째만 클릭 + AnchoredModal icon 버튼 클릭 → 페이지 안에 ^[A-Z]+$ 패턴의 input 값이 ≥1 노출되는지로 정규화 적용 확인.

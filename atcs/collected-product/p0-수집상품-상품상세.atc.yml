@@ -1,0 +1,42 @@
+# 수집상품 / 상품상세 — P0 미작성 TC 10건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p0-수집상품-상품상세.spec.ts 에 구현
+#   2. tests/collected-product/p0-수집상품-상품상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 수집상품 / 상품상세 영역 P0 TC 묶음 (10건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 10건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc861
+    do: 상품수집 시 카테고리 확인
+  - id: tc862
+    do: 상품명 수정 후 카테고리 추천
+  - id: tc867_esm-20
+    do: 옵션 모드 모달 확인
+  - id: tc868_esm-20
+    do: 옵션 모드 모달 확인
+  - id: tc869_esm-20
+    do: 옵션 모드 모달 확인
+  - id: tc943
+    do: 리스크가 없을 때 답변 확인
+  - id: tc944
+    do: 리스크가 없을 때 답변 확인
+  - id: tc945
+    do: 리스크가 없을 때 답변 확인
+  - id: tc946
+    do: 리스크가 없을 때 답변 확인
+  - id: tc947
+    do: 리스크가 없을 때 답변 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -1,0 +1,45 @@
+# AI 전세계 상품수집 페이지 진입 + 핵심 섹션 노출 (non-destructive).
+#
+# TC 원본 (P0, 3건 covered + 9건 destructive/dynamic 영역):
+#   - Case No 967 / 수집요청 / 모달 확인 (페이지 헤더 노출 - "모달 확인" 의미가 모호하나 진입 검증으로 매핑)
+#   - Case No 971 / 수집요청 / LNB 확인 (해당 메뉴 LNB 진입 가능)
+#   - Case No 982 / 수집결과 / 수집 결과 확인 (수집 결과 drawer 트리거 영역 존재)
+#
+# Skip (destructive / dynamic):
+#   - 968/969/970/972-975/984/985: 실 API 호출 / 외부 사이트 / 큐 변경
+#
+# 코드 출처: windly-frontend-web/src/features/GlobalSourcing/
+#   - Layout title="AI 전세계 상품 수집"
+#   - Header: "원하는 상품을 해외 어디서든 수집하여 판매해보세요!"
+#   - RequestWaitingListAddField: "상품 수집 요청 목록에 추가"
+#   - RequestWaitingList: "상품 수집 요청 대기 목록"
+# 라우트: /view3/global-sourcing
+
+title: AI 전세계 상품수집 페이지 진입 + 핵심 섹션 노출 (TC 967/971/982)
+priority: P0
+
+description: |
+  /view3/global-sourcing 진입 → 페이지 타이틀 (AI 전세계 상품 수집) + Header 텍스트 +
+  요청 목록 추가 섹션 + 요청 대기 목록 섹션 노출 확인.
+  실제 수집 요청/상품 전송 (TC 968/970/974 등) destructive 라 skip.
+  TC 원본: Case No 967, 971, 982 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_global_sourcing_page
+    do: AI 전세계 상품수집 페이지 진입
+
+  - id: verify_page_title
+    do: 페이지 타이틀 AI 전세계 상품 수집 노출 확인
+
+  - id: verify_header_hero_text
+    do: Header 메시지 노출 확인 (원하는 상품을 해외 어디서든 수집하여 판매)
+
+  - id: verify_request_waiting_list_add_section
+    do: 상품 수집 요청 목록에 추가 섹션 노출 확인
+
+  - id: verify_request_waiting_list_section
+    do: 상품 수집 요청 대기 목록 섹션 노출 확인
+
+expected: 페이지 진입 + 4개 핵심 섹션 노출. 데이터 변경 없음. unhandled 0건.

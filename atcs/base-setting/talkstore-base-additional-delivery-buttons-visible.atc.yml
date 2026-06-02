@@ -10,6 +10,7 @@
 #   <SegmentedButton>배송 불가</SegmentedButton>
 
 title: 톡스토어 추가 배송비 SegmentedButton 노출
+priority: P2
 
 description: |
   배송 정보 탭 → "도서산간 배송 가능 여부" 라벨 + "배송 가능"/"배송 불가" 버튼 노출 검증.

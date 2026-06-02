@@ -1,4 +1,5 @@
 title: 수집상품 첫 카드 → 업로드 설정 탭의 마켓 토글 1개 변경 → 영속성
+priority: P0
 
 description: |
   수집상품 첫 카드 → 상세 → 업로드 설정 탭 → 마켓 checkbox/toggle 중 첫 항목의 상태를 반전 → API 호출 안정화 대기 → reload 후 변경 상태 유지 확인.

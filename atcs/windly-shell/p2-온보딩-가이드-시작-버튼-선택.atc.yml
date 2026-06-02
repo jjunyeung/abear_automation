@@ -1,0 +1,70 @@
+# 온보딩 / 가이드 시작 버튼 선택 — P2 미작성 TC 24건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-온보딩-가이드-시작-버튼-선택.spec.ts 에 구현
+#   2. tests/windly-shell/p2-온보딩-가이드-시작-버튼-선택.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 온보딩 / 가이드 시작 버튼 선택 영역 P2 TC 묶음 (24건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 24건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc29
+    do: 가이드 진행
+  - id: tc30
+    do: 가이드 1단계 버튼 동작
+  - id: tc31
+    do: 알림 허용
+  - id: tc32
+    do: 마켓 입점 가이드 확인
+  - id: tc33
+    do: 마켓 입점 가이드 버튼 동작
+  - id: tc34_⑥
+    do: 마켓 연결 가이드 확인
+  - id: tc35_⑥
+    do: 마켓 연결가이드 동작 확인
+  - id: tc36_⑥
+    do: 스스 출고지 반품지 설정
+  - id: tc37_⑥
+    do: 쿠팡 연결
+  - id: tc38_⑥
+    do: 이외 마켓
+  - id: tc39_⑥
+    do: 온보딩 가이드 완료
+  - id: tc40_⑥
+    do: 가이드 진행
+  - id: tc41_⑥
+    do: 마켓 입점 가이드 버튼 동작
+  - id: tc42_⑥
+    do: 마켓 연결 가이드 확인
+  - id: tc43_⑥
+    do: 마켓 연결가이드 동작 확인
+  - id: tc44_⑥
+    do: 스스 출고지 반품지 설정
+  - id: tc45_⑥
+    do: 쿠팡 연결
+  - id: tc46_⑥
+    do: 이외 마켓
+  - id: tc47_⑥
+    do: 온보딩 가이드 완료
+  - id: tc48_⑥
+    do: 상품수집
+  - id: tc49_⑥
+    do: 상품 업로드
+  - id: tc50_⑥
+    do: _x0008_홈화면 온보딩 베너 진행
+  - id: tc51_⑥
+    do: 포인트 받기
+  - id: tc52_⑥
+    do: 포인트 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

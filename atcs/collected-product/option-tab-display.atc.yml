@@ -1,0 +1,31 @@
+# 수집상품 상세 → 옵션탭 진입 + 영역 노출 검증 (non-destructive).
+#
+# TC 원본 (P0, 6건):
+#   - Case No 850-855 / 옵션그룹/옵션 삭제 시나리오
+#
+# 본 ATC 는 destructive 삭제는 X — 옵션탭 진입 + 옵션그룹/옵션 영역 visible 까지만.
+# 실제 삭제 동작 검증은 별도 destructive ATC 로 분리.
+
+title: 수집상품 상세 옵션탭 진입 + 영역 노출 검증
+priority: P0
+
+description: |
+  수집상품 목록 → 첫 카드 진입 → 옵션 탭 클릭 → 옵션 영역 (옵션그룹/옵션 wording) visible 확인.
+  TC 원본: Case No 850-855 / P0 (옵션 삭제 사전 — UI 노출 검증 위주)
+
+inputs: {}
+
+steps:
+  - id: goto_collected_products
+    do: 수집상품 목록 페이지 진입
+
+  - id: open_first_card
+    do: 첫 상품 카드 클릭 → 상세 페이지 진입
+
+  - id: click_option_tab
+    do: 옵션 탭 클릭
+
+  - id: verify_option_area_visible
+    do: 옵션그룹 또는 옵션 관련 영역 노출 확인
+
+expected: 옵션탭 노출. unhandled 0건.

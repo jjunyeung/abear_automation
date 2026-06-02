@@ -3,6 +3,7 @@
 # 출처: TC export Case 3590 "수정할 정보 입력 단계로 이동할 수 있다" (P0)
 
 title: 등록상품 수정 업로드 모달 step3 진입 검증
+priority: P0
 
 description: |
   step2 에서 첫 EditForm (가격 공식, 배송 정보) 선택 + 다음 → step3 (수정할 정보 입력) 진입.

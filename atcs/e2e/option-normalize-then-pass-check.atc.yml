@@ -1,0 +1,22 @@
+# C2. 옵션 A-Z 정규화 → 에러체크 통과.
+
+title: 옵션명 A-Z 정규화 → 에러체크 옵션 탭 정상 (e2e)
+priority: P1
+
+description: |
+  수집상품 첫 카드 진입 → 옵션 A-Z 정규화 → 에러체크 → 옵션 탭 dot 정상.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: apply_a_z
+    do: 옵션 탭의 A-Z 버튼 일괄 적용.
+  - id: error_check_after_normalize
+    do: 에러체크 트리거 후 옵션 탭 dot 가 빨간색이 아닌지 확인.
+
+expected: 옵션 정규화 후 옵션 탭 정상. unhandled 0건.

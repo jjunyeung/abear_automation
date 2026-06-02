@@ -1,0 +1,15 @@
+title: AI 전세계 상품 수집 모달 smoke (e2e)
+priority: P2
+description: 상품 수집 → AI 전세계 카드 클릭 → 모달 노출 검증.
+
+inputs: {}
+
+steps:
+  - id: open_collect_menu
+    do: 상품 수집 메뉴 진입.
+  - id: open_ai_global_card
+    do: AI 전세계 상품 수집 카드 클릭.
+  - id: verify_modal_visible
+    do: 모달 시그니처 노출 확인.
+
+expected: 모달 노출. unhandled 0건.

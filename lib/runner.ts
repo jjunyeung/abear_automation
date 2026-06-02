@@ -164,7 +164,14 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
 
     // D11: 매칭 없음 OR 매칭은 있지만 registry에 미존재 → unhandled
     if (matched === undefined || !registry.has(matched)) {
-      const message = `unhandled error: ${String(ekey)}`;
+      const handlerMessage =
+        typeof outcome.message === 'string' && outcome.message.length > 0
+          ? outcome.message
+          : undefined;
+      const message =
+        handlerMessage !== undefined
+          ? `unhandled (${String(ekey)}): ${handlerMessage}`
+          : `unhandled error: ${String(ekey)}`;
       results.push({
         step_id: step.id,
         status: 'unhandled',
@@ -172,7 +179,9 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
         error_key: ekey,
         message,
       });
-      logger.error(`✗ unhandled error '${String(ekey)}' at step '${step.id}'`);
+      logger.error(
+        `✗ unhandled error '${String(ekey)}' at step '${step.id}'${handlerMessage !== undefined ? `: ${handlerMessage}` : ''}`,
+      );
       return { atc_title: atc.title, steps: results, overall: 'failed', inputs_used: inputs, outputs: getEmittedOutputs() };
     }
 

@@ -1,0 +1,54 @@
+# 문의관리 / 상세 — P2 미작성 TC 16건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-문의관리-상세.spec.ts 에 구현
+#   2. tests/windly-shell/p2-문의관리-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 문의관리 / 상세 영역 P2 TC 묶음 (16건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 16건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc780_업로드-설정
+    do: 직원 정보 수정에서 고객문의 관리 확인
+  - id: tc781_업로드-설정
+    do: 권한 부여 받은 직원 계정 고객문의 접근
+  - id: tc782_업로드-설정
+    do: 권한 부여 받지 않은 직원 계정 고개 문의 접근
+  - id: tc783_업로드-설정
+    do: 고객 문의 관리 선택
+  - id: tc784_업로드-설정
+    do: 버튼 기능 동작
+  - id: tc785_업로드-설정
+    do: 검색 결과 없는 리스트
+  - id: tc786_업로드-설정
+    do: 미답변 리스트 확인
+  - id: tc787_업로드-설정
+    do: 문의 상세 확인
+  - id: tc788_업로드-설정
+    do: 문의 답변 입력
+  - id: tc789_업로드-설정
+    do: 문의 상세 확인
+  - id: tc790_업로드-설정
+    do: 문의 답변 입력
+  - id: tc791_업로드-설정
+    do: 답변 완료 탭
+  - id: tc792_업로드-설정
+    do: 답변 수정
+  - id: tc793_업로드-설정
+    do: 답변 수정
+  - id: tc794_업로드-설정
+    do: 답변 삭제
+  - id: tc795_업로드-설정
+    do: 답변 삭제
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

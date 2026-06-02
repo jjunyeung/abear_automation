@@ -7,6 +7,7 @@
 #   <Dropdown uniqueKey="talkstore" label="톡스토어 카테고리" ... />
 
 title: 톡스토어 카테고리 Dropdown 노출
+priority: P0
 
 description: |
   기본 정보 탭 → 톡스토어 카테고리 라벨 + Dropdown 노출 검증.

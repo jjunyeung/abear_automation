@@ -1,0 +1,20 @@
+# B9. 톡스토어 베이스세팅 포인트 토글 동작 + 원상복귀 검증.
+
+title: 톡스토어 포인트 베이스세팅 토글 + 원상복귀 (e2e)
+priority: P1
+
+description: |
+  톡스토어 베이스세팅 → 리뷰 포인트 탭 → 구매/리뷰 시 포인트 지급 토글 동작 확인 → 원상복귀.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: goto_review_point_tab
+    do: 톡스토어 베이스세팅 리뷰 포인트 탭 진입.
+  - id: toggle_purchase_point
+    do: 구매 시 포인트 지급 토글 클릭 (상태 변경 후 원상복귀).
+  - id: toggle_review_point
+    do: 리뷰 시 포인트 지급 토글 클릭 (상태 변경 후 원상복귀).
+
+expected: 토글 2개 모두 클릭 동작. unhandled 0건.

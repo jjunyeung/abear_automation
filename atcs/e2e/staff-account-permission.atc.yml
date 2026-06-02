@@ -1,0 +1,13 @@
+title: 계정 관리 페이지 진입 smoke (e2e)
+priority: P2
+description: 계정 관리 페이지 노출 + 직원 계정 섹션 확인 (실제 staff 로그인 자동화 어려움 — 페이지 노출까지만).
+
+inputs: {}
+
+steps:
+  - id: open_account_management
+    do: 계정 관리 페이지 진입.
+  - id: verify_staff_section
+    do: 직원 계정 섹션 또는 사용자 목록 노출 확인.
+
+expected: 페이지 진입. unhandled 0건.

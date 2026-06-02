@@ -1,0 +1,50 @@
+# 등록상품 목록 화면 진입 + 개별/다중 선택 + 수정 업로드 액션/모달 노출 검증.
+#
+# TC 원본 (P0, 5건):
+#   - Case No 3566 / 화면 진입 / 등록상품 화면이 정상 진입된다
+#   - Case No 3569 / 상품 선택 / 등록상품을 개별 선택할 수 있다
+#   - Case No 3570 / 다중 선택 / 여러 등록상품을 동시에 선택할 수 있다
+#   - Case No 3572 / 수정 업로드 액션 / 수정 업로드 액션이 정상 노출된다
+#   - Case No 3573 / 수정 업로드 진입 / 수정 업로드 모달이 정상 오픈된다
+#
+# 코드 출처: windly_repo/sesame/src/features/RegisteredProduct/
+#   - RegisteredProduct.tsx L395-402: <Button onClick={handleUpdateMarketData}>수정 업로드</Button>
+#   - BulkEditModal/index.tsx L128-153: <Modal title="수정 업로드" />
+#   - CheckBox.tsx L107: id={`checkbox_${value}_${className}_${uid}`}
+#
+# 사전조건: 등록상품 ≥ 2개 + 윈들리 확장 로드 (handleUpdateMarketData 의 checkExtensionAvailable).
+# Non-destructive — 모달 오픈만 검증, 진짜 업로드 X.
+
+title: 등록상품 목록 smoke + 다중 선택 + 수정 업로드 모달 (TC 3566/3569/3570/3572/3573)
+priority: P0
+
+description: |
+  등록상품 메뉴 진입 → 카드 1개 선택 → 카드 2개 선택 → 수정 업로드 버튼 노출/활성 확인
+  → 수정 업로드 클릭 → BulkEditModal 오픈 (title 수정 업로드) → 닫기.
+  TC 원본: Case No 3566, 3569, 3570, 3572, 3573 / P0.
+
+inputs: {}
+
+steps:
+  - id: goto_registered_products
+    do: 등록상품 목록 페이지 진입 + 카드 ≥ 1 확인
+
+  - id: select_first_card
+    do: 첫 상품 카드 체크박스 선택
+
+  - id: select_second_card
+    do: 두 번째 상품 카드 체크박스 추가 선택 - 다중 선택 검증
+
+  - id: verify_edit_upload_button_enabled
+    do: 수정 업로드 버튼 노출 + enabled 확인
+
+  - id: open_edit_upload_modal
+    do: 수정 업로드 버튼 클릭 → BulkEditModal 오픈
+
+  - id: verify_modal_title_visible
+    do: 모달 title 수정 업로드 노출 확인
+
+  - id: close_modal
+    do: 모달 닫기 (취소 또는 Escape)
+
+expected: 진입 + 선택 + 모달 오픈/닫기. 상품 데이터 변경 없음. unhandled 0건.

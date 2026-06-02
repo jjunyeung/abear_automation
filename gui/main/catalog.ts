@@ -48,13 +48,18 @@ const ATC_EXT = '.atc.yml';
 const HANDLER_KEYS_EXT = '.handlerKeys.json';
 const SPEC_EXT = '.spec.ts';
 
-// Domains declared by contracts.md §CatalogItem and D9. New domains require a
-// requirements decision first, so we whitelist here rather than mirror disk.
+// Domains declared by contracts.md §CatalogItem and atc-consolidation-log.md §11.
+// Excel Category 기준 재정렬: 일반 → Main Category, 비-일반 → Category, cross-cutting → e2e.
 const KNOWN_DOMAINS: readonly Domain[] = [
-  'collect',
-  'error-check',
-  'fix',
+  'collected-product',
+  'product-collect',
+  'registered-product',
+  'delivery-agency',
+  'base-setting',
   'upload',
+  'order-mgmt',
+  'windly-shell',
+  'smartstore-customs-tax',
   'e2e',
 ] as const;
 

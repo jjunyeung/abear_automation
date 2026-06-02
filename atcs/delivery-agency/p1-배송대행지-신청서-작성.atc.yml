@@ -1,0 +1,66 @@
+# 배송대행지 / 신청서 작성 — P1 미작성 TC 22건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/delivery-agency/p1-배송대행지-신청서-작성.spec.ts 에 구현
+#   2. tests/delivery-agency/p1-배송대행지-신청서-작성.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 배송대행지 / 신청서 작성 영역 P1 TC 묶음 (22건)
+priority: P1
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P1 미작성 TC 22건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1375_센터-주소-확인
+    do: 부가 서비스 요청
+  - id: tc1376_센터-주소-확인
+    do: 검수 및 결제 옵션
+  - id: tc1377_센터-주소-확인
+    do: 주의사항 확인
+  - id: tc1403_센터-주소-확인
+    do: 잘못된 개인통관고유부호
+  - id: tc1440_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1441_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1442_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1443_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1444_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1445_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1446_센터-주소-확인
+    do: 옵션별 조건
+  - id: tc1447_센터-주소-확인
+    do: 구매물품보상보험 선택
+  - id: tc1448_센터-주소-확인
+    do: 검수 및 결제 옵션
+  - id: tc1459
+    do: 에러 확인
+  - id: tc1460
+    do: 상품정보 에러
+  - id: tc1461
+    do: 영문 상품명에 광의어 입력
+  - id: tc1462
+    do: 수량 20개 초과 입력
+  - id: tc1463
+    do: 배송방법 에러
+  - id: tc1464
+    do: 받는사람 정보
+  - id: tc1465
+    do: 연락처에 숫자외 문자 입력
+  - id: tc1466
+    do: 통관고유부호 불일치
+  - id: tc1467
+    do: 파업 또는 배송불가 지역 우편번호
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

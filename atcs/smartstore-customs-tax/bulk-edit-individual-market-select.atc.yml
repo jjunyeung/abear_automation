@@ -5,6 +5,7 @@
 #   StepChoiceMarket/index.tsx → 마켓 라벨 클릭 → selected.market 에 add/remove (toggle).
 
 title: 등록상품 수정 업로드 모달 1단계 개별 마켓 선택 검증
+priority: P0
 
 description: |
   모달 진입 → 첫 번째 활성 마켓 라벨 클릭 → page.input:checked 증가.

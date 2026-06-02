@@ -15,6 +15,7 @@
 #   - on_recovery.restart_from 으로 D4 재개 지점 override
 
 title: 상품을 수집하고 에러체크를 수행한다 (vertical slice exemplar)
+priority: P2
 
 description: |
   타오바오/티몰/라쿠텐 상품 URL 1건을 받아 윈들리 확장으로 수집하고,

@@ -1,0 +1,62 @@
+# 연결설정 / 오픈마켓 — P0 미작성 TC 20건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/base-setting/p0-연결설정-오픈마켓.spec.ts 에 구현
+#   2. tests/base-setting/p0-연결설정-오픈마켓.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 연결설정 / 오픈마켓 영역 P0 TC 묶음 (20건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 20건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc990
+    do: 톡스토어 연결 페이지 확인
+  - id: tc993
+    do: 스토어 연결하기 선택
+  - id: tc994
+    do: 스토어 바로가기 선택
+  - id: tc995
+    do: Open API 인증키 입력
+  - id: tc996
+    do: 스토어 연결하기 선택
+  - id: tc997
+    do: 취소 선택
+  - id: tc998
+    do: 확인했어요 선택
+  - id: tc999
+    do: 다음에 하기 선택
+  - id: tc1000
+    do: 설정하러 가기 선택
+  - id: tc1001
+    do: 스토어 URL 입력
+  - id: tc1002
+    do: 스토어 바로가기 선택
+  - id: tc1003
+    do: 설정 초기화 선택
+  - id: tc1004
+    do: 취소 선택
+  - id: tc1005
+    do: 설정 초기화 선택
+  - id: tc1006
+    do: 초기화 이유 입력 후 초기화
+  - id: tc1007
+    do: 스토어 연결하기 선택
+  - id: tc1008
+    do: 스토어 바로가기 선택
+  - id: tc1010
+    do: 확인했어요 선택
+  - id: tc1011
+    do: 스토어 URL 입력
+  - id: tc1012
+    do: 잘못된 스토어 URL 입력 후 이동
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

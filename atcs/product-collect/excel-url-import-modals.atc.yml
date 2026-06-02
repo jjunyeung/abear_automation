@@ -1,0 +1,54 @@
+# 상품수집 / 엑셀 + URL 수집 모달 열기/닫기 + 중국몰 수집 방식 선택 노출 (non-destructive).
+#
+# TC 원본 (P0, 6건):
+#   - Case No 1156 / 수정 업로드 / 엑셀 수집에서 수집방식 선택
+#   - Case No 1157 / 수정 업로드 / 중국몰 수집 (엑셀)
+#   - Case No 1158 / 수정 업로드 / HTML 수집 (엑셀)
+#   - Case No 1159 / 수정 업로드 / URL 수집에서 수집방식 선택
+#   - Case No 1160 / 수정 업로드 / 중국몰 수집 (URL)
+#   - Case No 1161 / 수정 업로드 / HTML 수집 (URL)
+#
+# 코드 출처: windly-frontend-web/src/features/ProductImport/
+#   - index.tsx: ?method=EXCEL → ImportByExcelModal, ?method=URL → ImportByUrlModal
+#   - ImportByExcelModal: title "엑셀 수집" + ImportMethodForm
+#   - ImportByUrlModal: title "URL 수집" + ImportMethodForm
+#   - ImportMethodForm: 라벨 "중국몰 수집 방식 선택" / "중국몰 수집 방식(API)" / "HTML 방식"
+# 라우트: /view3/product-import?method=EXCEL or ?method=URL
+
+title: 상품수집 / 엑셀 + URL 수집 모달 (TC 1156-1158/1159-1161)
+priority: P0
+
+description: |
+  /view3/product-import?method=EXCEL 진입 → 엑셀 수집 모달 + ImportMethodForm (중국몰 수집 방식 + HTML 방식) 노출
+  → 모달 닫기 → /view3/product-import?method=URL 진입 → URL 수집 모달 + ImportMethodForm 노출 → 닫기.
+  실제 파일 업로드/URL 수집 트리거는 destructive 라 skip.
+  TC 원본: Case No 1156-1161 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_excel_import_modal
+    do: 상품수집 페이지에 ?method=EXCEL 로 진입 → 엑셀 수집 모달 오픈
+
+  - id: verify_excel_modal_title
+    do: 엑셀 수집 모달 title 노출 확인
+
+  - id: verify_excel_import_method_form
+    do: 엑셀 모달 안 중국몰 수집 방식 + HTML 방식 옵션 노출 확인
+
+  - id: close_excel_modal
+    do: 엑셀 모달 취소/닫기
+
+  - id: enter_url_import_modal
+    do: 상품수집 페이지에 ?method=URL 로 진입 → URL 수집 모달 오픈
+
+  - id: verify_url_modal_title
+    do: URL 수집 모달 title 노출 확인
+
+  - id: verify_url_import_method_form
+    do: URL 모달 안 중국몰 수집 방식 + HTML 방식 옵션 노출 확인
+
+  - id: close_url_modal
+    do: URL 모달 닫기
+
+expected: 두 모달 모두 열림 + ImportMethodForm 노출 + 닫힘. 데이터 변경 없음. unhandled 0건.

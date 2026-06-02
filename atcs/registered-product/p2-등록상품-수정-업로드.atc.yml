@@ -1,0 +1,76 @@
+# 등록상품 / 수정 업로드 — P2 미작성 TC 27건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/registered-product/p2-등록상품-수정-업로드.spec.ts 에 구현
+#   2. tests/registered-product/p2-등록상품-수정-업로드.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 등록상품 / 수정 업로드 영역 P2 TC 묶음 (27건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 27건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc588_업로드-설정
+    do: 수정 업로드
+  - id: tc589_업로드-설정
+    do: 마켓에 마우스 오버
+  - id: tc590_업로드-설정
+    do: 다음 선택
+  - id: tc591_업로드-설정
+    do: 업로드 가능한 마켓 선택
+  - id: tc592_업로드-설정
+    do: 수정할 정보 선택
+  - id: tc593_업로드-설정
+    do: 수정할 정보 선택
+  - id: tc594_업로드-설정
+    do: 가격공식, 배송정보 옵션 /  옵션 선택
+  - id: tc595_업로드-설정
+    do: 수정 버튼 선택
+  - id: tc596_업로드-설정
+    do: 기본 설정값 적용 선택
+  - id: tc597_업로드-설정
+    do: 수정 정보 초기화 선택
+  - id: tc598_업로드-설정
+    do: 상하단 이미지 /  옵션 선택
+  - id: tc599_업로드-설정
+    do: 상단 이미지 선택
+  - id: tc600_업로드-설정
+    do: 수정 정보 초기화 선택
+  - id: tc601_업로드-설정
+    do: 기본 설정값 적용 선택
+  - id: tc602_업로드-설정
+    do: 하단 이미지 선택
+  - id: tc603_업로드-설정
+    do: 수정 정보 초기화 선택
+  - id: tc604_업로드-설정
+    do: 기본 설정값 적용 선택
+  - id: tc605_업로드-설정
+    do: 옵션 이미지 썸네일 사용 /  옵션 선택
+  - id: tc606_업로드-설정
+    do: 설정 변경
+  - id: tc607_업로드-설정
+    do: 스마트스토어 리뷰 포인트 /  옵션 선택
+  - id: tc608_업로드-설정
+    do: 설정 변경
+  - id: tc609_업로드-설정
+    do: 가겨공식, 배송정보 /  수정 업로드
+  - id: tc610_업로드-설정
+    do: 상하단 이미지 /  수정 업로드
+  - id: tc611_업로드-설정
+    do: 옵션이미지 썸네일 사용 /  수정 업로드
+  - id: tc612_업로드-설정
+    do: 스마트스토어 리뷰 포인트 /  수정 업로드
+  - id: tc613_업로드-설정
+    do: 담당자 변경
+  - id: tc614_업로드-설정
+    do: 담당자 변경
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

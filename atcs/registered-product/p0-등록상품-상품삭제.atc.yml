@@ -1,0 +1,52 @@
+# 등록상품 / 상품삭제 — P0 미작성 TC 15건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/registered-product/p0-등록상품-상품삭제.spec.ts 에 구현
+#   2. tests/registered-product/p0-등록상품-상품삭제.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 등록상품 / 상품삭제 영역 P0 TC 묶음 (15건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 15건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc876_esm-20
+    do: 상품 페이지 확인
+  - id: tc877_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc883_esm-20
+    do: 상품 페이지 확인
+  - id: tc884_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc890_esm-20
+    do: 상품 페이지 확인
+  - id: tc891_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc897_esm-20
+    do: 상품 페이지 확인
+  - id: tc898_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc904_esm-20
+    do: 상품 페이지 확인
+  - id: tc905_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc911_esm-20
+    do: 상품 페이지 확인
+  - id: tc912_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc918_esm-20
+    do: 상품 페이지 확인
+  - id: tc919_esm-20
+    do: 판매자 센터에서 확인
+  - id: tc923_esm-20
+    do: 삭제 완료
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

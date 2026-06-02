@@ -29,6 +29,7 @@
 #     (validation 메시지로만 언급. 실제 표시 위치 확인 안 됨)
 
 title: 재고 base setting 변경 후 첫 수집상품 판매가 탭 옵션 재고 매치 검증
+priority: P2
 
 description: |
   ⚠️ 알려진 한계 — 현재 환경에서 fail 임 (BulkSyncBaseSetting 이 defaultStocks/useDefaultStocks/maxPurchasePerPerson 을 적용 대상에서 제외).

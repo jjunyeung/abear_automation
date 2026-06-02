@@ -1,0 +1,24 @@
+# AI 대표이미지 생성 / 일괄변형 — P0 미작성 TC 1건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p0-ai-대표이미지-생성-일괄변형.spec.ts 에 구현
+#   2. tests/collected-product/p0-ai-대표이미지-생성-일괄변형.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: AI 대표이미지 생성 / 일괄변형 영역 P0 TC 묶음 (1건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 1건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3729_ai-생성-이미지-일괄-변형
+    do: AI 생성 이미지 수집/등록상품 페이지에서 일괄 변형 가능 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

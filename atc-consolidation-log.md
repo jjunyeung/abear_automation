@@ -346,6 +346,11 @@ spec.ts 는 변경 없음 (CLAUDE.md (l) 의 "부모 spec.ts 는 펼쳐진 모�
   - rename: windly-e2e-fresh → windly-order-mgmt-fresh (대상 spec 이 order-mgmt/ 로 이동했으므로)
 - CLAUDE.md (d)/(j) 도메인 후보 리스트 갱신
 - `.url-collect-history.log` 도 tests/collect/ → tests/product-collect/ 이동
+- **GUI 카탈로그**:
+  - `gui/shared/ipc.ts` 의 `Domain` 유니온 타입 갱신 (5종 → 10종)
+  - `gui/main/catalog.ts` 의 `KNOWN_DOMAINS` 화이트리스트 갱신
+  - `gui/renderer/src/components/CatalogPanel.tsx` 의 `DOMAIN_ORDER` 갱신
+  - `npm run gui:build:main` 으로 dist 재빌드 완료 (renderer 는 vite dev/build 시 자동 반영)
 
 **검증**:
 - `npx tsc --noEmit` exit=0 ✅

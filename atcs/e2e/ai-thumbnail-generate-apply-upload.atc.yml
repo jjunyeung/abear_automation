@@ -1,0 +1,17 @@
+title: AI 대표이미지 생성 진입 smoke (e2e)
+priority: P2
+description: 수집상품 → 이미지 탭 → AI 대표이미지 생성 진입 검증. 실제 생성 크레딧 차감 회피.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: open_image_tab
+    do: 이미지 탭 클릭.
+  - id: verify_ai_thumbnail_visible
+    do: AI 대표이미지 생성 버튼 또는 영역 노출 확인.
+
+expected: AI 대표이미지 영역 노출. unhandled 0건.

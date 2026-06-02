@@ -1,4 +1,5 @@
 title: 수집상품 첫 카드 → 옵션 재고 단건 변경 → 영속성 검증
+priority: P2
 
 description: |
   edit-option-price 의 재고 버전 — SalesPriceTable 의 재고 input 첫 항목 +1 변경 → onBlur 저장 → reload 후 값 유지 확인.

@@ -1,0 +1,38 @@
+# 상품수집 / 엑셀 수집 — P2 미작성 TC 8건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/product-collect/p2-상품수집-엑셀-수집.spec.ts 에 구현
+#   2. tests/product-collect/p2-상품수집-엑셀-수집.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 상품수집 / 엑셀 수집 영역 P2 TC 묶음 (8건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 8건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc63_⑥
+    do: 엑셀수집 기능 확인
+  - id: tc64_⑥
+    do: 모달 기능 확인
+  - id: tc65_⑥
+    do: 엑셀 파일 작성
+  - id: tc66_⑥
+    do: 엑셀 정상 수집
+  - id: tc67_⑥
+    do: 엑셀 수집 실패
+  - id: tc68_⑥
+    do: 엑셀 수집 실패
+  - id: tc69_⑥
+    do: 엑셀 수집 실패
+  - id: tc70_⑥
+    do: 엑셀 재수집
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

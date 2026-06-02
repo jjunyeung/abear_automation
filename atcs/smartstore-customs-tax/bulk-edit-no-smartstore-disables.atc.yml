@@ -7,6 +7,7 @@
 #     'smartStoreCustomsTax' → !market.includes('smartstore') && !market.includes('esm')
 
 title: 등록상품 수정 업로드 step1 스스 미선택 시 step2 스스 form 비활성 검증
+priority: P0
 
 description: |
   step1 에서 스마트스토어 외 마켓 1개 선택 + step2 진입 → step2 의 SmartStore 관련 form 들이

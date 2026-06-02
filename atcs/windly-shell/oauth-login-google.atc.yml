@@ -1,0 +1,22 @@
+# 구글 OAuth 실 로그인 검증 — strict (R9 raid #4).
+#
+# Case No: 12
+# Sub-fn: 일반 / 로그인 / 구글 / 구글 로그인 시도 → 콜백 → 윈들리 메인 진입.
+#
+# 정책: NAVER 와 동일 패턴. .env 의 GOOGLE_TEST_EMAIL / GOOGLE_TEST_PASSWORD 사용.
+
+title: 구글 OAuth 실 로그인 → 윈들리 콜백 검증
+priority: P2
+
+description: |
+  hub.windly.cc/accounts/login → 구글 SocialButton 클릭 → accounts.google.com 진입 →
+  이메일 → 비밀번호 → 로그인 → 윈들리 콜백 URL 진입 검증.
+
+inputs: {}
+
+steps:
+  - id: tc12_google_login_flow
+    do: 구글 SocialButton 클릭 → 이메일/비밀번호 입력 → 콜백 URL 도달
+    expect: 로그인 완료 후 page URL 이 windly.cc 도메인 (콜백 처리됨).
+
+expected: 구글 로그인 flow strict pass. unhandled 0.

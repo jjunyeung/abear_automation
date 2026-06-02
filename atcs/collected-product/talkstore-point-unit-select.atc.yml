@@ -11,6 +11,7 @@
 # 사전: 구매 시 포인트 지급 토글이 ON 이어야 SegmentedButtonField 노출.
 
 title: 톡스토어 포인트 적립 단위 (원/%) 동작
+priority: P2
 
 description: |
   업로드 설정 탭 → 구매 시 포인트 지급 토글 ON → 원/% SegmentedButton 두 개 노출 +

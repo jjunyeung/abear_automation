@@ -3,6 +3,7 @@
 # TC 원본: Case 1015, 1017 (탭 진입 부분) / 기본설정 › 톡스토어 › 배송 정보 / P0
 
 title: 기본설정 톡스토어 배송 정보 탭
+priority: P2
 
 description: |
   /view3/base-setting?setting=TALKSTORE&category=DELIVERY_AND_AS 진입 → "배송 정보" 타이틀 노출 검증.

@@ -1,0 +1,44 @@
+# ai 챗봇 / view3 — P2 미작성 TC 11건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-ai-챗봇-view3.spec.ts 에 구현
+#   2. tests/windly-shell/p2-ai-챗봇-view3.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: ai 챗봇 / view3 영역 P2 TC 묶음 (11건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 11건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1136_수정-업로드
+    do: 홈 페이지에서 윈비 선택
+  - id: tc1137_수정-업로드
+    do: 상품수집 페이지에서 윈비 선택
+  - id: tc1138_수정-업로드
+    do: AI 전세계 상품수집 페이지에서 윈비 선택
+  - id: tc1139_수정-업로드
+    do: 1688 상품 검색 페이지에서 윈비 선택
+  - id: tc1140_수정-업로드
+    do: 재고 업데이트 페이지에서 윈비 선택
+  - id: tc1141_수정-업로드
+    do: 상품 순위 분석 페이지에서 윈비 선택
+  - id: tc1142_수정-업로드
+    do: 주문 관리 페이지에서 윈비 선택
+  - id: tc1143_수정-업로드
+    do: 문의 관리 페이지에서 윈비 선택
+  - id: tc1144_수정-업로드
+    do: 취소/교환/반품 관리 페이지에서 윈비 선택
+  - id: tc1145_수정-업로드
+    do: 배송대행지 페이지에서 윈비 선택
+  - id: tc1146_수정-업로드
+    do: 통관고유부호 조회 페이지에서 윈비 선택
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

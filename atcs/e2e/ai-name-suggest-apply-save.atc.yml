@@ -1,0 +1,24 @@
+# G1. AI 상품명 추천 → 적용 → 저장.
+
+title: AI 상품명 추천 → 적용 → 저장 (e2e)
+priority: P1
+
+description: |
+  수집상품 첫 카드 → AI 상품명 추천 → input 값 변경 확인 (= 자동 적용) → 저장 → reload 후 유지.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: recommend_name
+    do: AI 상품명 추천 버튼 클릭. 로딩 종료 후 input 값 변경 확인 (자동 적용).
+  - id: save_product
+    do: 저장 버튼 클릭. "저장되었습니다" 토스트 또는 redirect 확인.
+  - id: re_enter_and_verify
+    do: 페이지 reload 후 상품명 input 값이 비어있지 않은지 (= AI 추천 결과 유지).
+
+expected: AI 상품명 추천 결과가 저장 후 영구 반영. unhandled 0건.

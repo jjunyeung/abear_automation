@@ -1,0 +1,41 @@
+# 배송대행지 / 신청서 — P0 미작성 TC 7건 (auto-generated skeleton).
+#
+# Case No: 1526, 1527, 1528, 1529, 1530, 1531, 1532
+# Sub-fn: 결제 / 결제진행 → 결제 페이지 → 결제 진행 → 벌크 결제 → 결제 완료.
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 다음 작업 (R9+):
+#   1. **destructive 자동화 — 결정 3(a) 후 진행**: 테스트 배대지 계정으로 실 결제 트랜잭션 가능.
+#      (단 sandbox 모드 또는 dry-run 가드 필요 — 실 비용 발생 위험.)
+#   2. windly_repo/sesame-frontend-web 의 결제 진행 모달 컴포넌트 selector 추출.
+#   3. step.id ↔ Playwright 액션 매핑을 tests/delivery-agency/p0-배송대행지-신청서.spec.ts 구현.
+#   4. handlerKeys.json 에 7개 step.id 등록.
+
+title: 배송대행지 / 신청서 영역 P0 TC 묶음 (7건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 7건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1526
+    do: 결제진행 선택
+  - id: tc1527
+    do: 결제 페이지
+  - id: tc1528
+    do: 결제 진행
+  - id: tc1529
+    do: 벌크 결제
+  - id: tc1530
+    do: 결제 페이지
+  - id: tc1531
+    do: 결제 진행
+  - id: tc1532
+    do: 결제 완료 신청서
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

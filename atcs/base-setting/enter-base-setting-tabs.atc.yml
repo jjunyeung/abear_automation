@@ -1,4 +1,5 @@
 title: 기본 설정 4개 카테고리 탭 순회 진입 smoke
+priority: P2
 
 description: |
   /view3/base-setting 의 4개 카테고리 (PRICE_SETTING / DELIVERY_INFO / MARKET_WEIGHT / PRODUCT_ATTRIBUTE) 를 순서대로 goto → 각 페이지의 고유 라벨이 visible 한지로 진입 성공 확인.

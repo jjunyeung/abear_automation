@@ -8,6 +8,7 @@
 # 실제 카테고리 변경 (1087 의 "선택한 카테고리로 변경" 부분) 은 데이터 변경 위험으로 검증만.
 
 title: 톡스토어 카테고리 Dropdown 열림
+priority: P0
 
 description: |
   기본 정보 탭 → 톡스토어 카테고리 Dropdown 클릭 → 검색 input + 옵션 노출 검증.

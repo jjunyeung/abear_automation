@@ -1,0 +1,52 @@
+# 스스관부가세 / 스마트스토어 업로드 설정 — P1 미작성 TC 15건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p1-스스관부가세-스마트스토어-업로드-설정.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p1-스스관부가세-스마트스토어-업로드-설정.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 스마트스토어 업로드 설정 영역 P1 TC 묶음 (15건)
+priority: P1
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P1 미작성 TC 15건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3495_상단-기본-ui
+    do: 업로드 설정 화면의 기본 UI가 정상 노출된다
+  - id: tc3498_경고-배너
+    do: 관부가세 관련 경고 배너가 정상 노출된다
+  - id: tc3502_모집전-정책-적용
+    do: 모집전 정책 적용 섹션이 정상 노출된다
+  - id: tc3503_모집전-정책-적용
+    do: 모집전 정책 적용 옵션 토글이 정상 노출된다
+  - id: tc3504_모집전-정책-적용
+    do: 모집전 정책 적용 옵션을 개별 변경할 수 있다
+  - id: tc3505_적용된-상품명
+    do: 적용된 상품명 필드가 정상 노출된다
+  - id: tc3506_적용된-상품명
+    do: 적용된 상품명이 입력 필드에 표시된다
+  - id: tc3507_적용된-상품명
+    do: 적용된 상품명을 수정할 수 있다
+  - id: tc3509_리뷰-포인트-설정
+    do: 리뷰 포인트 설정 섹션이 정상 노출된다
+  - id: tc3510_리뷰-포인트-설정
+    do: 리뷰 포인트 입력 항목이 정상 노출된다
+  - id: tc3511_리뷰-포인트-설정
+    do: 리뷰 포인트 기본값이 정상 표시된다
+  - id: tc3512_리뷰-포인트-설정
+    do: 리뷰 포인트 값을 수정할 수 있다
+  - id: tc3513_리뷰-포인트-설정
+    do: 리뷰 포인트에는 숫자만 입력할 수 있다
+  - id: tc3514_배송-속성
+    do: 배송 속성 섹션이 정상 노출된다
+  - id: tc3518_관부가세-설정
+    do: 저장된 관부가세 값이 기본 선택 상태로 표시된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -1,0 +1,52 @@
+# 연결설정 / 카카오톡 페이지 + 연결 해제 모달 검증 (non-destructive).
+#
+# TC 원본 (P0, 6건 verified + 4건 destructive/external skip):
+#   - Case No 3408 / 카카오톡 계정 연결 화면 노출 + 카카오 계정 연결하기 버튼
+#   - Case No 3410 / 채널 친구 추가 버튼 노출
+#   - Case No 3419 / 카카오 계정 연결 해제 모달 (연결된 환경 시 open + cancel)
+#   - Case No 3423 / 카카오 계정 연결하기 버튼 노출 (실 클릭 = OAuth redirect destructive)
+#   - Case No 3424 / 채널 친구 추가하기 버튼 노출 (실 클릭 = new tab external)
+#   - Case No 3428 / 모달 닫기 동작 (연결 해제 모달 취소)
+#
+# Skip:
+#   - 3421 외부 링크 이동 (실 클릭 destructive)
+#   - 3425/3426 토글 클릭 (실 알림 설정 변경 destructive)
+#   - 3427 플랜 업그레이드 (플랜 의존)
+#
+# 코드 출처: windly-frontend-web/src/features/Connect/KakaoApp/Content/index.tsx
+#   - L147: "1. 카카오톡 계정 연결 설정" + Button "카카오 계정 연결하기"
+#   - L169: "2. '윈들리' 채널 친구 추가" + Button "채널 친구 추가하기"
+#   - L190: "3. 알림 받기 기능 활성화 확인" + 2 Toggle
+#   - DisConnectModal.tsx: title="카카오톡 계정 연결 해제" + 취소 버튼
+
+title: 연결설정 / 카카오톡 페이지 + 연결 해제 모달 (TC 3408/3410/3419/3423/3424/3428)
+priority: P0
+
+description: |
+  /view3/connect?setting=KAKAO_APP 진입 → 3 섹션 헤더 + 카카오 계정 연결하기 / 채널 친구 추가하기 /
+  2 알림 토글 노출 확인. 연결된 환경이면 연결 해제 버튼 → DisConnectModal 오픈 → 취소.
+  미연결 환경이면 모달 흐름 skip success.
+  TC 원본: Case No 3408, 3410, 3419, 3423, 3424, 3428 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_kakao_app_connect
+    do: 카카오톡 연결 페이지 진입
+
+  - id: verify_section_headers
+    do: 3 섹션 헤더 (카카오톡 계정 연결 설정 / 채널 친구 추가 / 알림 받기 기능 활성화 확인) 노출 확인
+
+  - id: verify_connect_buttons
+    do: 카카오 계정 연결하기 버튼 + 채널 친구 추가하기 버튼 노출 확인
+
+  - id: verify_alert_toggles_labels
+    do: 주문알림 받기 + AI 전세계 상품수집 완료알림 받기 라벨 노출 확인
+
+  - id: open_disconnect_modal_or_skip
+    do: 연결된 환경이면 연결 해제 버튼 클릭 → DisConnectModal 오픈. 미연결이면 skip success.
+
+  - id: close_disconnect_modal_or_skip
+    do: 모달 노출 시 취소 버튼 클릭 → 모달 닫힘 확인. skip 케이스는 noop.
+
+expected: 페이지 + 섹션 + 버튼 + 토글 라벨 노출. 환경 따라 모달 open/close 검증. unhandled 0건.

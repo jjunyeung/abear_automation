@@ -1,0 +1,31 @@
+# 네이버 OAuth 실 로그인 검증 — strict (R9 raid #3).
+#
+# Case No: 9
+# Sub-fn: 일반 / 로그인 / 네이버 / 네이버 로그인 시도 → 콜백 → 윈들리 메인 진입.
+#
+# 정책 (결정 10 — "그냥 로그인만 되는지 확인"):
+#   - .env 의 NAVER_TEST_EMAIL / NAVER_TEST_PASSWORD 사용. 미설정 시 spec fail.
+#   - cookies clear → 윈들리 로그인 페이지 → 네이버 SocialButton 클릭 → 네이버
+#     로그인 페이지 자격증명 입력 → 콜백 → URL 이 windly.cc 로 돌아왔는지 검증.
+#   - 봇 검사 / 2FA / 기기등록 prompt 등으로 차단되면 'oauth_blocked' 로 빠짐.
+#   - 종료 시 windly 로그인 상태가 유지될 수 있음 → 다음 setup 이 idempotent 하게 처리.
+#
+# 사용자 안내:
+#   - 네이버는 자동화 차단이 강함. headed Chromium + persistent context 로 차단을
+#     완화하지만 100% 보장 X. 1회 차단 시 다음 실행에서 통과할 수 있음.
+
+title: 네이버 OAuth 실 로그인 → 윈들리 콜백 검증
+priority: P2
+
+description: |
+  hub.windly.cc/accounts/login → 네이버 SocialButton 클릭 → nid.naver.com 진입 →
+  .env 자격증명 입력 → 로그인 → 윈들리 콜백 URL (windly.cc) 진입 검증.
+
+inputs: {}
+
+steps:
+  - id: tc9_naver_login_flow
+    do: 네이버 SocialButton 클릭 → 자격증명 입력 → 콜백 URL 도달
+    expect: 로그인 완료 후 page URL 이 windly.cc 도메인 (콜백 처리됨).
+
+expected: 네이버 로그인 flow strict pass. unhandled 0.

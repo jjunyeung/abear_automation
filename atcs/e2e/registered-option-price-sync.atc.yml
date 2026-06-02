@@ -1,0 +1,28 @@
+# D4. 옵션 가격 수정 → 영속성 검증.
+#
+# 회귀 의미: 수집상품 옵션가 변경 + 저장 + reload 후 유지.
+# 업로드 단계는 빨간 탭 상태에 따라 차단되므로 회귀에 부적합 — 옵션가 동작 자체가 핵심.
+
+title: 옵션 가격 수정 → 영속성 검증 (e2e)
+priority: P1
+
+description: |
+  수집상품 첫 카드 → 판매가 탭 → 첫 옵션가 +100원 → reload 후 값 유지 확인.
+  주 1회 회귀.
+
+inputs: {}
+
+outputs:
+  source_product_id:
+    type: string
+    description: 수정된 상품의 윈들리 내부 코드.
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입. source_product_id emit.
+  - id: bump_option_price
+    do: 판매가 탭 첫 옵션가 +100원 수정 + reload 후 유지 확인.
+
+expected: 옵션 가격 수정 + 영속성 확인. unhandled 0건.

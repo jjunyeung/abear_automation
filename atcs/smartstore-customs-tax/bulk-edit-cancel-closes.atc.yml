@@ -10,6 +10,7 @@
 #   → step1 의 cancelButtonText='취소' 클릭 시 모달 dismiss.
 
 title: 등록상품 수정 업로드 모달 취소 버튼 닫힘 검증
+priority: P0
 
 description: |
   모달 1단계 진입 후 취소 버튼 클릭 → 모달 사라짐 (.banner 비가시) 검증.

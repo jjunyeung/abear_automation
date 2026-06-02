@@ -4,6 +4,7 @@
 # 코드 출처: windly-frontend-web/src/features/DeliveryAgencyApplication/Tosstoss/...
 
 title: 배송대행지 토스토스 신청서 중량선불 검증
+priority: P2
 
 description: |
   중량선불 동작 검증. (자동 생성)

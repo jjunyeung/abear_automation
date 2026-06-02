@@ -12,6 +12,7 @@
 #   - WINDLY_EXTENSION_PATH : 윈들리 Chrome 확장 경로
 
 title: 티몰 단건 수집 후 수집상품 목록 검증
+priority: P2
 
 description: |
   티몰 단건 수집 시나리오 — URL 입력 → 수집 → 수집상품 목록에서 해당 상품 카드가 보이는지까지 검증하는 단순한 smoke test.

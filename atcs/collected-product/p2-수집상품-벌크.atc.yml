@@ -1,0 +1,66 @@
+# 수집상품 / 벌크 — P2 미작성 TC 22건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p2-수집상품-벌크.spec.ts 에 구현
+#   2. tests/collected-product/p2-수집상품-벌크.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 수집상품 / 벌크 영역 P2 TC 묶음 (22건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 22건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc359
+    do: 상품 체크 후 기능 버튼 선택
+  - id: tc360_카테고리태그
+    do: 카테고리&태그 변경 모달 확인
+  - id: tc361_카테고리태그
+    do: 카테고리&태그 변경 모달 동작 확인
+  - id: tc362_카테고리태그
+    do: _x0008_템플릿으로 추가하기
+  - id: tc363
+    do: 담당자 변경 버튼
+  - id: tc364
+    do: 담당자 변경 버튼
+  - id: tc365
+    do: 상품 삭제
+  - id: tc366
+    do: ... 메뉴 선택
+  - id: tc367
+    do: 상품명 변경
+  - id: tc368
+    do: 상품명 변경 모달
+  - id: tc369
+    do: 수정 버튼 선택
+  - id: tc370
+    do: 보조 키워드 수 부족
+  - id: tc371
+    do: 맨 앞에 추가
+  - id: tc372
+    do: 키워드 입력 후 적용
+  - id: tc373
+    do: 맨 뒤에 추가
+  - id: tc374
+    do: 키워드 입력 후 적용
+  - id: tc375
+    do: 바꾸기
+  - id: tc376
+    do: 키워드 입력 후 적용
+  - id: tc377
+    do: 키워드 찾지 못함
+  - id: tc378
+    do: 삭제
+  - id: tc379
+    do: 키워드 입력 후 적용
+  - id: tc380_기본-설정값-적용
+    do: 기본 설정값 적용
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -1,0 +1,13 @@
+title: 플랜 결제 모달 진입 (e2e)
+priority: P2
+description: 플랜 결제 페이지/모달 노출 검증. 트랜잭션 X.
+
+inputs: {}
+
+steps:
+  - id: open_plan_payment
+    do: 플랜 결제 페이지 또는 모달 진입.
+  - id: verify_modal_visible
+    do: 결제 모달 노출 시그니처 확인.
+
+expected: 모달 진입. unhandled 0건.

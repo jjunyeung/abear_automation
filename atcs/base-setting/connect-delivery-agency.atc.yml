@@ -1,0 +1,60 @@
+# 연결설정 / 배송대행지 페이지 + 퀵스타 연결 모달 검증 (non-destructive).
+#
+# TC 원본 (P0, 5건 + 2건 destructive skip):
+#   - Case No 1321 / 카카오톡 주문알림 / 배송대행지 연결 페이지 확인 (페이지 진입 + 카드 노출)
+#   - Case No 1323 / 카카오톡 주문알림 / 퀵스타 연결 모달 (모달 오픈)
+#   - Case No 1325 / 카카오톡 주문알림 / 모달 취소 버튼 선택 (모달 닫기)
+#   - Case No 1327 / 카카오톡 주문알림 / 회원가입 하기 선택 (signup 모달 오픈)
+#   - Case No 1328 / 카카오톡 주문알림 / 회원가입 모달 (signup 모달 title 확인)
+#
+# Skip (destructive):
+#   - 1324 퀵스타 연결 (실 계정 연동)
+#   - 1329 회원가입 인풋 채우기 (실 계정 생성)
+#
+# 위 TC 들은 backlog 분류상 "카카오톡 주문알림" Func 으로 묶였지만 실제 화면은
+# DeliveryAgency Connect 페이지 (Quickstar 카드 안 ConnectModal / SignUpModal).
+#
+# 코드 출처: windly-frontend-web/src/features/Connect/DeliveryAgency/
+#   - index.tsx: "사용하실 배송대행지를 연결해 주세요." + Quickstar/TossToss Card
+#   - Quickstar/index.tsx: "연결" 버튼 → ConnectModal show
+#   - Quickstar/ConnectModal.tsx: <Modal title="퀵스타 연결"> + "회원가입 하기" link
+#   - Quickstar/SignUpModal/index.tsx: <Modal title="퀵스타 회원가입"> + 취소/회원가입 버튼
+#
+# 사전조건: 퀵스타 미연결 환경 (연결됐으면 버튼 라벨이 "연결 해제" 라서 ConnectModal 안 열림).
+# 연결돼 있으면 success skip.
+
+title: 연결설정 / 배송대행지 페이지 + 퀵스타 모달 (TC 1321/1323/1325/1327/1328)
+priority: P0
+
+description: |
+  /view3/connect?setting=DELIVERY_AGENCY 진입 → 퀵스타 / 토스토스 카드 노출 →
+  퀵스타 연결 버튼 클릭 (미연결 시) → ConnectModal 노출 → 회원가입 하기 클릭 →
+  SignUpModal 노출 → SignUpModal 닫기 → ConnectModal 닫기.
+  연결된 환경이면 버튼이 "연결 해제" 라 모달 흐름 skip → success.
+  TC 원본: Case No 1321, 1323, 1325, 1327, 1328 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_delivery_agency_connect
+    do: 배송대행지 연결 페이지 진입 - 헤더 메시지 노출 확인
+
+  - id: verify_two_agency_cards_visible
+    do: 퀵스타 + 토스토스 카드 (또는 라벨) 노출 확인
+
+  - id: open_quickstar_connect_modal_or_skip
+    do: 퀵스타 연결 버튼 클릭 → ConnectModal 노출 - 이미 연결됐으면 skip success
+
+  - id: verify_connect_modal_title
+    do: 퀵스타 연결 모달 title 노출 확인 - skip 케이스 noop
+
+  - id: open_signup_modal
+    do: 회원가입 하기 클릭 → 퀵스타 회원가입 SignUpModal 오픈 - skip 케이스 noop
+
+  - id: verify_signup_modal_title
+    do: 퀵스타 회원가입 모달 title 노출 확인 - skip 케이스 noop
+
+  - id: close_all_modals
+    do: SignUpModal + ConnectModal 모두 닫기 (취소 또는 Escape)
+
+expected: 페이지 + 카드 노출. 미연결 환경에서는 모달 흐름 검증. 연결 환경이면 skip. unhandled 0건.

@@ -1,0 +1,52 @@
+# 스스관부가세 / 스마트스토어 배송 및 A/S — P0 미작성 TC 15건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p0-스스관부가세-스마트스토어-배송-및-as.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p0-스스관부가세-스마트스토어-배송-및-as.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 스마트스토어 배송 및 A/S 영역 P0 TC 묶음 (15건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 15건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3467_화면-진입
+    do: 배송 및 A/S 화면이 정상 진입된다
+  - id: tc3471_출고지-설정
+    do: 출고지 선택 드롭다운이 정상 노출된다
+  - id: tc3472_출고지-설정
+    do: 출고지 목록을 선택할 수 있다
+  - id: tc3473_반품지-설정
+    do: 반품지 선택 드롭다운이 정상 노출된다
+  - id: tc3474_반품지-설정
+    do: 반품지 목록을 선택할 수 있다
+  - id: tc3475_택배사-설정
+    do: 택배사 선택 드롭다운이 정상 노출된다
+  - id: tc3476_택배사-설정
+    do: 택배사 목록을 선택할 수 있다
+  - id: tc3482_관부가세-설정
+    do: 관부가세 설정 영역이 정상 노출된다
+  - id: tc3483_관부가세-설정
+    do: 관부가세 옵션 3개가 모두 노출된다
+  - id: tc3484_관부가세-설정
+    do: 관부가세 옵션은 단일 선택으로 동작한다
+  - id: tc3487_as-전화번호
+    do: A/S 전화번호 입력 필드가 정상 노출된다
+  - id: tc3488_as-전화번호
+    do: A/S 전화번호를 입력할 수 있다
+  - id: tc3491_필수값-검증
+    do: 필수 항목 누락 시 저장이 제한된다
+  - id: tc3492_설정-저장
+    do: 변경한 배송 및 A/S 설정이 저장된다
+  - id: tc3493_설정-유지
+    do: 저장한 배송 및 A/S 설정이 재진입 후 유지된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -5,6 +5,7 @@
 #   - Case No 1084 / 수집상품 › 톡스토어 › 기본정보 / P0 (상품명 입력)
 
 title: 톡스토어 상품명 입력
+priority: P0
 
 description: |
   기본 정보 탭 → 톡스토어 상품명 input 에 값 입력 → 입력값이 input value 에 반영 검증.

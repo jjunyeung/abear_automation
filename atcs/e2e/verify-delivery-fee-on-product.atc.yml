@@ -21,6 +21,7 @@
 # 사용자 요구 timing: fill 후 잠깐 대기 후 onBlur (Tab) — React state 반영 시간 확보.
 
 title: 배송비 base setting 변경 후 첫 수집상품 판매가 탭 배송비 카드 매치 검증
+priority: P2
 
 description: |
   배송비 base setting (기본/반품/교환 배송비, 배송비 조건) 변경 → bulk-apply → 첫 수집상품 판매가 탭 배송비 카드 매치 검증.

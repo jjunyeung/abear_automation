@@ -1,0 +1,46 @@
+# 온보딩 /  — P2 미작성 TC 12건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-온보딩-area.spec.ts 에 구현
+#   2. tests/windly-shell/p2-온보딩-area.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 온보딩 /  영역 P2 TC 묶음 (12건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 12건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc17
+    do: 1 설문 화면
+  - id: tc18
+    do: 설문 건너뛰기
+  - id: tc19
+    do: 2 설문 화면
+  - id: tc20
+    do: 이전 버튼 선택
+  - id: tc21
+    do: 3 설문 화면
+  - id: tc22
+    do: 4 설문 화면
+  - id: tc23
+    do: 익스텐션 설치 가이드
+  - id: tc24
+    do: 익스텐션 설치 가이드 건너뛰기
+  - id: tc25
+    do: 설문 완료
+  - id: tc26
+    do: 온보딩 모달 확인
+  - id: tc27
+    do: 기능사용 버튼 선택
+  - id: tc28
+    do: 상품수집
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

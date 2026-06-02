@@ -1,0 +1,35 @@
+# 공통설정 / AI 이미지 선번역 영역 노출 검증 (non-destructive).
+#
+# TC 원본 (P0, 2건):
+#   - Case No 1180 / 이미지 선번역 화이트리스트 / 기본설정 확인
+#       → 3 토글 (상품 이미지 / 옵션 이미지 / 상세페이지 이미지) 노출
+#   - Case No 1196 / AI 이미지 선번역 / 사용 가능한 번역 횟수 확인
+#       → BannerContainer 의 횟수 메시지 노출 (오늘 사용한 ... 횟수는 N/M회예요)
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Common/AiTranslation/index.tsx
+#   - 3 Toggle: 상품 이미지 / 옵션 이미지 / 상세페이지 이미지
+#   - BannerContainer: '오늘 사용한 이미지 선번역 횟수' 또는 '소진' / '모두 사용하셨어요' 케이스
+#   - CUSTOM 플랜 사용자는 banner 미노출 — 환경 의존 시 success 처리.
+
+title: 공통설정 / AI 이미지 선번역 영역 노출 (TC 1180/1196)
+priority: P0
+
+description: |
+  /view3/base-setting?setting=COMMON&category=AI 진입 → AI 탭 (AI 추천 + AI 이미지 선번역 동시 표시) →
+  3 토글 (상품/옵션/상세페이지 이미지) + 사용 횟수 BannerContainer 노출 확인.
+  토글 클릭 (실 사용 변경) destructive 라 skip. CUSTOM 플랜이면 Banner 미노출 → 환경 의존 처리.
+  TC 원본: Case No 1180, 1196 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_ai_translation_tab
+    do: 공통설정 AI 이미지 선번역 페이지 진입
+
+  - id: verify_three_image_toggles_visible
+    do: 3 토글 (상품 이미지 / 옵션 이미지 / 상세페이지 이미지) 라벨 노출 확인
+
+  - id: verify_usage_banner_or_skip
+    do: 사용 횟수 또는 소진 안내 BannerContainer 노출 확인 (CUSTOM 플랜이면 skip)
+
+expected: 3 토글 라벨 노출 + 사용 횟수 banner (또는 CUSTOM 환경). unhandled 0건.

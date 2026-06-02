@@ -39,6 +39,7 @@ import {
 } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +96,139 @@ function buildRunIdFor(idx) {
   return tasks.length === 1 ? base : `${base}_${idx + 1}`;
 }
 
-const childOutcomes = [];   // { task, runId, exitCode, reportJsonPath? }
+// ── inputs 자동 주입 (pool / previous) ────────────────────────────
+//
+// 배경: GUI 큐 (gui/main/run-queue.ts) 는 spawn 직전에 다음 두 가지를 자동
+// 주입한다 — (a) `inputs.<name>.from === 'pool'` 키는 `lib/url-pool.headPop()`
+// 으로 한 개씩 consume, (b) `inputs.<name>.from === 'previous'` 키는 같은
+// batch 안 앞 TC 의 outputs.json 에서 머지.  launchd 스케줄 spawn 은 GUI
+// 메인을 거치지 않으므로 그 hook 이 빠져 있었다 → 매 fire 마다 inputs 가
+// 빈 채로 spawn 되어 spec 의 requireFreshUrlFromEnv() 가 throw 하던 버그.
+//
+// 여기서는 동일 로직을 mjs 로 inline 재구현한다 (lib/url-pool.ts +
+// run-queue.ts harvestOutputsFromReport 와 동기화 유지 필요 — 변경 시 둘 다).
+// 한 번의 atc-multi 호출 = 한 batch 로 간주: batchOutputs 는 메모리 1회 누적.
+const POOL_FILE = path.join(repoRoot, 'data', 'url-pool.txt');
+
+function listPoolUrls() {
+  if (!existsSync(POOL_FILE)) return [];
+  const raw = readFileSync(POOL_FILE, 'utf8');
+  const out = [];
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0) continue;
+    if (trimmed.startsWith('#')) continue;
+    out.push(trimmed);
+  }
+  return out;
+}
+
+function writePoolUrls(urls) {
+  mkdirSync(path.dirname(POOL_FILE), { recursive: true });
+  const body = urls.length === 0 ? '' : `${urls.join('\n')}\n`;
+  writeFileSync(POOL_FILE, body, 'utf8');
+}
+
+/** 풀의 첫 URL 을 꺼내 반환. 비어있으면 null. */
+function poolHeadPop() {
+  const urls = listPoolUrls();
+  if (urls.length === 0) return null;
+  const head = urls[0];
+  writePoolUrls(urls.slice(1));
+  return head;
+}
+
+/** ATC YAML 의 inputs 섹션만 읽어 { name: { from?: 'pool'|'previous' } } 반환. */
+function readAtcInputsSpec(atcPathArg) {
+  const abs = path.isAbsolute(atcPathArg)
+    ? atcPathArg
+    : path.join(repoRoot, atcPathArg);
+  if (!existsSync(abs)) return {};
+  try {
+    const doc = YAML.parse(readFileSync(abs, 'utf8'));
+    if (!doc || typeof doc !== 'object') return {};
+    const inputs = doc.inputs;
+    if (!inputs || typeof inputs !== 'object') return {};
+    return inputs;
+  } catch (err) {
+    process.stderr.write(
+      `[atc-multi] ATC YAML inputs 파싱 실패 (${atcPathArg}): ${err.message}\n`,
+    );
+    return {};
+  }
+}
+
+/**
+ * gui/main/run-queue.ts:704 harvestOutputsFromReport 와 동일 — 자식 종료 후
+ * outputs 를 batchOutputs 에 머지하기 위해 사용.
+ */
+function harvestOutputsFromReport(reportPath) {
+  if (!existsSync(reportPath)) return {};
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(reportPath, 'utf8'));
+  } catch {
+    return {};
+  }
+  if (!parsed || typeof parsed !== 'object') return {};
+  const atcs = parsed.atcs;
+  if (!Array.isArray(atcs)) return {};
+  const out = {};
+  for (const atc of atcs) {
+    if (!atc || typeof atc !== 'object') continue;
+    const outputs = atc.result?.outputs;
+    if (!outputs || typeof outputs !== 'object') continue;
+    for (const [k, v] of Object.entries(outputs)) {
+      if (typeof k !== 'string' || k.length === 0) continue;
+      if (v === null || v === undefined) continue;
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        out[k] = String(v);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * task.inputs 의 빈 칸을 자동 주입.
+ * 우선순위: 사용자 직접 입력 > from:previous (batchOutputs) > from:pool (headPop).
+ * 사용자 입력이 이미 있으면 무엇도 덮어쓰지 않는다 — D8 + run-queue.ts:471~ 와 동일.
+ */
+function fillInputs(rawInputs, atcPathArg, batchOutputs, taskIdx) {
+  const inputs = { ...rawInputs };
+  const spec = readAtcInputsSpec(atcPathArg);
+  for (const [name, defNode] of Object.entries(spec)) {
+    if (!defNode || typeof defNode !== 'object') continue;
+    const current = inputs[name];
+    if (typeof current === 'string' && current.length > 0) continue;
+    const from = defNode.from;
+    if (from === 'previous') {
+      const prev = batchOutputs[name];
+      if (typeof prev === 'string' && prev.length > 0) {
+        inputs[name] = prev;
+        process.stderr.write(
+          `[atc-multi] task ${taskIdx + 1}: inject from:previous ${name}=${prev}\n`,
+        );
+      }
+    } else if (from === 'pool') {
+      const popped = poolHeadPop();
+      if (popped !== null) {
+        inputs[name] = popped;
+        process.stderr.write(
+          `[atc-multi] task ${taskIdx + 1}: inject from:pool ${name}=${popped}\n`,
+        );
+      } else {
+        process.stderr.write(
+          `[atc-multi] task ${taskIdx + 1}: from:pool ${name} — url-pool 비어있음, 빈 채로 spawn (spec 에서 fail 할 가능성)\n`,
+        );
+      }
+    }
+  }
+  return inputs;
+}
+
+const batchOutputs = {};        // 같은 atc-multi 호출 = 1 batch
+const childOutcomes = [];       // { task, runId, exitCode, reportJsonPath? }
 
 for (let i = 0; i < tasks.length; i += 1) {
   const t = tasks[i];
@@ -110,7 +243,8 @@ for (let i = 0; i < tasks.length; i += 1) {
     childOutcomes.push({ task: t, runId: null, exitCode: 2 });
     continue;
   }
-  const inputs = (t.inputs && typeof t.inputs === 'object') ? t.inputs : {};
+  const rawInputs = (t.inputs && typeof t.inputs === 'object') ? t.inputs : {};
+  const inputs = fillInputs(rawInputs, t.atcPath, batchOutputs, i);
   const args = [atcWrapper, t.atcPath];
   for (const key of Object.keys(inputs)) {
     args.push(`--${key}=${inputs[key]}`);
@@ -125,15 +259,25 @@ for (let i = 0; i < tasks.length; i += 1) {
   // 이렇게 해야 atc-multi 가 자식 결과 JSON 의 경로를 미리 알 수 있음.
   const childEnv = { ...process.env, WINDLY_RUN_ID: runId };
   const result = spawnSync('node', args, { stdio: 'inherit', env: childEnv });
+  const reportJsonPath = path.join(repoRoot, 'reports', 'runs', runId, `${runId}.json`);
   childOutcomes.push({
     task: t,
     runId,
     exitCode: result.status ?? 1,
-    reportJsonPath: path.join(repoRoot, 'reports', 'runs', runId, `${runId}.json`),
+    reportJsonPath,
   });
   if (result.status !== 0) {
     process.stderr.write(
       `[atc-multi] ${i + 1}/${tasks.length} 실패 (exit=${result.status}) — 계속 진행\n`,
+    );
+  }
+  // 다음 task 의 from:previous 를 위해 outputs 머지 (실패해도 시도 — 일부 step
+  // 까지 진행했다면 부분 outputs 가 있을 수 있음).
+  const harvested = harvestOutputsFromReport(reportJsonPath);
+  if (Object.keys(harvested).length > 0) {
+    Object.assign(batchOutputs, harvested);
+    process.stderr.write(
+      `[atc-multi] task ${i + 1}: harvest outputs → ${JSON.stringify(harvested)}\n`,
     );
   }
 }
@@ -152,16 +296,34 @@ if (scheduleId) {
 }
 
 // ── Slack 알림 ─────────────────────────────────────────────────
+// 우선순위:
+//   1. SLACK_BOT_TOKEN + SLACK_TARGET_CHANNEL (chat.postMessage) — DM/임의 채널 가능
+//   2. SLACK_WEBHOOK_URL — 발급 시 고정된 채널
+const botToken = process.env.SLACK_BOT_TOKEN?.trim();
+const targetChannel = process.env.SLACK_TARGET_CHANNEL?.trim();
 const webhook = process.env.SLACK_WEBHOOK_URL?.trim();
-if (webhook) {
+if (botToken && targetChannel) {
+  try {
+    await postSlackSummaryViaBot(botToken, targetChannel, childOutcomes);
+  } catch (err) {
+    process.stderr.write(`[atc-multi] Slack Bot 알림 실패: ${err.message}\n`);
+    // Bot 실패 시 webhook 으로 fallback (있으면).
+    if (webhook) {
+      try {
+        await postSlackSummary(webhook, childOutcomes);
+      } catch (e2) {
+        process.stderr.write(`[atc-multi] Slack webhook fallback 도 실패: ${e2.message}\n`);
+      }
+    }
+  }
+} else if (webhook) {
   try {
     await postSlackSummary(webhook, childOutcomes);
   } catch (err) {
-    // 알림 실패는 schedule 의 종료 상태에 영향 X — stderr 만 남김.
     process.stderr.write(`[atc-multi] Slack 알림 실패: ${err.message}\n`);
   }
 } else {
-  process.stderr.write('[atc-multi] SLACK_WEBHOOK_URL 미설정 — Slack 알림 skip\n');
+  process.stderr.write('[atc-multi] SLACK_BOT_TOKEN/SLACK_TARGET_CHANNEL 또는 SLACK_WEBHOOK_URL 미설정 — Slack 알림 skip\n');
 }
 
 const anyFailed = childOutcomes.some((o) => o.exitCode !== 0);
@@ -402,6 +564,61 @@ function trimMdForSlack(md, maxChars = 2800) {
     `\n\n... [중간 ${md.length - headLen - tailLen}자 생략 — 전체는 reports/runs/ 확인] ...\n\n` +
     md.slice(-tailLen).trimStart()
   );
+}
+
+/**
+ * Slack Bot Token + chat.postMessage 로 임의 채널 (DM 포함) 에 알림.
+ * 사용 자격: Bot Token Scopes 에 `chat:write`. private 채널이면 Bot invite 필요.
+ */
+async function postSlackSummaryViaBot(botToken, channel, outcomes) {
+  const total = outcomes.length;
+  const failedCount = outcomes.filter((o) => o.exitCode !== 0).length;
+  const okCount = total - failedCount;
+  const allOk = failedCount === 0;
+
+  const headerEmoji = allOk ? ':large_green_circle:' : ':red_circle:';
+  const headerText = `${headerEmoji} *스케줄 작업 완료* (${okCount}/${total} 성공)`;
+
+  const mergedMd = buildMergedMd(outcomes);
+  const firstRunId = outcomes.find((o) => o.runId !== null)?.runId ?? null;
+  const { batchId, absPath } = writeBatchMd(process.cwd(), mergedMd, firstRunId);
+  process.stderr.write(`[atc-multi] 통합 리포트 작성: ${absPath}\n`);
+
+  const trimmedMd = trimMdForSlack(mergedMd, 7500);
+  const attachments = [{
+    color: allOk ? '#36a64f' : '#dc3545',
+    title: `${batchId}.md`,
+    text: '```\n' + trimmedMd + '\n```',
+    footer: `reports/batches/${batchId}.md`,
+    mrkdwn_in: ['text'],
+  }];
+
+  const payload = JSON.stringify({
+    channel,
+    text: headerText,
+    attachments,
+  });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const res = await fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Bearer ${botToken}`,
+      },
+      body: payload,
+      signal: controller.signal,
+    });
+    const body = await res.json();
+    if (!body.ok) {
+      throw new Error(`Slack API error: ${body.error ?? 'unknown'} (response: ${JSON.stringify(body).slice(0, 200)})`);
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+  process.stderr.write(`[atc-multi] Slack Bot 알림 전송 완료 (channel=${channel})\n`);
 }
 
 async function postSlackSummary(webhookUrl, outcomes) {

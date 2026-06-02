@@ -1,0 +1,46 @@
+# 수집상품 일괄 메뉴 → 기본 설정값 적용 모달 노출 검증 (non-destructive).
+#
+# TC 원본 (P0, 5건):
+#   - Case No 3547 / 모달 오픈
+#   - Case No 3548 / 모달 제목 및 안내 문구
+#   - Case No 3549 / 모달 경고 문구
+#   - Case No 3551 / 취소 및 적용 버튼 노출
+#   - Case No 3552 / 취소 버튼 클릭 → 모달 닫힘
+#
+# 코드 출처: windly_repo/sesame/src/features/InterestedProduct/
+#   - InterestedProduct.tsx : ... (More) 버튼 → AnchoredModalItem "기본 설정값 적용" → setShowBulkSyncBaseSettingModal(true)
+#   - BulkSyncBaseSettingModal/index.tsx : title="기본 설정값 적용", body 안내+경고, 버튼 취소/적용
+#
+# 사전조건: 수집상품 ≥ 1개 (체크박스 선택 가능해야 함). 0건이면 ... 메뉴 disabled.
+#           본 ATC 는 destructive 동작 (적용 버튼) 은 호출 X — TC#3553, 3554, 3563 별도.
+
+title: 수집상품 일괄 → 기본 설정값 적용 모달 노출/닫기 검증
+priority: P0
+
+description: |
+  수집상품 목록 진입 → 첫 카드 체크박스 선택 → ... 메뉴 열기 → "기본 설정값 적용" 클릭
+  → 모달 제목/안내/경고/버튼 노출 검증 → 취소 클릭 → 모달 닫힘 확인.
+  TC 원본: Case No 3547, 3548, 3549, 3551, 3552 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_collected_products
+    do: 수집상품 목록 페이지 진입
+
+  - id: select_first_card
+    do: 첫 상품 카드의 체크박스 선택 (일괄 메뉴 활성화 조건)
+
+  - id: open_more_menu_and_click_apply
+    do: ... 더 보기 버튼 → 기본 설정값 적용 메뉴 항목 클릭 → 모달 오픈
+
+  - id: verify_modal_title_and_body
+    do: 모달 title 기본 설정값 적용 + 안내 문구 + 경고 문구 노출 확인
+
+  - id: verify_modal_buttons
+    do: 취소 / 적용 버튼 노출 확인
+
+  - id: click_cancel_and_verify_closed
+    do: 취소 버튼 클릭 → 모달 닫힘 확인
+
+expected: 모달 열림 + 텍스트/버튼 노출 + 취소 동작. unhandled 0건. 상품 데이터 변경 없음.

@@ -16,6 +16,7 @@
 # 입력: 없음. 첫 카드 + 자동생성 이름.
 
 title: 등록상품 첫 카드 → 상품명 timestamp 변경 → 재업로드
+priority: P0
 
 description: |
   edit-name-reupload 의 변형. source_product_id 입력 없이 등록상품 첫 카드를 자동 선택하고, new_name 도 자동 생성 ("상품명 수정 (YYYY-MM-DD HH:MM:SS)").

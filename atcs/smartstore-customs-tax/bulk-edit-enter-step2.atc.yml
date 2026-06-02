@@ -6,6 +6,7 @@
 #   ProgressHeader → '수정할 정보 선택' active.
 
 title: 등록상품 수정 업로드 모달 2단계 진입 검증
+priority: P0
 
 description: |
   step1 마켓 선택 → 다음 → step2 (수정할 정보 선택) 진입.

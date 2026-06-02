@@ -1,0 +1,47 @@
+# 회원가입 페이지 OAuth 버튼 존재 검증 — strict (R9 raid #2).
+#
+# Case No: 1, 2, 4
+# Sub-fn: 일반 / 회원가입 / 이메일 + 네이버 + 구글 회원가입 버튼 visibility.
+#
+# 정책:
+#   - 실 회원가입 X (계정 생성 destructive — 별도 spec 에서 john+<suffix>@windly.cc 패턴으로).
+#   - hub.windly.cc/accounts/register 페이지의 4개 진입점 visibility 만 검증:
+#     이메일로 회원가입 버튼 + 네이버 SocialButton + 구글 SocialButton + 로그인하기 링크.
+#
+# 코드 출처:
+#   windly_repo/hub-frontend-web/src/features/Account/Register/Form/index.tsx
+#   - "윈들리에 무료로 가입하고..." 앵커 텍스트 (line 38)
+#   - SocialContainer 안 NAVER/GOOGLE SocialButton
+#   - DividerWithText text=or
+#   - "이메일로 회원가입" 버튼 (RegisterEmailForm 초기 collapsed 상태)
+#   - "로그인하기" Link → /accounts/login (line 53)
+#
+# Fresh project (setup 의존 X) — clearCookies → /accounts/register 진입.
+
+title: 회원가입 페이지 OAuth 버튼 존재 검증
+priority: P2
+
+description: |
+  hub.windly.cc/accounts/register 진입 → 이메일 / 네이버 / 구글 회원가입 진입점
+  3개 + 로그인 링크 visibility strict 검증. 실 회원가입은 안 함 — 페이지 구조
+  회귀 방지가 목적.
+
+inputs: {}
+
+steps:
+  - id: tc1_register_email_button
+    do: 회원가입 페이지 진입 + 이메일로 회원가입 버튼 visible 검증
+    expect: 윈들리 안내 텍스트 + 이메일로 회원가입 버튼 노출.
+  - id: tc2_register_naver_button
+    do: 네이버 SocialButton visible 검증
+    expect: 네이버 SocialButton 노출 (background-color #03c75a).
+  - id: tc4_register_google_button
+    do: 구글 SocialButton visible 검증
+    expect: 구글 SocialButton 노출 (white border with #e9eaed).
+  - id: register_login_link
+    do: 로그인 링크 visible 검증
+    expect: 로그인하기 링크 노출 (/accounts/login 으로 이동).
+
+expected: |
+  4 step 모두 strict pass. 회원가입 페이지의 진입점 3개 + 로그인 링크 selector
+  가 회귀 없이 살아있음. unhandled 0.

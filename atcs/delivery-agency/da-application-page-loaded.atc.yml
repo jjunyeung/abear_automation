@@ -8,6 +8,7 @@
 #   components/Header.tsx 의 onSubmit prop = handleSubmit (신청 완료 처리)
 
 title: 배송대행지 토스토스 신청서 진입 + 헤더 가시 검증
+priority: P2
 
 description: |
   Tosstoss 신청서 페이지 진입 후 헤더 "배송대행 신청서 작성" 타이틀 + 저장 (신청 완료) 버튼 가시.

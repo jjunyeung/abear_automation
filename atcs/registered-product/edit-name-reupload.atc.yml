@@ -10,6 +10,7 @@
 # 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
 
 title: 등록상품 상세 상품명 수정 후 재업로드 + 모달 진행 확인
+priority: P0
 
 description: |
   등록상품 → 상품 코드 검색 → 상세 진입 → 상품명 input 변경 → 재업로드 → "상품 업로드 유의사항 확인" 모달 진행 → 업로드 결과 텍스트 안정화까지 검증.

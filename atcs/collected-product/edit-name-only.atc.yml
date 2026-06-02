@@ -1,4 +1,5 @@
 title: 수집상품 첫 카드 → 상품명 변경 → 영속성 검증 (재업로드 X)
+priority: P0
 
 description: |
   수집상품 첫 카드 → 상세 진입 → 페이지 상단 메인 상품명 input 1개만 변경 → onBlur 저장 → page.reload() 후 값 유지되는지로 영속성 검증.

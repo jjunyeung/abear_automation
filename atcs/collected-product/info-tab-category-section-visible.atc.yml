@@ -1,0 +1,40 @@
+# 수집상품 상세 → 기본 정보 탭 → 상품 카테고리 섹션 + AI 카테고리 추천 버튼 노출.
+#
+# TC 원본 (P0, 2건):
+#   - Case No 861 / 카테고리 / 상품수집 시 카테고리 확인
+#   - Case No 862 / 카테고리 / 상품명 수정 후 카테고리 추천
+#
+# 코드 출처: windly_repo/sesame/src/features/ProductDetail/ProductDetailTabs/InfoTab/
+#   - index.tsx L424: <Section title="상품 카테고리">
+#   - CategoryButtonGroup.tsx L45-48: <Button onClick={updateCategoriesToRecommendCategory}> AI 카테고리 추천 </Button>
+#
+# 사전조건: 수집상품 ≥ 1개 + 활성 마켓 ≥ 1개 (isCategoryHidden 모두 true 면 섹션 숨김).
+# AI 카테고리 추천 클릭 (TC 862 본 동작) 은 destructive 라 본 spec 은 visibility 만 확인.
+
+title: 수집상품 상세 → 상품 카테고리 섹션 + AI 추천 버튼 노출 (TC 861/862)
+priority: P0
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 기본 정보 탭 → 상품 카테고리 섹션 + AI 카테고리 추천 버튼 + 카테고리 복사 버튼 노출 확인.
+  실제 추천 적용 (TC 862 본 동작) 은 카테고리 변경 destructive 라 본 spec 에서 클릭은 skip.
+  TC 원본: Case No 861, 862 / P0.
+
+inputs: {}
+
+steps:
+  - id: open_first_product_detail
+    do: 수집상품 목록 진입 후 첫 카드의 상세 페이지 진입
+
+  - id: click_info_tab
+    do: ProductDetail 의 기본 정보 탭 클릭
+
+  - id: verify_category_section_visible
+    do: 상품 카테고리 섹션 제목 노출 확인
+
+  - id: verify_ai_recommend_button_visible
+    do: AI 카테고리 추천 버튼 노출 확인
+
+  - id: verify_category_copy_button_visible
+    do: 카테고리 복사 버튼 노출 확인
+
+expected: 카테고리 섹션 + AI 추천 + 카테고리 복사 버튼 노출. 카테고리 데이터 변경 없음. unhandled 0건.

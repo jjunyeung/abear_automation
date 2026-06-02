@@ -13,6 +13,7 @@
 #   - source_product_id : 윈들리 내부 상품 코드 (수집상품)
 
 title: 수집상품 에러체크 - 모든 탭 순차 walk-through 자동 수정
+priority: P2
 
 description: |
   특정 수집상품 (source_product_id 로 지정) 의 에러를 7개 탭 walk-through 로 자동 수정하는 ATC.

@@ -10,6 +10,7 @@
 #   title="등록상품 삭제", 7개 마켓 체크박스, leftButton="취소", rightButton="삭제"
 
 title: 등록상품 삭제 모달 노출 검증
+priority: P0
 
 description: |
   등록상품 첫 페이지 전체 선택 → 상품 삭제 버튼 클릭 → 삭제 모달 노출 검증.

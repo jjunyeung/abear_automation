@@ -9,6 +9,7 @@
 #     <Chip text={chipText} ... />
 
 title: 등록상품 수정 업로드 모달 비활성 마켓 표시 검증
+priority: P0
 
 description: |
   모달 1단계에 "미연결" 또는 "등록안됨" chip 이 ≥1 가시 → 일부 마켓이 비활성으로 표시됨.

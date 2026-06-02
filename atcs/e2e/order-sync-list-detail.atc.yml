@@ -1,0 +1,15 @@
+title: 주문 동기화 → 목록 → 상세 진입 (e2e)
+priority: P1
+description: 주문 관리 페이지 → 목록 노출 → 첫 주문 클릭 → drawer 또는 상세 노출.
+
+inputs: {}
+
+steps:
+  - id: open_order_management
+    do: 좌측 사이드바 주문 관리 메뉴 클릭. /view2/order-management 진입.
+  - id: wait_loading_finished
+    do: 페이지 로딩 spinner 사라질 때까지 대기.
+  - id: verify_order_or_empty
+    do: 주문 목록 카드 또는 빈 상태 placeholder 노출 확인.
+
+expected: 주문 관리 페이지 마운트 완료. unhandled 0건.

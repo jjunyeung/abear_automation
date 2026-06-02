@@ -6,6 +6,7 @@
 # 자동화 컨텍스트에서는 production 데이터 변경 회피 — enabled 까지만 검증, 실제 click 안 함.
 
 title: 스스 관부가세 수정 업로드 버튼 enabled 검증
+priority: P0
 
 description: |
   step3 옵션 선택 후 "수정 업로드" 버튼이 enabled 인지까지 검증.

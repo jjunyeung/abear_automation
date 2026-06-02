@@ -1,0 +1,34 @@
+# K1. 홈 → 모든 사이드바 메뉴 진입 smoke.
+#
+# composes 빼고 step 직접 정의 — child smoke ATC 들이 각자 자체 검증 step 을
+# 갖고 있어 합치면 중복/충돌. 여기는 각 메뉴 진입 + 마운트 신호만 빠르게.
+
+title: 홈 → 모든 메뉴 진입 smoke (e2e)
+priority: P0
+
+description: |
+  홈 진입 후 모든 핵심 사이드바 메뉴 (6개) 를 순차 진입하여 각 페이지가 마운트되는지 회귀.
+  매일 회귀 가장 첫 번째 — K1 fail 이면 라우팅 자체가 깨진 거니 다른 e2e 도 어차피 못 돔.
+
+inputs: {}
+
+steps:
+  - id: smoke_collected_products
+    do: /view2/interested-product 진입 → 카드 리스트 또는 빈 상태 placeholder 노출 확인.
+
+  - id: smoke_registered_products
+    do: /view2/registered-product 진입 → 카드 리스트 또는 placeholder 노출 확인.
+
+  - id: smoke_product_collect
+    do: /view3/product-import (상품 수집) 진입 → URL 수집 카드 또는 메인 영역 노출 확인.
+
+  - id: smoke_delivery_agency
+    do: /view2/delivery-agency 진입 → 신청서 목록 또는 placeholder 노출 확인.
+
+  - id: smoke_order_management
+    do: /view2/order-management 진입 → 주문 목록 또는 동기화 배너 노출 확인.
+
+  - id: smoke_base_setting
+    do: /view3/base-setting 진입 → 베이스세팅 탭 또는 카테고리 영역 노출 확인.
+
+expected: 6개 메뉴 모두 마운트 완료. unhandled 0건.

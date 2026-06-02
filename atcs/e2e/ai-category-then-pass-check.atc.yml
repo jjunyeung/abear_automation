@@ -1,0 +1,22 @@
+# C3. AI 카테고리 추천 → 에러체크 통과.
+
+title: AI 카테고리 추천 → 에러체크 카테고리/속성 탭 정상 (e2e)
+priority: P1
+
+description: |
+  수집상품 첫 카드 → AI 카테고리 추천 → 적용 → 에러체크 → 카테고리 관련 탭 빨간 dot 사라짐.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: recommend_category
+    do: AI 카테고리 추천 버튼 클릭 + 로딩 종료 대기.
+  - id: error_check_after_category
+    do: 에러체크 트리거 후 7개 탭의 status 가져와 빨간 dot 검사.
+
+expected: AI 카테고리 추천 후 카테고리/속성 관련 탭 정상. unhandled 0건.

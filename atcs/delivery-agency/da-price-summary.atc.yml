@@ -5,6 +5,7 @@
 #   "총 수량 {totalQuantity} 개" / "총 금액 {totalPrice}"
 
 title: 배송대행지 토스토스 신청서 상품 금액 자동 계산 검증
+priority: P0
 
 description: |
   단가 100 + 수량 5 입력 → "총 수량 5 개" + "총 금액" 영역의 숫자 가시.

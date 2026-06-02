@@ -17,6 +17,7 @@
 #       handleApplySetting → makeToast(`${result.length}개 상품이 일괄 업데이트 되었습니다.`)
 
 title: 수집상품 N개 선택 후 기본 설정값 적용 일괄 실행
+priority: P2
 
 description: |
   수집상품 목록에서 N개 카드를 체크박스로 선택한 뒤 상단 More(...) 메뉴 → "기본 설정값 적용" 일괄 실행이 정상 동작하는지 검증.

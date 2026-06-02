@@ -6,6 +6,7 @@
 #   스마트스토어 모음전 정책 적용 / 관부가세  (총 5개)
 
 title: 등록상품 수정 업로드 모달 2단계 EditForms 목록 노출 검증
+priority: P0
 
 description: |
   step2 진입 후 EditForms 라디오 라벨 ≥3개 가시 검증.

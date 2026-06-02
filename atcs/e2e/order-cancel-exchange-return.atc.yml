@@ -1,0 +1,13 @@
+title: 취소/교환/반품 페이지 진입 (e2e)
+priority: P2
+description: 취소교환반품 관리 페이지 진입 + 마운트 확인.
+
+inputs: {}
+
+steps:
+  - id: open_cancel_exchange_return
+    do: 사이드바 취소 교환 반품 메뉴 또는 직접 URL 진입.
+  - id: verify_page_mounted
+    do: 페이지 마운트 시그니처 확인.
+
+expected: 페이지 진입 + 마운트. unhandled 0건.

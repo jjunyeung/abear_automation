@@ -6,6 +6,7 @@
 #   - 업로드 성공 시 onControlProductForm({ imgUrl }) → <Image src={productImageUrl} />
 
 title: 배송대행지 토스토스 신청서 이미지 업로드 검증
+priority: P0
 
 description: |
   hidden file input 에 1x1 png 업로드 → image src 채워짐 검증.

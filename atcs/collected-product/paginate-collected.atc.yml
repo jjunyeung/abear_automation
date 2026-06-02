@@ -9,6 +9,7 @@
 #   - page_number : 이동할 페이지 번호 (1-indexed)
 
 title: 수집상품 목록 페이지네이션 이동
+priority: P2
 
 description: |
   수집상품 목록의 페이지네이션 동작 검증.

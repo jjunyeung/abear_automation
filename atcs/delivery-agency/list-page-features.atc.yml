@@ -1,0 +1,42 @@
+# 배송대행지 / 기능 영역 — 목록 화면 진입 + 검색/필터/툴팁 visible (non-destructive).
+#
+# TC 원본 (P0, 6건):
+#   - Case No 1520 / 검색 / 검색 입력 박스 노출
+#   - Case No 1521 / 날짜필터 선택 / 날짜 필터 영역 노출
+#   - Case No 1522 / 업데이트선택 / 새로고침/업데이트 버튼 영역 노출
+#   - Case No 1523 / 트래킹번호 선택 / 트래킹번호 컬럼/툴팁 영역
+#   - Case No 1524 / 택배사/송장번호 선택 / 송장번호 영역
+#   - Case No 1525 / 검수 사진 확인 / 검수 컬럼 (검수사진 트리거)
+#
+# 코드 출처: windly-frontend-web/src/features/DeliveryAgency/Quickstar/Order/
+#   - Content/Search/index.tsx: 검색 input placeholder "그룹번호, 신청서번호, 제품번호, 트래킹번호, 수취인명 검색"
+#   - Content/List/Header.tsx: 검수 컬럼 헤더
+#   - Content/List/CollapseItem/Requests/item.tsx: 검수사진 더보기 Tooltip
+#
+# 사전조건: Quickstar 연결 + 신청서 데이터 ≥ 0건. 데이터 없으면 row 없어 일부 항목 skip.
+# DA 미연결이면 Connect 화면으로 redirect → 진입 자체 fail (별도 ATC).
+
+title: 배송대행지 목록 화면 진입 + 검색/필터/컬럼 visible (TC 1520-1525)
+priority: P0
+
+description: |
+  /view3/delivery-agency 진입 → Quickstar/Tosstoss 탭 → 검색 input + 날짜 필터 + 검수 컬럼 헤더
+  + 트래킹번호 컬럼 헤더 노출 확인. row 데이터 의존 항목은 환경 따라 skip.
+  TC 원본: Case No 1520-1525 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_delivery_agency_page
+    do: 배송대행지 목록 페이지 진입
+
+  - id: verify_search_input_visible
+    do: 검색 input placeholder 노출 확인
+
+  - id: verify_inspection_column_or_skip
+    do: 검수 컬럼 헤더 노출 확인 - 컬럼 자체 없으면 row data 없는 환경
+
+  - id: verify_tracking_column_or_skip
+    do: 트래킹번호 컬럼 헤더 또는 라벨 노출 확인
+
+expected: 페이지 진입 + 검색/컬럼 영역 visible. 데이터 의존 항목 skip OK. unhandled 0건.

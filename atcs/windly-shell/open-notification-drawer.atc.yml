@@ -1,4 +1,5 @@
 title: 알림 drawer 열기 + 닫기 smoke
+priority: P2
 
 description: |
   메인 헤더의 알림 아이콘 (bell svg / aria-label) 클릭 → drawer/popover 가 열리는지 확인 후 닫기 (Esc 또는 outside click).

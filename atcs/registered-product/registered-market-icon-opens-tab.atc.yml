@@ -11,6 +11,7 @@
 #   onClick={() => window.open(url, '_blank')}
 
 title: 등록상품 마켓 아이콘 클릭 시 새 탭 열림
+priority: P2
 
 description: |
   등록상품 첫 카드의 첫 활성 마켓 아이콘 클릭 → 새 탭 popup 이벤트 발생 검증.

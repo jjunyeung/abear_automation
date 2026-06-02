@@ -30,6 +30,7 @@
 #   현재값이 max 면 -step, 그 외에는 +step. min 미만 / max 초과 시 clamp 의해 정상화.
 
 title: 기본 설정 > 공통설정 > 판매가 — 8개 필드를 step 변경 후 저장/영속성 검증
+priority: P2
 
 description: |
   기본 설정 > 공통설정 > 판매가 탭의 8개 input 을 각자 step 만큼 (원=+100, %=+1) 변경 후 onBlur 저장 + reformat 확인 → 페이지 reload 후에도 변경값이 유지되는지로 영속성 검증.

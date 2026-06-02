@@ -1,0 +1,31 @@
+# 기본설정 톡스토어 — "연결하러 가기" 배너 클릭 → 연결 설정 페이지 이동 검증.
+#
+# TC 원본 (P0, 1건):
+#   - Case No 1016 / 배송정보 / 연결하러 가기 선택
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/components/ConnectBanner.tsx
+#   - banner 의 "연결하러 가기" Text 클릭 → useNavigate(path)
+#   - isConnected (talkstoreAuthorization.apiKey 존재) 시 banner 자체 미노출.
+#
+# 사전조건: 톡스토어 연결되지 않은 상태여야 banner 가 보임. 이미 연결되어 있으면
+#           banner 가 없으므로 step 1 (link 클릭) 에서 "link_not_found" 로 fail.
+#           이 경우 별도 영향 없음 — 환경 자체가 connected 라는 신호.
+
+title: 기본설정 톡스토어 "연결하러 가기" 배너 클릭 → 연결설정 이동
+priority: P0
+
+description: |
+  배송 정보 탭 → ConnectBanner 의 "연결하러 가기" 클릭 → SPA 내부 navigate →
+  URL 이 연결설정 (link/connect 경로) 으로 변화 확인.
+  TC 원본: Case No 1016 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_tab
+    do: 기본설정 톡스토어 배송 정보 탭 진입
+
+  - id: click_connect_link
+    do: 연결하러 가기 텍스트 클릭 → URL 변화 + 연결설정 경로 포함 확인
+
+expected: 연결설정 페이지로 이동. 이미 연결된 환경이면 link 자체 미노출 (banner 없음).

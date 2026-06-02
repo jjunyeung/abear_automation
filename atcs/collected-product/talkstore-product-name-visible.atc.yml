@@ -9,6 +9,7 @@
 #   <TextField label="톡스토어" maxTextLength={70} placeholder={...talkstoreTitle} value={talkstoreTitle} />
 
 title: 톡스토어 상품명 input 노출
+priority: P0
 
 description: |
   수집상품 첫 카드 → 기본 정보 탭 → 톡스토어 label 의 TextField input 노출 검증 +

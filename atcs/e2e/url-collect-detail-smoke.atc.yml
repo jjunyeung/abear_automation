@@ -1,0 +1,24 @@
+# A5. URL 수집 → 상세 진입 smoke (가벼운 회귀).
+
+title: URL 수집 → 상세 진입 smoke (e2e)
+priority: P1
+
+description: |
+  url-collect-verify 와 동일하지만 e2e 카테고리에서 회귀로 돌리기 위한 wrapper. detail 진입까지만 빠르게 확인.
+  매일 회귀 — A1 보다 빠른 1차 smoke. 이게 깨지면 A1~A3 도 어차피 안 됨.
+
+inputs:
+  product_url:
+    type: string
+    description: 임의 소스 (타오바오/티몰/라쿠텐) URL.
+    from: pool
+
+outputs:
+  source_product_id:
+    type: string
+    description: 수집된 윈들리 상품 내부 코드.
+
+composes:
+  - ../product-collect/url-collect-verify.atc.yml
+
+expected: 수집 → 상세 진입 성공. unhandled 0건.

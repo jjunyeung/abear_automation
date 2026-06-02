@@ -193,6 +193,10 @@ function App(): JSX.Element {
     atcPaths: string[];
     perAtcInputs: Record<string, Record<string, string>>;
   } | null>(null);
+  // Report 화면 진입 출처. 스케줄에서 "리포트 보기" 로 진입한 경우만 'schedule'.
+  // 자동 진입 (실행 종료 후) / 카탈로그 히스토리 등에서는 null — ReportPanel 에
+  // 뒤로가기 버튼 미표시. focus 가 'live' 가 아니게 되면 자동 reset.
+  const [reportBackTarget, setReportBackTarget] = useState<FocusZone | null>(null);
   const batchRunningRef = useRef<boolean>(false);
   const pendingHistoryQueueIdsRef = useRef<string[]>([]);
   const currentQueueId =
@@ -310,6 +314,12 @@ function App(): JSX.Element {
     setFocusOverride(null);
   }, [autoFocus]);
   const focus: FocusZone = focusOverride ?? autoFocus;
+
+  // Report toolbar 의 "← 스케줄로" 는 Live/Report zone 에 있을 때만 의미 있음.
+  // 사용자가 LNB 로 다른 zone 가면 stale 안 남기게 reset.
+  useEffect(() => {
+    if (focus !== 'live') setReportBackTarget(null);
+  }, [focus]);
 
   const handleRunBatch = useCallback(async (): Promise<void> => {
     if (batchOrder.length === 0) return;
@@ -822,6 +832,8 @@ function App(): JSX.Element {
                   setBatchRunIds([...runIds]);
                 }
                 setRightTab('report');
+                // 스케줄에서 진입 — Report toolbar 에 "← 스케줄로" 버튼 노출.
+                setReportBackTarget('schedule');
                 setFocusOverride('live');
               }}
             />
@@ -946,6 +958,15 @@ function App(): JSX.Element {
                       ? ((item.atc as { title?: string }).title ?? match.atcPath)
                       : match.atcPath;
                   }}
+                  onBack={
+                    reportBackTarget === 'schedule'
+                      ? (): void => {
+                          setReportBackTarget(null);
+                          setFocusOverride('schedule');
+                        }
+                      : undefined
+                  }
+                  backLabel={reportBackTarget === 'schedule' ? '스케줄로' : undefined}
                 />
               </ErrorBoundary>
             )}

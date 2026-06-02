@@ -5,6 +5,7 @@
 #   DeliveryAgencyApplication/Tosstoss/Delivery/index.tsx — Dropdown placeholder="지점을 선택해 주세요"
 
 title: 배송대행지 토스토스 신청서 배대지 지점 드롭다운 검증
+priority: P0
 
 description: |
   Tosstoss 신청서 진입 → 배대지 지점 드롭다운 클릭 → 첫 옵션 선택 → SelectedBox 가 옵션 라벨로 변경.

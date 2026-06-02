@@ -1,0 +1,20 @@
+title: AI 카테고리 추천 → 적용 → 저장 (e2e)
+priority: P1
+description: |
+  AI 카테고리 추천 → 자동 적용 → autosave → 재진입.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: recommend_category
+    do: AI 카테고리 추천 클릭. 이미 적용된 상태면 OK.
+  - id: save_product
+    do: body blur 로 autosave 트리거.
+  - id: re_enter_and_verify
+    do: reload 후 페이지 마운트 확인.
+
+expected: AI 카테고리 추천 동작. unhandled 0건.

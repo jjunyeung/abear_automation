@@ -9,6 +9,7 @@
 #   리뷰 시 포인트 input 도 동일 패턴 (ReviewPoint/index.tsx)
 
 title: 톡스토어 포인트 적립액 input 동작
+priority: P2
 
 description: |
   업로드 설정 탭 → 구매 시 포인트 지급 토글 ON → 포인트 적립액 input 노출 +

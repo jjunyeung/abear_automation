@@ -1,0 +1,40 @@
+# 기본설정 톡스토어 배송 정보 탭의 드롭다운 3종 (출고지 / 반품지 / 택배사) 일괄 검증.
+#
+# TC 원본 (P0, 6건):
+#   - Case No 1019 / 출고지 / 출고지 드롭다운 선택
+#   - Case No 1020 / 출고지 / 출고지 선택
+#   - Case No 1021 / 반품지 / 반품지 드롭다운 선택
+#   - Case No 1022 / 반품지 / 반품지 선택
+#   - Case No 1023 / 택배사 / 택배사 목록 드롭다운 선택
+#   - Case No 1024 / 택배사 / 택배사 선택
+#
+# 통합 1개 — spec.ts 측 CASES 배열로 3개 드롭다운 walk-through.
+# 각 dropdown 에 대해: (1) 클릭으로 옵션 박스 열림 + (2) 첫 옵션 선택 + 선택 반영 확인.
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/DeliveryAndAfterService/
+#   - StoreAddress.tsx                  (출고지/반품지 Dropdown — isConnected gating)
+#   - PostCompany/index.tsx             (택배사 Dropdown — isConnected gating)
+#
+# 사전조건: 톡스토어 계정 연결 (talkstoreAuthorization.apiKey 존재).
+#           연결 안 되면 모든 드롭다운이 disabled → step fail 후 unhandled 로 기록.
+
+title: 기본설정 톡스토어 배송 dropdown 3종 (출고지/반품지/택배사) 검증
+priority: P0
+
+description: |
+  배송 정보 탭의 dropdown 3개를 차례로 열고 첫 옵션 선택해서 반영 확인.
+  TC 원본: Case No 1019, 1020, 1021, 1022, 1023, 1024 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_delivery_tab
+    do: 기본설정 톡스토어 배송 정보 탭 진입
+
+  - id: open_dropdown
+    do: 라벨에 해당하는 dropdown 클릭 → option box 가 열리는지 확인
+
+  - id: select_first_option
+    do: 같은 dropdown 의 첫 옵션 선택 → 선택 텍스트 반영 확인
+
+expected: 출고지/반품지/택배사 dropdown 모두 열림 + 선택 반영. unhandled 0건.

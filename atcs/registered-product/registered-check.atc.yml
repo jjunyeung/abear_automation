@@ -6,6 +6,7 @@
 # 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
 
 title: 등록상품 목록에서 특정 상품 코드 존재 확인
+priority: P2
 
 description: |
   특정 상품 코드가 등록상품 목록에 존재하는지만 단독 검증하는 minimal ATC.

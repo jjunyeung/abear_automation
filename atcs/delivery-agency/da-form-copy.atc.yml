@@ -5,6 +5,7 @@
 #   <Tooltip content="상품 복제"><Button onClick={() => onCopyForm(index)}><CopyIcon /></Button></Tooltip>
 
 title: 배송대행지 토스토스 신청서 복사 검증
+priority: P2
 
 description: |
   양식 추가 → 복사 버튼 클릭 → 양식 2개 (상품 #1 + 상품 #2) 노출 검증.

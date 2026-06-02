@@ -10,6 +10,7 @@
 # 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/ProductSettings/index.tsx
 
 title: 톡스토어 상품 노출 및 판매 버튼 노출
+priority: P2
 
 description: |
   상품 노출 및 판매 탭 → "전시 상태" + "다음 노출" 각각의 "노출"/"미노출" 버튼 노출 검증.

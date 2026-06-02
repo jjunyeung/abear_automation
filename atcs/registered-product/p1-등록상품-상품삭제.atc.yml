@@ -1,0 +1,98 @@
+# 등록상품 / 상품삭제 — P1 미작성 TC 38건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/registered-product/p1-등록상품-상품삭제.spec.ts 에 구현
+#   2. tests/registered-product/p1-등록상품-상품삭제.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 등록상품 / 상품삭제 영역 P1 TC 묶음 (38건)
+priority: P1
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P1 미작성 TC 38건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc871_esm-20
+    do: 스마트스토어 업로드 확인
+  - id: tc872_esm-20
+    do: 아이콘 선택
+  - id: tc873_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc874_esm-20
+    do: 스마트스토어 삭제
+  - id: tc875_esm-20
+    do: 삭제 완료
+  - id: tc878_esm-20
+    do: 쿠팡 업로드 확인
+  - id: tc879_esm-20
+    do: 아이콘 선택
+  - id: tc880_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc881_esm-20
+    do: 쿠팡 삭제
+  - id: tc882_esm-20
+    do: 삭제 완료
+  - id: tc885_esm-20
+    do: 11번가 업로드 확인
+  - id: tc886_esm-20
+    do: 아이콘 선택
+  - id: tc887_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc888_esm-20
+    do: 11번가 삭제
+  - id: tc889_esm-20
+    do: 삭제 완료
+  - id: tc892_esm-20
+    do: 롯데온 업로드 확인
+  - id: tc893_esm-20
+    do: 아이콘 선택
+  - id: tc894_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc895_esm-20
+    do: 롯데온 삭제
+  - id: tc896_esm-20
+    do: 삭제 완료
+  - id: tc899_esm-20
+    do: ESM 2.0 업로드 확인
+  - id: tc900_esm-20
+    do: 아이콘 선택
+  - id: tc901_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc902_esm-20
+    do: ESM 2.0 삭제
+  - id: tc903_esm-20
+    do: 삭제 완료
+  - id: tc906_esm-20
+    do: ESM 2.0 업로드 확인
+  - id: tc907_esm-20
+    do: 아이콘 선택
+  - id: tc908_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc909_esm-20
+    do: ESM 2.0 삭제
+  - id: tc910_esm-20
+    do: 삭제 완료
+  - id: tc913_esm-20
+    do: ESM 2.0 업로드 확인
+  - id: tc914_esm-20
+    do: 아이콘 선택
+  - id: tc915_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc916_esm-20
+    do: ESM 2.0 삭제
+  - id: tc917_esm-20
+    do: 삭제 완료
+  - id: tc927_esm-20
+    do: 상품 삭제 버튼 선택
+  - id: tc928_esm-20
+    do: 삭제
+  - id: tc929_esm-20
+    do: 삭제 완료
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

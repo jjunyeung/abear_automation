@@ -1,0 +1,48 @@
+# 인 상 추 / 인기 상품 추천 페이지 — P2 미작성 TC 13건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p2-인-상-추-인기-상품-추천-페이지.spec.ts 에 구현
+#   2. tests/collected-product/p2-인-상-추-인기-상품-추천-페이지.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 인 상 추 / 인기 상품 추천 페이지 영역 P2 TC 묶음 (13건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 13건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3735_페이지-제목
+    do: 화면 제목 인기 상품 추천 노출 확인
+  - id: tc3736_상단-안내
+    do: 상단 설명 문구 및 가이드 보러가기 링크 노출 확인 (변경 내용 반영)
+  - id: tc3737_가이드-링크
+    do: 상단 설명 문구의 가이드 보러가기 링크 클릭 시 기능 확인
+  - id: tc3738_섹션-타이틀
+    do: 지금 잘 팔리는 상품 키워드 Top 20 타이틀 노출 확인
+  - id: tc3739_키워드-탭
+    do: 키워드 탭 목록 및 귀여운 가방 선택 상태 확인
+  - id: tc3740_섹션-타이틀
+    do: 선택 키워드 귀여운 가방 섹션 타이틀 노출 확인
+  - id: tc3741_정렬-옵션
+    do: 상품 정렬 옵션 추천순 선택 상태 확인
+  - id: tc3742_상품-카드
+    do: 각 상품 카드 정보 (썸네일, 라벨, 상품명, 가격) 노출 확인
+  - id: tc3743_정보-툴팁
+    do: 상품 카드 내 정보 아이콘(i) 호버 시 툴팁 노출 확인
+  - id: tc3744_비슷한-상품찾기-버튼
+    do: 상품 카드 내 이 상품과 비슷한 상품찾기 버튼 노출 확인
+  - id: tc3758_로딩-상태
+    do: 페이지 로딩 중 로딩 UI 노출 확인
+  - id: tc3759_에러-상태
+    do: 키워드 기반 상품 불러오기 실패 시 에러 UI 노출 및 다시시도 버튼 확인 (음성 케이스)
+  - id: tc3760_에러-복구
+    do: 키워드 기반 상품 불러오기 실패 시 다시시도 버튼 클릭 시 재시도 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

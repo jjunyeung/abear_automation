@@ -5,6 +5,7 @@
 #   TextField (트래킹번호) + Button onClick={handleAddMarketTrackingNumber} text="입력"
 
 title: 배송대행지 토스토스 신청서 트래킹번호 2개 추가 검증
+priority: P0
 
 description: |
   트래킹번호 입력 + 입력 버튼 2번 → 페이지에 2개 트래킹 번호 텍스트 가시.

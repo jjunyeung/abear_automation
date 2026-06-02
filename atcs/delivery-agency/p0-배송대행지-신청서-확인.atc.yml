@@ -1,0 +1,61 @@
+# 배송대행지 / 신청서 확인 — P0 미작성 TC 17건 (auto-generated skeleton).
+#
+# Case No: 1503, 1504, 1505, 1506, 1507, 1508, 1509, 1510, 1511, 1512, 1513, 1514, 1515, 1516, 1517, 1518, 1519
+# Sub-fn: 툴팁 / 신청서 상태 탭 별 확인 (접수대기 → 접수신청 → 부분입고 → 오류입고 → 전체입고 → 신청서수정 ×5 → 출고확정 → 결제대기 ×3).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 다음 작업 (R9+):
+#   1. windly_repo/sesame-frontend-web 에서 신청서 상태 탭 컴포넌트 selector 추출
+#      (진입 URL = app.windly.cc/view3/delivery-agency, 8개 상태 탭).
+#   2. step.id ↔ Playwright 액션 매핑을 tests/delivery-agency/p0-배송대행지-신청서-확인.spec.ts 구현.
+#   3. tests/delivery-agency/p0-배송대행지-신청서-확인.handlerKeys.json 에 step.id 17개 등록.
+#   4. fixture 셋업: 각 상태별 신청서 ≥ 1건 (테스트 배대지 계정 활용).
+
+title: 배송대행지 / 신청서 확인 영역 P0 TC 묶음 (17건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 17건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1503
+    do: 접수대기 신청서 확인
+  - id: tc1504
+    do: 신청서 확인 / 트래킹번호 입력
+  - id: tc1505
+    do: 송장번호 복사
+  - id: tc1506
+    do: ... 메뉴 선택
+  - id: tc1507
+    do: 접수신청 신청서 확인
+  - id: tc1508
+    do: 부분입고 신청서 확인
+  - id: tc1509
+    do: 오류입고 신청서 확인
+  - id: tc1510
+    do: 전체입고 신청서 확인
+  - id: tc1511
+    do: 신청서 수정 화면 확인
+  - id: tc1512
+    do: 신청서 수정 화면
+  - id: tc1513
+    do: 신청서 수정 화면 확인
+  - id: tc1514
+    do: 신청서 수정 화면
+  - id: tc1515
+    do: 신청서 수정 화면 확인
+  - id: tc1516
+    do: 출고확정 신청서 확인
+  - id: tc1517
+    do: 결제대기 신청서 확인
+  - id: tc1518
+    do: 결제대기 신청서 확인
+  - id: tc1519
+    do: 결제대기 신청서 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

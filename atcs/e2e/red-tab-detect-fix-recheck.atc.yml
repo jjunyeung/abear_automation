@@ -1,0 +1,28 @@
+# C1. 빨간 탭 검출 → 자동수정 → 재검사 0건.
+
+title: 빨간 탭 검출 → 자동수정 → 재검사 0건 (e2e)
+priority: P0
+
+description: |
+  수집상품 첫 카드 진입 → 에러체크 → 빨간탭 inspect → check-and-fix 자동수정 → 재검사 0건 검증.
+  매일 회귀. unhandled 0건 (D11) 회귀 방지 핵심.
+
+inputs: {}
+
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록 진입.
+  - id: open_first_product
+    do: 첫 카드 상세 진입.
+  - id: trigger_error_check
+    do: 에러체크 트리거.
+  - id: inspect_red_tabs
+    do: 빨간 탭 진단 (수정 X, 로그만).
+  - id: fix_red_tabs
+    do: walkAndFixTab 으로 multi-pass 자동수정.
+  - id: trigger_error_check_again
+    do: 에러체크 재트리거.
+  - id: verify_all_clean
+    do: 최종 모든 탭 dot 정상 (빨간 0개) 확인.
+
+expected: 자동수정 후 빨간 탭 0개. unhandled 0건.

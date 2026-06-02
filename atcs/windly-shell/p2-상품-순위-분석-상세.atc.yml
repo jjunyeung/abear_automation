@@ -1,0 +1,54 @@
+# 상품 순위 분석 / 상세 — P2 미작성 TC 16건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-상품-순위-분석-상세.spec.ts 에 구현
+#   2. tests/windly-shell/p2-상품-순위-분석-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 상품 순위 분석 / 상세 영역 P2 TC 묶음 (16건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 16건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc707_업로드-설정
+    do: 상품 순위 분석 페이지 진입
+  - id: tc708_업로드-설정
+    do: 분석 상품 없을 때
+  - id: tc709_업로드-설정
+    do: 분석 요청
+  - id: tc710_업로드-설정
+    do: 분석 요청 선택
+  - id: tc711_업로드-설정
+    do: 추적 키워드 선택
+  - id: tc712_업로드-설정
+    do: 동작
+  - id: tc713_업로드-설정
+    do: 분석 요청
+  - id: tc714_업로드-설정
+    do: 요청 완료
+  - id: tc715_업로드-설정
+    do: 키워드 선택
+  - id: tc716_업로드-설정
+    do: 요청 가능한 횟수 소진
+  - id: tc717_업로드-설정
+    do: 상품 순위 분석 확인 페이지
+  - id: tc718_업로드-설정
+    do: 키워드 순위
+  - id: tc719_업로드-설정
+    do: 순위 변경
+  - id: tc720_업로드-설정
+    do: 상품 순위 상세 보기
+  - id: tc721_업로드-설정
+    do: 분석중인 상품 재 분석 시도
+  - id: tc722_업로드-설정
+    do: 랭킹 조회 횟수 소진 시
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

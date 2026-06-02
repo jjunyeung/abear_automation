@@ -1,0 +1,74 @@
+# A1. 타오바오 단건 수집 → 빨간탭 자동수정 → 스마트스토어 업로드 → 등록상품 매칭.
+#
+# 매일 회귀의 메인 케이스. composes prepend 가 의도 흐름과 맞지 않아 step 직접 정의.
+# (수집 → 가공 → 업로드 순서가 보장되어야 함)
+
+title: 타오바오 단건 수집 → 자동수정 → 스마트스토어 업로드 → 등록 확인 (e2e)
+priority: P0
+
+description: |
+  타오바오 1개 URL 풀 파이프라인 회귀: 수집 → 빨간탭 자동수정 → 스마트스토어 업로드 → 등록상품에서 매칭 확인.
+  매일 자동 회귀 메인.
+
+inputs:
+  product_url:
+    type: string
+    description: 타오바오 단건 URL (item.taobao.com). 매 실행 새 URL 필수.
+    example: https://item.taobao.com/item.htm?id=...
+
+outputs:
+  source_product_id:
+    type: string
+    description: 수집 완료 후 윈들리가 부여한 내부 상품 코드.
+
+steps:
+  # ─── 수집 단계 (url-collect-verify 흐름과 동일 step.id 사용 → handler 재사용) ───
+  - id: open_collect_menu
+    do: 좌측 사이드바 "상품 수집" 메뉴 클릭하여 /view3/product-import 진입.
+
+  - id: open_url_collect
+    do: URL 수집 카드 클릭하여 모달 열기.
+
+  - id: submit_url
+    do: 모달의 URL textarea 에 product_url 입력 → 수집 버튼 클릭.
+
+  - id: wait_completion
+    do: BulkImportTable 의 SpinLoader → CheckIcon 전환 대기 (최대 5분).
+
+  - id: close_modal_goto_collected
+    do: 모달 닫기 → /view2/interested-product 자동 navigate 대기.
+
+  - id: wait_first_card_ready
+    do: 첫 카드가 ProductImportingCard → ProductCard 로 전환 (이미지+제목 visible) 될 때까지 대기.
+
+  - id: enter_product_detail
+    do: 첫 카드 클릭하여 /view2/interested-product/{id} 상세 진입. URL 의 {id} 를 source_product_id 로 emit.
+
+  # ─── 가공 단계 (check-and-fix handler 재사용) ───
+  - id: trigger_error_check
+    do: 에러체크 버튼 클릭.
+
+  - id: fix_red_tabs
+    do: 빨간 탭 walkAndFixTab 으로 자동수정 (multi-pass max 3).
+
+  - id: verify_all_clean
+    do: 자동수정 후 모든 탭 dot 정상 (빨간 0개) 확인.
+
+  # ─── 업로드 단계 (single-product handler 재사용) ───
+  - id: trigger_upload
+    do: 상세 상단 업로드 버튼 클릭 → "상품 업로드 유의사항 확인" 모달 → "업로드 하기" 클릭.
+
+  - id: wait_upload_complete
+    do: 업로드 진행 모달에서 마켓별 성공/실패 안정화 대기. 성공 ≥1 이면 ok.
+
+  # ─── 등록상품 매칭 검증 (single-product handler 재사용) ───
+  - id: open_registered_list
+    do: 사이드바 "등록상품" 메뉴 클릭하여 /view2/registered-product 진입.
+
+  - id: verify_in_registered
+    do: source_product_id 가 등록상품 목록에서 매칭되는지 확인 (페이지 텍스트 또는 검색 모달).
+
+  - id: verify_smartstore_market_active
+    do: 등록상품 첫 매칭 카드에서 스마트스토어 마켓 아이콘이 활성 (= 업로드 성공) 상태인지 확인.
+
+expected: 타오바오 수집 → 자동수정 → 스스 업로드 → 등록 매칭 + 스스 마켓 활성. unhandled 0건.

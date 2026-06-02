@@ -1,0 +1,36 @@
+# 연결설정 / 오픈마켓 / 톡스토어 연결 페이지 진입 + 필드 노출 (non-destructive).
+#
+# TC 원본 (P0, 1건):
+#   - Case No 990 / 수집상품 / 톡스토어 연결 페이지 확인
+#       → Func 분류는 '수집상품' 이지만 실제 화면은 Connect/Market/Talkstore (오픈마켓 연결).
+#
+# 코드 출처: windly-frontend-web/src/features/Connect/Market/Talkstore/index.tsx
+#   - Layout title="톡스토어 설정"
+#   - TextField label="Open API 인증키"
+#   - "스토어 URL" + "store.kakao.com/" prefix
+# 라우트: /view3/connect?setting=MARKET&openMarket=TALKSTORE
+
+title: 연결설정 / 톡스토어 마켓 연결 페이지 진입 (TC 990)
+priority: P0
+
+description: |
+  /view3/connect?setting=MARKET&openMarket=TALKSTORE 진입 → 톡스토어 설정 Layout title +
+  Open API 인증키 / 스토어 URL 필드 노출 확인. 실제 API 키 입력/연결은 destructive 라 skip.
+  TC 원본: Case No 990 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_talkstore_market_connect
+    do: 톡스토어 마켓 연결 페이지 진입
+
+  - id: verify_page_title
+    do: 톡스토어 설정 Layout title 노출 확인
+
+  - id: verify_api_key_field
+    do: Open API 인증키 라벨 + input 노출 확인
+
+  - id: verify_store_url_field
+    do: 스토어 URL 영역 (store.kakao.com/ prefix) 노출 확인
+
+expected: 페이지 + title + 2 필드 노출. unhandled 0건.

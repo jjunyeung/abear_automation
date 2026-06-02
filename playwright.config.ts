@@ -130,6 +130,9 @@ export default defineConfig({
     {
       name: 'windly-windly-shell',
       testMatch: 'tests/windly-shell/**/*.spec.ts',
+      // OAuth 페이지 검증 spec 은 cookies clear 후 fresh login page 로 진입하므로
+      // setup 의존하면 첫 진입 페이지가 main 으로 잡혀 의도와 어긋남.
+      testIgnore: ['tests/windly-shell/oauth-*.spec.ts'],
       dependencies: ['setup'],
     },
     {
@@ -153,6 +156,12 @@ export default defineConfig({
         'tests/order-mgmt/order-management-shipping-drawer-open.spec.ts',
         'tests/order-mgmt/order-management-instruct-to-delivering.spec.ts',
       ],
+    },
+    // OAuth 로그인 페이지 검증 — cookies clear 후 hub.windly.cc/accounts/login 진입
+    // → 이메일/네이버/구글/회원가입 4개 버튼 strict visibility. setup 의존 X.
+    {
+      name: 'windly-oauth-check-fresh',
+      testMatch: ['tests/windly-shell/oauth-*.spec.ts'],
     },
   ],
 });

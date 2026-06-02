@@ -13,6 +13,7 @@
 # 입력 (D8): env / CLI 로 매 실행마다 새 URL 필수 (url-collect 와 동일 정책).
 
 title: URL 수집 → 수집중 ready 대기 → 상품 detail 진입 (사용자 지정 링크)
+priority: P0
 
 description: |
   url-collect 의 확장 버전. 수집 완료까지만 보지 않고 수집상품 목록까지 이동해 카드가 "수집중" → 정식 ProductCard 로 전환됐는지, 그 카드 클릭 시 상품 detail 이 mount 되는지까지 끝까지 검증.

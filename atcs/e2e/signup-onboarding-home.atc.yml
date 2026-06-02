@@ -1,0 +1,13 @@
+title: 회원가입 페이지 진입 smoke (e2e)
+priority: P2
+description: 회원가입 페이지 진입 + 폼 노출 검증. 실제 가입 트랜잭션 X.
+
+inputs: {}
+
+steps:
+  - id: open_register_page
+    do: 회원가입 페이지 진입.
+  - id: verify_form_visible
+    do: 이메일/비밀번호 input 등 회원가입 폼 노출 확인.
+
+expected: 회원가입 폼 노출. unhandled 0건.

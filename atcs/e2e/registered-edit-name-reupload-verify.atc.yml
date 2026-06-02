@@ -1,0 +1,28 @@
+# D1. 등록상품 이름 수정 → 재업로드 → 마켓 페이지에서 새 이름 노출.
+
+title: 등록상품 이름 수정 → 재업로드 → 마켓 페이지 반영 (e2e)
+priority: P1
+
+description: |
+  등록상품 첫 카드 → 상세 진입 → 이름 수정 → 재업로드 → 등록상품 목록 마켓 아이콘 클릭 → 새 탭 마켓 페이지에 새 이름 확인.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 진입.
+  - id: open_top_registered
+    do: 첫 카드 상세 진입.
+  - id: edit_name_with_timestamp
+    do: 상품명 input 에 새 이름 (timestamp 포함) 입력 + 저장.
+  - id: trigger_upload
+    do: 재업로드 트리거 (등록상품 상세의 업로드 버튼).
+  - id: confirm_upload_modal
+    do: 유의사항 모달 → "업로드 하기" 클릭.
+  - id: wait_upload_complete
+    do: 업로드 완료 대기 (성공 ≥1).
+  - id: verify_new_name_visible
+    do: 등록상품 목록 새로고침 → 첫 카드의 카드 텍스트가 새 이름 포함 확인.
+
+expected: 이름 수정 후 마켓 반영. unhandled 0건.

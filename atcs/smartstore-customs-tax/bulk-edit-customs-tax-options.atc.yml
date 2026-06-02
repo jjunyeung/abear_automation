@@ -5,6 +5,7 @@
 #   CustomsTaxForm SegmentedButton 3개: "부과 대상 아님" / "관부가세 포함" / "관부가세 미포함".
 
 title: 스스 관부가세 옵션 3개 노출 검증
+priority: P2
 
 description: |
   관부가세 화면 진입 → 옵션 3개 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) 가시 검증.

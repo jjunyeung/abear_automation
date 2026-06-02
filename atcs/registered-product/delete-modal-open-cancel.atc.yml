@@ -1,0 +1,43 @@
+# 등록상품 / 상품 삭제 모달 open + 취소 (non-destructive 검증 패턴).
+#
+# TC 원본 (P0, 15건 esm 2.0 / 삭제 완료 — 본 ATC 는 모달 동작만 검증, 실 삭제 X):
+#   - 본 ATC 가 검증하는 부분: 모달 오픈/닫기 동작 자체 (15건 destructive TC 의 공통 전제 조건)
+#   - 각 TC 의 "상품 페이지 확인" / "판매자 센터에서 확인" 후속 동작은 실 삭제 destructive 라 skip
+#
+# 코드 출처: windly_repo/sesame/src/features/RegisteredProduct/RegisteredProduct.tsx
+#   - L430-438: <Button color="red" onClick={handleDeleteClick}>상품 삭제</Button>
+#   - L508: <DeleteRegisteredProductsModal />
+# windly_repo/sesame/src/components/organisms/Modals/Product/DeleteRegisteredProductsModal/index.tsx
+#   - L53: ModalTitleBox "등록상품 삭제"
+#   - L60: leftButtonText="취소"
+#
+# 사전조건: 등록상품 ≥ 1개. 삭제 권한 (auth.employeeRole.deleteProduct) 있어야 함.
+# 권한 없으면 button disabled — skip success.
+
+title: 등록상품 / 상품 삭제 모달 open + 취소 (TC 876+ destructive 공통 전제)
+priority: P0
+
+description: |
+  등록상품 목록 진입 → 첫 카드 선택 → 상품 삭제 버튼 클릭 → DeleteRegisteredProductsModal 오픈 →
+  취소 → 모달 닫힘. 실제 삭제 클릭은 destructive 라 절대 안 함 (TC 876-923 destructive 의 공통 전제 동작 검증).
+  TC 원본: TC 876+ destructive 패밀리의 모달 노출 부분.
+
+inputs: {}
+
+steps:
+  - id: goto_registered_products
+    do: 등록상품 목록 페이지 진입 + 카드 ≥ 1 확인
+
+  - id: select_first_card
+    do: 첫 상품 카드 체크박스 선택
+
+  - id: open_delete_modal_or_skip
+    do: 상품 삭제 버튼 클릭 → DeleteRegisteredProductsModal 오픈. 권한 없으면 skip.
+
+  - id: verify_delete_modal_title
+    do: 모달 title 등록상품 삭제 노출 확인. skip 케이스 noop.
+
+  - id: cancel_delete_modal
+    do: 취소 버튼 클릭으로 모달 닫기. skip 케이스 noop.
+
+expected: 모달 open + 닫기. 데이터 변경 없음. unhandled 0건.

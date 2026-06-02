@@ -28,6 +28,7 @@
 #       <Text size="c2">총 {totalElements.toLocaleString()}개</Text>
 
 title: 주문 관리 진입 — 주문 1건 이상일 때 목록·헤더·카운트 검증
+priority: P2
 
 description: |
   주문 관리 진입 — 신규주문 탭에 1+ 주문이 있을 때의 결과 화면 검증.

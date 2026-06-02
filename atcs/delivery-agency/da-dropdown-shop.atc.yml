@@ -4,6 +4,7 @@
 # 코드 출처: windly-frontend-web/src/features/DeliveryAgencyApplication/Tosstoss/...
 
 title: 배송대행지 토스토스 신청서 국내 쇼핑몰 검증
+priority: P0
 
 description: |
   국내 쇼핑몰 동작 검증. (자동 생성)

@@ -1,4 +1,5 @@
 title: 수집상품 첫 카드 → 옵션 가격 단건 변경 → 영속성 검증
+priority: P2
 
 description: |
   수집상품 첫 카드 → 상세 → 판매가 탭의 SalesPriceTable 의 첫 옵션 행 가격 input 을 +100 변경 → onBlur 저장 → reload 후 값 유지 확인.

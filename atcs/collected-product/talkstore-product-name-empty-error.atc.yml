@@ -6,6 +6,7 @@
 #     - ! 호버 시 "톡스토어 상품명은 70자 이하로 반드시 입력해주세요." 툴팁
 
 title: 톡스토어 상품명 빈 입력 에러
+priority: P0
 
 description: |
   기본 정보 탭 → 톡스토어 상품명 input 모두 지움 → onBlur → 에러 상태 (TextField status=error).

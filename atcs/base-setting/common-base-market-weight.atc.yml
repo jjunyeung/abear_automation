@@ -1,0 +1,35 @@
+# 공통설정 / 마켓별 판매가 가중치 영역 노출 검증 (non-destructive).
+#
+# TC 원본 (P0, 2건):
+#   - Case No 1013 / 가중치 / 가중치 확인
+#   - Case No 1014 / 가중치 / 톡스토어 가중치 입력 (input editable 검증, 실 입력 X)
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Common/MarketWeightTab/index.tsx
+#   - FormField title="마켓별 판매가 가중치(%)"
+#   - 6 TextField labels: 스마트스토어 / 쿠팡 / 11번가 / ESM 2.0 / 롯데온 / 톡스토어
+#   - onBlur 시 저장 — 본 spec 은 onBlur 호출 안 함.
+
+title: 공통설정 / 마켓별 판매가 가중치 영역 노출 (TC 1013/1014)
+priority: P0
+
+description: |
+  /view3/base-setting?setting=COMMON&category=MARKET_WEIGHT 진입 → 가중치 FormField title
+  + 6 마켓 TextField label 노출 + 톡스토어 input enabled 확인. 실제 값 변경은 destructive (onBlur 저장) 라 skip.
+  TC 원본: Case No 1013, 1014 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_market_weight_tab
+    do: 공통설정 가중치 페이지 진입
+
+  - id: verify_weight_section_visible
+    do: 마켓별 판매가 가중치 FormField title 노출 확인
+
+  - id: verify_six_market_labels_visible
+    do: 6개 마켓 (스마트스토어/쿠팡/11번가/ESM 2.0/롯데온/톡스토어) label 모두 노출 확인
+
+  - id: verify_talkstore_input_editable
+    do: 톡스토어 가중치 input disabled 아님 (입력 가능) 확인
+
+expected: 가중치 영역 + 6 label + 톡스토어 input 가능. 데이터 변경 없음. unhandled 0건.

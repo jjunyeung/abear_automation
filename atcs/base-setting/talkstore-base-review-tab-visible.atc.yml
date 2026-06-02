@@ -3,6 +3,7 @@
 # TC 원본: Case No 1044 / 기본설정 › 톡스토어 › 리뷰 포인트 / P0
 
 title: 기본설정 톡스토어 리뷰 포인트 탭
+priority: P2
 
 description: |
   /view3/base-setting?setting=TALKSTORE&category=REVIEW_POINT 진입 → "리뷰 포인트" 타이틀 노출.

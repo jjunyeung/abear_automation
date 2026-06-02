@@ -1,0 +1,66 @@
+# 스마트스토어 / 배송 및 A/S 영역 P0 검증 (non-destructive).
+#
+# TC 원본 (P0, 8건 검증 + 3건 destructive skip):
+#   - Case No 3467 / 화면 진입 / 배송 및 A/S 화면이 정상 진입된다
+#   - Case No 3471 / 출고지 설정 / 출고지 선택 드롭다운이 정상 노출된다
+#   - Case No 3472 / 출고지 설정 / 출고지 목록을 선택할 수 있다 (dropdown 열림만 검증)
+#   - Case No 3473 / 반품지 설정 / 반품지 선택 드롭다운이 정상 노출된다
+#   - Case No 3474 / 반품지 설정 / 반품지 목록을 선택할 수 있다 (dropdown 열림만)
+#   - Case No 3475 / 택배사 설정 / 택배사 선택 드롭다운이 정상 노출된다
+#   - Case No 3476 / 택배사 설정 / 택배사 목록을 선택할 수 있다 (dropdown 열림만)
+#   - Case No 3487 / A/S 전화번호 / A/S 전화번호 입력 필드가 정상 노출된다
+#   - Case No 3488 / A/S 전화번호 / A/S 전화번호를 입력할 수 있다 (input enabled 검증)
+#
+# 관부가세 (TC 3482/3483/3484) 는 SmartStore 화면이 아닌 COMMON/DELIVERY_INFO 화면에 있음 —
+# 별도 ATC common-base-customs-tax.atc.yml 로 분리.
+#
+# Skip (destructive):
+#   - 3491 필수값 누락 시 저장 제한 (실제 필드 clear + 저장 시도)
+#   - 3492 설정 저장 (실 저장 — 백엔드 데이터 변경)
+#   - 3493 재진입 후 유지 (3492 의존)
+#
+# 코드 출처: windly_repo/windly-frontend-web/src/features/BaseSetting/SmartStore/DeliveryAndAfterService/
+#   - StoreAddress/index.tsx: "출고지 목록" / "반품지 목록" Dropdown
+#   - PostCompany/index.tsx: "택배사" Dropdown
+#   - AfterService/index.tsx: "A/S 전화번호" TextField
+
+title: 스마트스토어 / 배송 및 A/S 화면 진입 + 영역 노출 검증 (TC 3467/3471-3476/3487/3488)
+priority: P0
+
+description: |
+  /view3/base-setting?setting=SMARTSTORE&category=DELIVERY_AND_AS 진입 → 출고지 / 반품지 /
+  택배사 드롭다운 + A/S 전화번호 input 노출 확인 + dropdown 열림 동작.
+  관부가세 (TC 3482-3484) 는 COMMON 화면에 있어 별도 ATC. 저장 (3492/3493) destructive skip.
+  TC 원본: Case No 3467, 3471-3476, 3487, 3488 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_smartstore_delivery_and_as
+    do: 스마트스토어 배송 및 A/S 페이지 진입 - 배송 및 A/S 탭 활성 확인
+
+  - id: verify_outbound_dropdown_visible
+    do: 출고지 목록 드롭다운 노출 확인
+
+  - id: open_outbound_dropdown
+    do: 출고지 목록 드롭다운 열기 - 트리거 enabled 확인
+
+  - id: verify_return_dropdown_visible
+    do: 반품지 목록 드롭다운 노출 확인
+
+  - id: open_return_dropdown
+    do: 반품지 목록 드롭다운 열기
+
+  - id: verify_post_company_dropdown_visible
+    do: 택배사 드롭다운 노출 확인
+
+  - id: open_post_company_dropdown
+    do: 택배사 드롭다운 열기
+
+  - id: verify_as_phone_field_visible
+    do: A/S 전화번호 입력 필드 노출 확인
+
+  - id: verify_as_phone_field_editable
+    do: A/S 전화번호 input 이 disabled 아님 (입력 가능) 확인
+
+expected: 모든 영역 노출 + dropdown 열림 동작 + A/S 전화번호 input 가능. 데이터 변경 없음. unhandled 0건.

@@ -1,0 +1,30 @@
+# 스스관부가세 / 기본 설정값 적용 — P0 미작성 TC 4건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p0-스스관부가세-기본-설정값-적용.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p0-스스관부가세-기본-설정값-적용.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 기본 설정값 적용 영역 P0 TC 묶음 (4건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 4건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3553_적용-버튼-동작
+    do: 적용 버튼 클릭 시 기본 설정값이 선택 상품에 반영된다
+  - id: tc3554_적용-대상-범위
+    do: 기본 설정값은 선택한 상품에만 적용된다
+  - id: tc3555_선택-없음-예외
+    do: 선택 상품이 없으면 기본 설정값 적용을 수행할 수 없다
+  - id: tc3563_적용-후-데이터-반영
+    do: 적용된 값이 상품 설정에 실제 반영된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

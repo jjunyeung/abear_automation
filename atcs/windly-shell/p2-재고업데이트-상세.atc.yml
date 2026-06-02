@@ -1,0 +1,78 @@
+# 재고업데이트 / 상세 — P2 미작성 TC 28건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-재고업데이트-상세.spec.ts 에 구현
+#   2. tests/windly-shell/p2-재고업데이트-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 재고업데이트 / 상세 영역 P2 TC 묶음 (28건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 28건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc679_업로드-설정
+    do: 재고업데이트 탭 선택
+  - id: tc680_업로드-설정
+    do: 기능 동작 확인
+  - id: tc681_업로드-설정
+    do: 재고 업데이트 화면 확인
+  - id: tc682_업로드-설정
+    do: 상품 검색
+  - id: tc683_업로드-설정
+    do: 상품 검색
+  - id: tc684_업로드-설정
+    do: 상품 코드 검색
+  - id: tc685_업로드-설정
+    do: 리스트 정렬 항목 마우스 호버
+  - id: tc686_업로드-설정
+    do: 최근 업로드 상품 제외
+  - id: tc687_업로드-설정
+    do: 최근 업로드 상품 제외
+  - id: tc688_업로드-설정
+    do: 상품 검색
+  - id: tc689_업로드-설정
+    do: 상품 검색 중 이탈
+  - id: tc690_업로드-설정
+    do: 검색 완료 화면
+  - id: tc691_업로드-설정
+    do: 버튼 동작
+  - id: tc692_업로드-설정
+    do: 상품 다시 선택
+  - id: tc693_업로드-설정
+    do: 재고 상세 보기 선택
+  - id: tc694_업로드-설정
+    do: 재고 변동시 리스트 노출
+  - id: tc695_업로드-설정
+    do: 옵션 없는 상품 재고 확인
+  - id: tc696_업로드-설정
+    do: 재고 다시 불러오기
+  - id: tc697_업로드-설정
+    do: 재고 업데이트
+  - id: tc698_업로드-설정
+    do: 뱃지 별 툴팁 문구
+  - id: tc699_업로드-설정
+    do: 옵션그룹 추가한 상품 재고 업데이트
+  - id: tc700_업로드-설정
+    do: 옵션 그룹 삭제한 상품 재고 업데이트
+  - id: tc701_업로드-설정
+    do: 옵션 추가한 상품 재고 업데이트
+  - id: tc702_업로드-설정
+    do: 옵션 삭제한 상품 재고 업데이트
+  - id: tc703_업로드-설정
+    do: 옵션명 변경한 상품 재고 업데이트
+  - id: tc704_업로드-설정
+    do: 옵션그룹명 변경한 상품 재고 업데이트
+  - id: tc705_업로드-설정
+    do: 재고 0인 옵션 있는 상품 업로드
+  - id: tc706_업로드-설정
+    do: 재고 상세 드로워에서 옵션가 기준 변경
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

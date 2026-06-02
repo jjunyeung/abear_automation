@@ -1,0 +1,54 @@
+# 설정 / 기본설정 — P0 미작성 TC 16건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/base-setting/p0-설정-기본설정.spec.ts 에 구현
+#   2. tests/base-setting/p0-설정-기본설정.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 설정 / 기본설정 영역 P0 TC 묶음 (16건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 16건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1199_상하단-이미지
+    do: 상하단 이미지 설정 확인
+  - id: tc1200_상하단-이미지
+    do: 마켓별 선택
+  - id: tc1201_상하단-이미지
+    do: 드롭다운 선택
+  - id: tc1205_상하단-이미지
+    do: 마켓 선택
+  - id: tc1206_상하단-이미지
+    do: 마켓 선택
+  - id: tc1207_상하단-이미지
+    do: 마켓 선택
+  - id: tc1208_상하단-이미지
+    do: 마켓 선택
+  - id: tc1209_상하단-이미지
+    do: 마켓 선택
+  - id: tc1210_상하단-이미지
+    do: 마켓 선택
+  - id: tc1211_상하단-이미지
+    do: 공통 상하단 이미지 사용
+  - id: tc1214_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+  - id: tc1215_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+  - id: tc1216_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+  - id: tc1217_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+  - id: tc1218_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+  - id: tc1219_상하단-이미지
+    do: 마켓별 상하단 이미지 적용
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

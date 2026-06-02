@@ -1,0 +1,41 @@
+# 배송대행지 / 신청서 작성 — P0 미작성 TC 7건 (auto-generated skeleton).
+#
+# Case No: 1379, 1383, 1389, 1390, 1439, 1458, 1502
+# Sub-fn: 센터 주소 확인 / 신청서 기능 → 상품 이미지 URL → 영문/중문 상품명 → 옵션 조건부 선택 → 신청완료 → 작성 완료 확인.
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 다음 작업 (R9+):
+#   1. 인접 sweep `da-cascade.atc.yml` (Case 1412-1438) 와 영역 일부 겹침 — selector 정책 공유 권장.
+#   2. windly_repo/sesame-frontend-web 의 신청서 작성 폼 컴포넌트 selector 추출
+#      (진입 URL = app.windly.cc/view3/delivery-agency → 신청서 작성).
+#   3. step.id ↔ Playwright 액션 매핑을 tests/delivery-agency/p0-배송대행지-신청서-작성.spec.ts 구현.
+#   4. handlerKeys.json 에 7개 step.id 등록.
+
+title: 배송대행지 / 신청서 작성 영역 P0 TC 묶음 (7건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 7건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1379_센터-주소-확인
+    do: 신청서 기능 동작 확인
+  - id: tc1383_센터-주소-확인
+    do: 상품 이미지 URL
+  - id: tc1389_센터-주소-확인
+    do: 영문 상품명 입력
+  - id: tc1390_센터-주소-확인
+    do: 중문 상품명 입력
+  - id: tc1439_센터-주소-확인
+    do: 옵션 조건부 선택
+  - id: tc1458_센터-주소-확인
+    do: 신청완료
+  - id: tc1502
+    do: 신청서 작성 완료
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

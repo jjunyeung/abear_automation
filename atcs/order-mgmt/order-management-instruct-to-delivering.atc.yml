@@ -48,6 +48,7 @@
 #       dropdown 펼침 시 search input (placeholder=검색하기) 노출 + 옵션 필터
 
 title: 주문 관리 - 배송준비중에서 배송중으로 (송장 입력 + 상태 변경 + 탭 이동)
+priority: P2
 
 description: |
   주문 관리 — 배송준비중(INSTRUCT) → 배송중(DELIVERING) 전체 흐름 e2e.

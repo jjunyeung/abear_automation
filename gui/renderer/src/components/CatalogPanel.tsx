@@ -13,6 +13,7 @@
 
 import {
   Button,
+  ButtonGroup,
   Checkbox,
   HTMLTable,
   Icon,
@@ -21,16 +22,66 @@ import {
   SectionCard,
   Spinner,
   Tag,
+  type Intent,
 } from '@blueprintjs/core';
-import { forwardRef, useMemo, type JSX } from 'react';
+import { forwardRef, useMemo, useState, type JSX } from 'react';
 import type { CatalogItem, Domain } from '../../../shared/ipc';
 import './CatalogPanel.css';
 
+type Priority = 'P0' | 'P1' | 'P2';
+type PriorityFilter = 'all' | Priority | 'none';
+const PRIORITY_FILTER_ORDER: readonly PriorityFilter[] = [
+  'all',
+  'P0',
+  'P1',
+  'P2',
+  'none',
+] as const;
+const PRIORITY_FILTER_LABEL: Record<PriorityFilter, string> = {
+  all: '전체',
+  P0: 'P0',
+  P1: 'P1',
+  P2: 'P2',
+  none: '미지정',
+};
+
+function priorityOf(item: CatalogItem): Priority | null {
+  if (typeof item.atc !== 'object' || item.atc === null) return null;
+  const raw = (item.atc as { priority?: unknown }).priority;
+  if (raw === 'P0' || raw === 'P1' || raw === 'P2') return raw;
+  return null;
+}
+
+function priorityIntent(p: Priority | null): Intent {
+  switch (p) {
+    case 'P0':
+      return 'danger';
+    case 'P1':
+      return 'warning';
+    case 'P2':
+      return 'none';
+    default:
+      return 'none';
+  }
+}
+
+function matchesPriority(item: CatalogItem, filter: PriorityFilter): boolean {
+  if (filter === 'all') return true;
+  const p = priorityOf(item);
+  if (filter === 'none') return p === null;
+  return p === filter;
+}
+
 const DOMAIN_ORDER: readonly Domain[] = [
-  'collect',
-  'error-check',
-  'fix',
+  'collected-product',
+  'product-collect',
+  'registered-product',
+  'delivery-agency',
+  'base-setting',
   'upload',
+  'order-mgmt',
+  'windly-shell',
+  'smartstore-customs-tax',
   'e2e',
 ] as const;
 
@@ -170,13 +221,37 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
     }: CatalogPanelProps,
     searchInputRef,
   ): JSX.Element {
+    const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
     const filtered = useMemo(
-      () => items.filter((item) => matchesQuery(item, query.trim())),
-      [items, query],
+      () =>
+        items.filter(
+          (item) =>
+            matchesQuery(item, query.trim()) &&
+            matchesPriority(item, priorityFilter),
+        ),
+      [items, query, priorityFilter],
     );
     const grouped = useMemo(() => groupByDomain(filtered), [filtered]);
     const totalCount = filtered.length;
     const selectedCount = batchSelected.size;
+
+    // 각 priority 별 전체 카운트 (현재 검색어 적용된 상태에서). filter 칩에 숫자 함께 노출.
+    const priorityCounts = useMemo(() => {
+      const base = items.filter((item) => matchesQuery(item, query.trim()));
+      const counts: Record<PriorityFilter, number> = {
+        all: base.length,
+        P0: 0,
+        P1: 0,
+        P2: 0,
+        none: 0,
+      };
+      for (const item of base) {
+        const p = priorityOf(item);
+        if (p === null) counts.none += 1;
+        else counts[p] += 1;
+      }
+      return counts;
+    }, [items, query]);
 
     return (
       <div className="catalog-panel">
@@ -194,6 +269,31 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
             fill
           />
           <Tag minimal>{totalCount}</Tag>
+        </div>
+
+        {/* Priority filter — 전체 / P0 / P1 / P2 / 미지정 */}
+        <div className="catalog-panel__priority-filter">
+          <ButtonGroup>
+            {PRIORITY_FILTER_ORDER.map((p) => {
+              const active = priorityFilter === p;
+              return (
+                <Button
+                  key={p}
+                  small
+                  active={active}
+                  intent={
+                    active && p !== 'all' && p !== 'none'
+                      ? priorityIntent(p)
+                      : undefined
+                  }
+                  onClick={(): void => setPriorityFilter(p)}
+                  title={`${PRIORITY_FILTER_LABEL[p]} (${priorityCounts[p]})`}
+                >
+                  {PRIORITY_FILTER_LABEL[p]} {priorityCounts[p]}
+                </Button>
+              );
+            })}
+          </ButtonGroup>
         </div>
 
         {/* Bulk actions floating bar — ≥1 선택 시 표시 */}
@@ -285,6 +385,20 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
                               onClick={(): void => onSelect(item.atcPath)}
                             >
                               <div className="catalog-panel__title-row">
+                                {(() => {
+                                  const p = priorityOf(item);
+                                  if (p === null) return null;
+                                  return (
+                                    <Tag
+                                      intent={priorityIntent(p)}
+                                      minimal
+                                      className="catalog-panel__priority-tag"
+                                      title={`우선순위 ${p}`}
+                                    >
+                                      {p}
+                                    </Tag>
+                                  );
+                                })()}
                                 {item.isFragment && (
                                   <Tag
                                     intent="warning"

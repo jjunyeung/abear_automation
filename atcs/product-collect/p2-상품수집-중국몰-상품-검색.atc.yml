@@ -1,0 +1,54 @@
+# 상품수집 / 중국몰 상품 검색 — P2 미작성 TC 16건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/product-collect/p2-상품수집-중국몰-상품-검색.spec.ts 에 구현
+#   2. tests/product-collect/p2-상품수집-중국몰-상품-검색.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 상품수집 / 중국몰 상품 검색 영역 P2 TC 묶음 (16건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 16건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc113_⑥
+    do: 중국몰 상품 검색
+  - id: tc114_⑥
+    do: 검색 동작
+  - id: tc115_⑥
+    do: 사용가이드 선택
+  - id: tc116_⑥
+    do: 카테고리 선택
+  - id: tc117_⑥
+    do: 키워드 확인
+  - id: tc118_⑥
+    do: 키워드 선택
+  - id: tc119_⑥
+    do: 일간 키워드 순위 불러오지 못함
+  - id: tc120_⑥
+    do: 주간 키워드 순위 불러오지 못함
+  - id: tc121_⑥
+    do: 검색 횟수 소진
+  - id: tc122_⑥
+    do: 상품 검색 페이지
+  - id: tc123_⑥
+    do: 소싱몰 변경
+  - id: tc124_⑥
+    do: 정렬 버튼 선택
+  - id: tc125_⑥
+    do: 상품수집
+  - id: tc126_⑥
+    do: 상품 선택
+  - id: tc127_⑥
+    do: 페이지 이동
+  - id: tc128_⑥
+    do: 수집 실패
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

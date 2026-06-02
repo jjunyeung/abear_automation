@@ -6,6 +6,7 @@
 #   클릭 시 setBulkEditFormValue(form) → selectedForm = form.value.
 
 title: 등록상품 수정 업로드 모달 2단계 단일 선택 동작 검증
+priority: P0
 
 description: |
   step2 진입 → 첫 EditForm 라벨 클릭 → 다음 버튼이 enabled 로 전환 검증.

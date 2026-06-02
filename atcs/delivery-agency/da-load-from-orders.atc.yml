@@ -6,6 +6,7 @@
 #   Product/modals/LoadProductModal/index.tsx → title="주문관리에서 상품 정보 불러오기"
 
 title: 배송대행지 토스토스 주문관리 불러오기 모달 검증
+priority: P2
 
 description: |
   신청서 진입 → "주문관리에서 불러오기" 버튼 → 모달 노출 검증.

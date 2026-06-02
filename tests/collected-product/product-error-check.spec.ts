@@ -132,7 +132,7 @@ const errorCheckStep: StepHandler = async (_page, _inputs) => {
   };
 };
 
-const handlers: StepHandlers = {
+export const productErrorCheckHandlers: StepHandlers = {
   collect: collectStep,
   open_detail: openDetailStep,
   error_check: errorCheckStep,
@@ -157,7 +157,7 @@ test('상품을 수집하고 에러체크를 수행한다 (vertical slice)', asy
     atc,
     page,
     inputs,
-    handlers,
+    handlers: productErrorCheckHandlers,
   });
 
   // 4) reporter 에 결과 전달 (atc-reporter.ts 가 'atc-result' attachment 를 수집)

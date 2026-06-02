@@ -1,0 +1,88 @@
+# 유입수 분석 / 상세 — P2 미작성 TC 33건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/windly-shell/p2-유입수-분석-상세.spec.ts 에 구현
+#   2. tests/windly-shell/p2-유입수-분석-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 유입수 분석 / 상세 영역 P2 TC 묶음 (33건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 33건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc723_업로드-설정
+    do: 유입수 분석 페이지 진입
+  - id: tc724_업로드-설정
+    do: 유입수 분석 페이지 진입
+  - id: tc725_업로드-설정
+    do: 유입수 분석 페이지 진입
+  - id: tc726_업로드-설정
+    do: 유입수 분석 페이지 진입
+  - id: tc727_업로드-설정
+    do: 전체, 모바일, pc 버튼 선택
+  - id: tc728_업로드-설정
+    do: 날짜 변경
+  - id: tc729_업로드-설정
+    do: 일별 프리셋 확인
+  - id: tc730_업로드-설정
+    do: 일별 날짜 선택 확인
+  - id: tc731_업로드-설정
+    do: 주별 프리셋 확인
+  - id: tc732_업로드-설정
+    do: 주별 날짜 선택 확인
+  - id: tc733_업로드-설정
+    do: 월별 프리셋 확인
+  - id: tc734_업로드-설정
+    do: 월별 날짜 선택 확인
+  - id: tc735_업로드-설정
+    do: 세부적인 일 선택
+  - id: tc736_업로드-설정
+    do: 일 복합 선택
+  - id: tc737_업로드-설정
+    do: 세부적인 주 선택
+  - id: tc738_업로드-설정
+    do: 주 복합 선택
+  - id: tc739_업로드-설정
+    do: 세부적인 월 선택
+  - id: tc740_업로드-설정
+    do: 월 복합 선택
+  - id: tc741_업로드-설정
+    do: 날짜 직접 입력
+  - id: tc742_업로드-설정
+    do: 분석 조건 초기화 버튼 선택
+  - id: tc743_업로드-설정
+    do: 차트 마우스 오버
+  - id: tc744_업로드-설정
+    do: 최근 업데이트 시간 변경
+  - id: tc745_업로드-설정
+    do: 마켓 표 선택
+  - id: tc746_업로드-설정
+    do: 유입수 0인 상품 보기
+  - id: tc747_업로드-설정
+    do: 리스트에서 체크
+  - id: tc748_업로드-설정
+    do: 정렬 선택
+  - id: tc749_업로드-설정
+    do: 차트 아이콘 선택
+  - id: tc750_업로드-설정
+    do: 마켓 아이콘 열에 숫자 선택
+  - id: tc751_업로드-설정
+    do: 마켓 아이콘 열에 - 선택
+  - id: tc752_업로드-설정
+    do: 페이지 이동
+  - id: tc753_업로드-설정
+    do: 상품 유입수가 0일 때 차트 확인
+  - id: tc754_업로드-설정
+    do: 선택한 상품의 유입수가 0일 때 확인
+  - id: tc755_업로드-설정
+    do: 등록상품에서 유입수 차트 버튼 선택
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

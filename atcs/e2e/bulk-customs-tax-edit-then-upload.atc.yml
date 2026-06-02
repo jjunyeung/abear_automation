@@ -1,0 +1,32 @@
+# F1. 스마트스토어 관/부가세 벌크 수정 (3-step wizard) → 실행.
+
+title: 스마트스토어 관/부가세 벌크 수정 wizard → 실행 (e2e)
+priority: P1
+
+description: |
+  등록상품 벌크 선택 → 스마트스토어 + 관/부가세 폼 선택 → step2 → step3 → 실행.
+  주 1회 회귀.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 등록상품 목록 진입.
+  - id: select_first_product
+    do: 첫 카드 체크박스 선택.
+  - id: click_bulk_edit_button
+    do: 벌크 수정 버튼 클릭하여 wizard 모달 열기.
+  - id: select_only_smartstore
+    do: step1 에서 스마트스토어 마켓만 체크.
+  - id: select_customs_tax_form
+    do: 관/부가세 폼 선택.
+  - id: enter_step2
+    do: 다음 버튼으로 step2 진입.
+  - id: enter_step3
+    do: step2 에서 다음 버튼 → step3 진입.
+  - id: verify_step3_active
+    do: step3 active 상태 확인.
+  - id: close_wizard
+    do: step3 까지 정상 도달했으면 wizard 닫기 (실행 자체는 mock 비용 회피).
+
+expected: wizard step1→2→3 정상 진행. unhandled 0건.

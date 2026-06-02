@@ -423,3 +423,186 @@ export async function openFirstSearchResult(page: Page): Promise<void> {
     .catch(() => undefined);
   await page.waitForTimeout(1_500);
 }
+
+// ─── OAuth 실 로그인 helpers (R9, 결정 10) ─────────────────────────────────────
+// 네이버 / 구글 SocialButton 클릭 → window.open(url, '_self') → OAuth 페이지에서
+// 자격증명 입력 → 콜백 → 윈들리 메인 진입까지의 흐름을 helpers 로 캡슐화.
+//
+// 정책:
+//   - 매번 fresh state 필요 (page.context().clearCookies() 호출은 spec 책임).
+//   - 봇 검사 / 2FA / 캡차 등으로 차단되면 'oauth_blocked' 로 빠지고 사유 로깅.
+//   - 결과 = { ok: true } | { ok: false; error_key; message } — spec 의 step
+//     handler 가 그대로 return.
+
+const LOGIN_URL = 'https://hub.windly.cc/accounts/login';
+const NAVER_BG = 'rgb(3, 199, 90)';
+const GOOGLE_BG = 'rgb(255, 255, 255)';
+const GOOGLE_BORDER = 'rgb(233, 234, 237)';
+
+type SocialProvider = 'NAVER' | 'GOOGLE';
+
+/** 윈들리 로그인 페이지 진입 후 NAVER/GOOGLE SocialButton 클릭. clearCookies 는 호출자 책임. */
+async function clickSocialButton(page: Page, provider: SocialProvider): Promise<void> {
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+
+  // SocialButton 은 svg-only 버튼 — computed style 로 매치.
+  const targetBg = provider === 'NAVER' ? NAVER_BG : GOOGLE_BG;
+  const targetBorder = provider === 'GOOGLE' ? GOOGLE_BORDER : null;
+
+  await page
+    .evaluate(
+      ({ bg, border }) => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const match = buttons.find((b) => {
+          const style = getComputedStyle(b);
+          if (style.backgroundColor !== bg) return false;
+          if (border !== null && style.borderColor !== border) return false;
+          return b.querySelector('svg') !== null;
+        });
+        if (!match) throw new Error('social button not found');
+        (match as HTMLElement).click();
+      },
+      { bg: targetBg, border: targetBorder },
+    );
+
+  // window.open(url, '_self') → 같은 탭에서 OAuth provider 로 navigation.
+  await page
+    .waitForURL(provider === 'NAVER' ? /nid\.naver\.com/ : /accounts\.google\.com/, {
+      timeout: 20_000,
+    })
+    .catch(() => undefined);
+}
+
+/**
+ * 네이버 OAuth 로그인 → 윈들리 콜백 진입까지 검증.
+ *
+ * @returns 'logged_in' | 'no_credentials' | 'oauth_blocked' | 'callback_failed'
+ */
+export async function loginViaNaver(
+  page: Page,
+): Promise<'logged_in' | 'no_credentials' | 'oauth_blocked' | 'callback_failed'> {
+  const email = (process.env['NAVER_TEST_EMAIL'] ?? '').trim();
+  const pwd = (process.env['NAVER_TEST_PASSWORD'] ?? '').trim();
+  if (!email || !pwd) return 'no_credentials';
+
+  await clickSocialButton(page, 'NAVER');
+  if (!/nid\.naver\.com/.test(page.url())) {
+    return 'oauth_blocked';
+  }
+
+  const idInput = page.locator('input#id, input[name="id"]').first();
+  const pwInput = page.locator('input#pw, input[name="pw"]').first();
+  try {
+    await idInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await pwInput.waitFor({ state: 'visible', timeout: 5_000 });
+  } catch {
+    return 'oauth_blocked';
+  }
+  await idInput.click();
+  await idInput.pressSequentially(email, { delay: 30 });
+  await pwInput.click();
+  await pwInput.pressSequentially(pwd, { delay: 30 });
+
+  const submitBtn = page.locator('button#log\\.login, button[type="submit"], input.btn_login').first();
+  await submitBtn.click({ timeout: 10_000 }).catch(() => undefined);
+
+  // 봇 검사: "자동입력 방지문자" / "기기등록" 등 페이지로 분기 가능.
+  // 45초 안에 page hostname 이 *.windly.cc 로 도달하면 success.
+  // ⚠️ regex 만으로 URL 전체 매치하면 'redirect_uri=https://hub.windly.cc/...' 같은
+  // 쿼리 파라미터 내부도 매치돼 false positive. hostname 기준으로 검사.
+  const callbackReached = await page
+    .waitForURL(
+      (url) => {
+        try {
+          return /windly\.cc$/i.test(new URL(url.toString()).hostname);
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 45_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+
+  if (!callbackReached) {
+    if (/captcha|nidlogin\.captcha|deviceConfirm/i.test(page.url())) {
+      return 'oauth_blocked';
+    }
+    return 'callback_failed';
+  }
+  await page.waitForLoadState('domcontentloaded', { timeout: 15_000 }).catch(() => undefined);
+  return 'logged_in';
+}
+
+/**
+ * 구글 OAuth 로그인 → 윈들리 콜백 진입까지 검증.
+ *
+ * @returns 'logged_in' | 'no_credentials' | 'oauth_blocked' | 'callback_failed'
+ */
+export async function loginViaGoogle(
+  page: Page,
+): Promise<'logged_in' | 'no_credentials' | 'oauth_blocked' | 'callback_failed'> {
+  const email = (process.env['GOOGLE_TEST_EMAIL'] ?? '').trim();
+  const pwd = (process.env['GOOGLE_TEST_PASSWORD'] ?? '').trim();
+  if (!email || !pwd) return 'no_credentials';
+
+  await clickSocialButton(page, 'GOOGLE');
+  if (!/accounts\.google\.com/.test(page.url())) {
+    return 'oauth_blocked';
+  }
+
+  // Step 1: email
+  const emailInput = page.locator('input[type="email"]').first();
+  try {
+    await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
+  } catch {
+    return 'oauth_blocked';
+  }
+  await emailInput.click();
+  await emailInput.pressSequentially(email, { delay: 30 });
+  await page
+    .getByRole('button', { name: /다음|Next/i })
+    .first()
+    .click({ timeout: 10_000 })
+    .catch(() => undefined);
+
+  // Step 2: password
+  const pwdInput = page.locator('input[type="password"][name="Passwd"], input[type="password"]').first();
+  try {
+    await pwdInput.waitFor({ state: 'visible', timeout: 15_000 });
+  } catch {
+    // 구글이 "이 계정은 로그인할 수 없음" 이거나 자동화 차단됐을 수 있음.
+    return 'oauth_blocked';
+  }
+  await pwdInput.click();
+  await pwdInput.pressSequentially(pwd, { delay: 30 });
+  await page
+    .getByRole('button', { name: /다음|Next/i })
+    .first()
+    .click({ timeout: 10_000 })
+    .catch(() => undefined);
+
+  const callbackReached = await page
+    .waitForURL(
+      (url) => {
+        try {
+          return /windly\.cc$/i.test(new URL(url.toString()).hostname);
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 45_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+
+  if (!callbackReached) {
+    if (/challenge|signin\/v2\/challenge/i.test(page.url())) {
+      return 'oauth_blocked';
+    }
+    return 'callback_failed';
+  }
+  await page.waitForLoadState('domcontentloaded', { timeout: 15_000 }).catch(() => undefined);
+  return 'logged_in';
+}

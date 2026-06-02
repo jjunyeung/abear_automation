@@ -1,4 +1,5 @@
 title: 기본 설정 > 공통설정 > 마켓별 가중치 → 단일 마켓만 변경 → 영속성
+priority: P2
 
 description: |
   /view3/base-setting?category=MARKET_WEIGHT 진입 → 6개 마켓 input 중 첫 항목 (보통 스마트스토어) 만 +1 변경 + onBlur 저장 + reload 후 값 유지 확인.

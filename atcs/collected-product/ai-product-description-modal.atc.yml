@@ -1,0 +1,51 @@
+# 수집상품 상세페이지 → AI 상세페이지 설명 버튼 호버/클릭 → 모달 노출/닫기 (non-destructive).
+#
+# TC 원본 (P0, 4건):
+#   - Case No 831 / AI 상품 설명 / 버튼 호버 (툴팁 노출)
+#   - Case No 832 / AI 상품 설명 / 버튼 선택 (모달 오픈)
+#   - Case No 833 / AI 상품 설명 / 모달 확인 (제목 + 안내 + 버튼)
+#   - Case No 838 / AI 상품 설명 / 툴팁 확인 (호버 시 TooltipContent)
+#
+# TC 835/836 (상세페이지에 추가 클릭) → destructive (상세페이지 데이터 수정) → 본 spec skip.
+# TC 837 (기본설정에서 적용) → 다른 feature (baseSetting) → 별도 영역.
+#
+# 코드 출처: windly_repo/sesame/src/features/ProductDetail/ProductDetailTabs/DetailPageTab/
+#   - DetailPageTools/index.tsx L162-173: <Tooltip ...><Button onClick={setShowAiProductDescriptionModal(true)}>AI 상세페이지 설명</Button></Tooltip>
+#   - DetailPageTools/AiProductDescription/index.tsx L120-146: <Modal title="AI 상세페이지 설명" leftButtonText="취소" rightButtonText="상세페이지에 추가" />
+
+title: 수집상품 상세페이지 → AI 상세페이지 설명 모달 노출 (TC 831/832/833/838)
+priority: P0
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 상세페이지 탭 → AI 상세페이지 설명 버튼 호버 (툴팁 노출)
+  → 버튼 클릭 → 모달 오픈 → 제목/안내/버튼 노출 검증 → 취소 클릭으로 닫기.
+  TC 원본: Case No 831, 832, 833, 838 / P0. 상세페이지에 추가 (TC 835/836) 는 destructive 라 skip.
+
+inputs: {}
+
+steps:
+  - id: open_first_product_detail
+    do: 수집상품 목록 진입 후 첫 카드의 상세 페이지 진입
+
+  - id: click_detail_page_tab
+    do: ProductDetail 의 상세페이지 탭 클릭
+
+  - id: hover_ai_description_button
+    do: AI 상세페이지 설명 버튼 호버 (Tooltip 노출 트리거)
+
+  - id: verify_tooltip_visible
+    do: 호버 후 TooltipContent 텍스트 노출 확인 - 클릭 한 번으로 AI가 키워드 포함
+
+  - id: click_ai_description_button
+    do: AI 상세페이지 설명 버튼 클릭으로 모달 오픈
+
+  - id: verify_modal_opened
+    do: 모달 제목 AI 상세페이지 설명 + 취소 버튼 + 상세페이지에 추가 버튼 노출 확인
+
+  - id: close_modal_with_cancel
+    do: 취소 버튼 클릭으로 모달 닫기
+
+  - id: verify_modal_closed
+    do: 모달 제목 노출 X 확인
+
+expected: AI 버튼 호버 → 툴팁 + 클릭 → 모달 → 취소. 상세페이지 데이터 변경 없음. unhandled 0건.

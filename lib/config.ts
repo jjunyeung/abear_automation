@@ -23,6 +23,27 @@ const envSchema = z.object({
   WINDLY_EXTENSION_PATH: z.string().optional(),
   WINDLY_LOGIN_EMAIL: z.string().email().optional(),
   WINDLY_LOGIN_PASSWORD: z.string().optional(),
+  // OAuth 실 로그인 검증용 (결정 10 — "로그인만 되는지 확인").
+  // 미설정 시 OAuth 로그인 spec 은 skip / fail with clear message.
+  // 네이버는 ID (john_dk) 도 email (foo@naver.com) 도 받음 → .email() 강제 X.
+  NAVER_TEST_EMAIL: z.string().optional(),
+  NAVER_TEST_PASSWORD: z.string().optional(),
+  GOOGLE_TEST_EMAIL: z.string().optional(),
+  GOOGLE_TEST_PASSWORD: z.string().optional(),
+  KAKAO_TEST_EMAIL: z.string().optional(),
+  // 직원 계정 — atcs/e2e/staff-account-permission.atc.yml (K2) 에서 사용.
+  WINDLY_STAFF_EMAIL: z.string().email().optional(),
+  WINDLY_STAFF_PASSWORD: z.string().optional(),
+  // 자동 회귀용 URL pool — data/url-pool/{taobao,tmall,rakuten}.txt head 1개씩 consume.
+  // 미설정 시 ATC_INPUT_PRODUCT_URL 사용 (기존 정책).
+  ATC_URL_POOL_DIR: z.string().optional(),
+  // Slack 알림 — 자동 회귀 결과 통합 알림.
+  // (1) Bot 방식 (DM/임의 채널 가능): SLACK_BOT_TOKEN + SLACK_TARGET_CHANNEL
+  // (2) Webhook 방식 (발급 시 채널 고정): SLACK_WEBHOOK_URL
+  // 둘 다 있으면 (1) 우선, 실패 시 (2) fallback.
+  SLACK_BOT_TOKEN: z.string().startsWith('xoxb-').optional(),
+  SLACK_TARGET_CHANNEL: z.string().optional(),
+  SLACK_WEBHOOK_URL: z.string().url().optional(),
 });
 
 /** Inferred env shape — all fields optional at runtime. */

@@ -8,7 +8,8 @@ ATC (Automated Test Case) 정의 파일은 **단일 위치 / 단일 확장자 / 
 - 도메인 디렉토리를 건너뛰지 마라. `atcs/foo.atc.yml` (도메인 없음) 금지.
 - 도메인 디렉토리를 다단으로 깊게 만들지 마라. `atcs/collect/taobao/foo.atc.yml` (depth 3) 금지 — `atcs/<domain>/<name>.atc.yml` (depth 2) 만 허용.
 - 확장자 위반 금지: `.yml` 단독 (`foo.yml`), `.yaml` (`foo.yaml`, `foo.atc.yaml`), `.json`, `.ts` 모두 ATC 정의로 사용 X.
-- ATC YAML 의 최상위 키를 임의로 추가/변경하지 마라. 고정 키 6개만 사용: `title`, `description`, `inputs`, `outputs`, `steps`, `expected` (큰 시나리오는 추가로 `composes`). 새 키 도입은 스키마 (`lib/atc-schema.ts`) 변경이 선행되어야 함.
+- ATC YAML 의 최상위 키를 임의로 추가/변경하지 마라. 고정 키 7개만 사용: `title`, `priority`, `description`, `inputs`, `outputs`, `steps`, `expected` (큰 시나리오는 추가로 `composes`). 새 키 도입은 스키마 (`lib/atc-schema.ts`) 변경이 선행되어야 함.
+- `priority` 값은 정확히 `P0` / `P1` / `P2` 중 하나. 소문자 (`p0`) / 다른 라벨 (`high`, `critical`) 금지. 통합 ATC 는 묶인 TC# 들 중 최고 priority (P0 > P1 > P2).
 - ATC 안에 Playwright 코드 (raw JS/TS 스니펫)를 임베드하지 마라. `do` 는 한국어 자연어 설명만.
 
 ## 대신
@@ -20,9 +21,10 @@ ATC (Automated Test Case) 정의 파일은 **단일 위치 / 단일 확장자 / 
   - `<domain>` ∈ `collect`, `error-check`, `fix`, `upload`, `e2e` (D9 후보. 새 도메인이 필요하면 먼저 추가 결정 후).
   - `<name>` 은 kebab-case, 의미 있는 단어 (`product-error-check`, `taobao-collect-single`).
   - 확장자는 반드시 `.atc.yml` (이중 확장자: `name` + `.atc` + `.yml`).
-- YAML 스키마 (고정 키 6개):
+- YAML 스키마 (고정 키 7개):
   ```yaml
   title: <한글 또는 영문 1줄 요약>
+  priority: P0 | P1 | P2                    # 선택 (점진 backfill 중). 엑셀 TC export 의 P 컬럼과 동일.
   description: |                           # 선택: 사람이 읽는 설명/메모. GUI InputForm 헤더 아래에 표시.
     <이 TC 가 무엇을 하는지, 어떤 시나리오인지>
     <줄바꿈 포함 가능 (pre-line)>

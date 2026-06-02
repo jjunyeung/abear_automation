@@ -13,6 +13,7 @@
 # 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
 
 title: 등록상품 맨 위 상품 삭제 후 목록에서 사라짐 확인
+priority: P0
 
 description: |
   등록상품 목록 맨 위 상품을 전체 마켓에서 삭제하고, 삭제 후 검색했을 때 결과 0 인지로 사라짐을 검증하는 시나리오.

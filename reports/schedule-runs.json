@@ -256,5 +256,511 @@
         "overall": "failed"
       }
     ]
+  },
+  {
+    "scheduleId": "28870e51-9286-4a81-b45f-3ade804b7b09",
+    "firedAt": "2026-05-21T03:30:04.000Z",
+    "completedAt": "2026-05-21T03:30:57.669Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-21_12-30-04_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/error-check/check-and-fix.atc.yml",
+        "runId": "result_2026-05-21_12-30-26_2",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/single-product.atc.yml",
+        "runId": "result_2026-05-21_12-30-26_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/registered-check.atc.yml",
+        "runId": "result_2026-05-21_12-30-57_4",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-21_12-30-57_5",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/delete-top-product.atc.yml",
+        "runId": "result_2026-05-21_12-30-57_6",
+        "exitCode": 2,
+        "overall": "failed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "28870e51-9286-4a81-b45f-3ade804b7b09",
+    "firedAt": "2026-05-22T03:30:00.000Z",
+    "completedAt": "2026-05-22T03:32:50.365Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-22_12-30-00_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/error-check/check-and-fix.atc.yml",
+        "runId": "result_2026-05-22_12-32-17_2",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/single-product.atc.yml",
+        "runId": "result_2026-05-22_12-32-17_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/registered-check.atc.yml",
+        "runId": "result_2026-05-22_12-32-50_4",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-22_12-32-50_5",
+        "exitCode": 2,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/upload/delete-top-product.atc.yml",
+        "runId": "result_2026-05-22_12-32-50_6",
+        "exitCode": 2,
+        "overall": "failed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-23T03:30:00.000Z",
+    "completedAt": "2026-05-23T03:35:27.500Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-23_12-30-00_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-23_12-33-20_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-23_12-33-50_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-23_12-34-32_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-23_12-34-59_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-24T03:30:01.000Z",
+    "completedAt": "2026-05-24T03:35:49.757Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-24_12-30-01_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-24_12-33-42_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-24_12-34-13_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-24_12-34-54_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-24_12-35-22_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-25T03:30:01.000Z",
+    "completedAt": "2026-05-25T03:35:20.987Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-25_12-30-01_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-25_12-33-10_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-25_12-33-42_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-25_12-34-23_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-25_12-34-52_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-26T03:30:03.000Z",
+    "completedAt": "2026-05-26T03:52:26.326Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-26_12-30-03_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-26_12-33-49_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-26_12-34-20_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-26_12-35-08_4",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-26_12-51-57_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-27T03:30:00.000Z",
+    "completedAt": "2026-05-27T03:35:49.027Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-27_12-30-00_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-27_12-33-20_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-27_12-33-55_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-27_12-34-44_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-27_12-35-16_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-28T03:30:05.000Z",
+    "completedAt": "2026-05-28T03:34:57.052Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-28_12-30-05_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-28_12-32-41_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-28_12-33-15_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-28_12-33-58_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-28_12-34-27_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-29T03:30:05.000Z",
+    "completedAt": "2026-05-29T03:30:13.620Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-29_12-30-05_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-29_12-30-08_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-29_12-30-09_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-29_12-30-10_4",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-29_12-30-12_5",
+        "exitCode": 1,
+        "overall": "failed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-30T03:30:00.000Z",
+    "completedAt": "2026-05-30T03:33:12.774Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-30_12-30-00_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-30_12-31-02_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-30_12-31-32_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-30_12-32-15_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-30_12-32-43_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-05-31T03:30:02.000Z",
+    "completedAt": "2026-05-31T03:35:15.956Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-05-31_12-30-02_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-05-31_12-33-04_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-05-31_12-33-36_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-05-31_12-34-18_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-05-31_12-34-47_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-06-01T03:30:04.000Z",
+    "completedAt": "2026-06-01T03:58:36.255Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-06-01_12-30-04_1",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-06-01_12-50-22_2",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-06-01_12-50-52_3",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-06-01_12-51-53_4",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-06-01_12-55-08_5",
+        "exitCode": 1,
+        "overall": "failed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "3fa8cd81-0251-40bf-9d09-8419cd5d64fe",
+    "firedAt": "2026-06-02T03:30:02.000Z",
+    "completedAt": "2026-06-02T03:34:56.400Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-and-ai-fix.atc.yml",
+        "runId": "result_2026-06-02_12-30-02_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-check.atc.yml",
+        "runId": "result_2026-06-02_12-32-44_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/top-product-market-popups.atc.yml",
+        "runId": "result_2026-06-02_12-33-18_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-modal-visible.atc.yml",
+        "runId": "result_2026-06-02_12-34-00_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/registered-product/registered-delete-execute-complete.atc.yml",
+        "runId": "result_2026-06-02_12-34-28_5",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
   }
 ]

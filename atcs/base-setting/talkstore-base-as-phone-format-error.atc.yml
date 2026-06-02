@@ -8,6 +8,7 @@
 #   phoneRegex 안 맞을 때 inline 노출.
 
 title: 기본설정 톡스토어 A/S 전화번호 형식 에러
+priority: P2
 
 description: |
   배송 정보 탭 → A/S 전화번호에 잘못된 형식 입력 → "연락처 형식이 올바르지 않습니다." 노출 검증.

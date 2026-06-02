@@ -18,6 +18,7 @@
 # 인 점을 이용해 evaluate 로 판정.
 
 title: 관부가세 base setting 변경 후 첫 수집상품 업로드 설정 탭 매치 검증
+priority: P0
 
 description: |
   관부가세 base setting 변경 → bulk-apply → 첫 수집상품 업로드 설정 탭의 관부가세 SegmentedButton 매치 검증.

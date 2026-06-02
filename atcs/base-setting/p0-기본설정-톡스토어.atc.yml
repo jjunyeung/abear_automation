@@ -1,0 +1,94 @@
+# 기본설정 / 톡스토어 — P0 미작성 TC 36건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/base-setting/p0-기본설정-톡스토어.spec.ts 에 구현
+#   2. tests/base-setting/p0-기본설정-톡스토어.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 기본설정 / 톡스토어 영역 P0 TC 묶음 (36건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 36건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1015
+    do: 기본설정 톡스토어 확인
+  - id: tc1016
+    do: 연결하러 가기 선택
+  - id: tc1017
+    do: 기본설정 톡스토어 확인
+  - id: tc1019
+    do: 출고지 드롭다운 선택
+  - id: tc1020
+    do: 출고지 선택
+  - id: tc1021
+    do: 반품지 드롭다운 선택
+  - id: tc1022
+    do: 반품지 선택
+  - id: tc1023
+    do: 택배사 목록 드롭다운 선택
+  - id: tc1024
+    do: 택배사 선택
+  - id: tc1025_추가-배송비
+    do: 추가 배송비 입력
+  - id: tc1026_추가-배송비
+    do: 추가 배송비 입력
+  - id: tc1032_추가-배송비
+    do: 추가 배송비 입력
+  - id: tc1038_추가-배송비
+    do: 배송 불가 선택
+  - id: tc1039_as-정보
+    do: a/s 전화번호 입력
+  - id: tc1040_as-정보
+    do: A/S 안내 내용 입력
+  - id: tc1041_as-정보
+    do: 전화번호 에러 확인
+  - id: tc1043_as-정보
+    do: A/S 안내 내용 입력
+  - id: tc1044_리뷰-포인트
+    do: 리뷰 포인트 화면 확인
+  - id: tc1046_리뷰-포인트
+    do: 구매 포인트 지급 여부 설정 토글 동작
+  - id: tc1048_리뷰-포인트
+    do: 원 드롭다운 선택
+  - id: tc1049_리뷰-포인트
+    do: 원 선택
+  - id: tc1050_리뷰-포인트
+    do: '% 선택'
+  - id: tc1051_리뷰-포인트
+    do: 원 적립액 입력
+  - id: tc1052_리뷰-포인트
+    do: 원 적립액 입력
+  - id: tc1057_리뷰-포인트
+    do: 원 적립액 입력
+  - id: tc1059_리뷰-포인트
+    do: '% 적립율 입력'
+  - id: tc1060_리뷰-포인트
+    do: '% 적립율 입력'
+  - id: tc1061_리뷰-포인트
+    do: '% 적립율 입력'
+  - id: tc1063_리뷰-포인트
+    do: 포인트 지급 토글 off
+  - id: tc1064_리뷰-포인트
+    do: 리뷰 시 포인트 지금 여부 설정 On
+  - id: tc1065_리뷰-포인트
+    do: 리뷰 시 포인트 지금 여부 설정 Off
+  - id: tc1066_상품-속성
+    do: 상품 속성 화면 확인
+  - id: tc1068_상품-속성
+    do: 드롭다운 선택
+  - id: tc1069_상품-노출-및-판매
+    do: 상품 노출 및 판매 화면 확인
+  - id: tc1070_상품-노출-및-판매
+    do: 전시상태 설정 변경
+  - id: tc1071_상품-노출-및-판매
+    do: 다음 노출 설정 변경
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

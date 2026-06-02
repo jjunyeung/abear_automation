@@ -37,6 +37,10 @@ interface ReportPanelProps {
   runIds?: readonly string[];
   /** 묶음 안의 각 TC 헤더 라벨 (atcPath 기반). */
   titleResolver?: (runId: string) => string | null;
+  /** 진입 출처로 돌아가는 핸들러. 주어지면 toolbar 좌측에 뒤로가기 버튼 표시. */
+  onBack?: () => void;
+  /** 뒤로가기 버튼 라벨 ("스케줄로" 등). onBack 과 짝. */
+  backLabel?: string;
 }
 
 interface LoadedReport {
@@ -202,7 +206,21 @@ export function ReportPanel({
   runId,
   runIds,
   titleResolver,
+  onBack,
+  backLabel,
 }: ReportPanelProps): JSX.Element {
+  const backButton =
+    onBack !== undefined ? (
+      <BpButton
+        icon="arrow-left"
+        small
+        minimal
+        onClick={onBack}
+        text={backLabel ?? '뒤로'}
+        title={backLabel ? `${backLabel} 돌아가기` : '이전 화면으로 돌아가기'}
+      />
+    ) : null;
+
   const idsKey =
     runIds !== undefined && runIds.length > 0 ? runIds.join('|') : (runId ?? '');
   const ids: readonly string[] =
@@ -305,6 +323,9 @@ export function ReportPanel({
   if (ids.length === 0) {
     return (
       <div className="report-panel report-panel--empty">
+        {backButton !== null && (
+          <div className="report-panel__toolbar">{backButton}</div>
+        )}
         <p className="report-panel__empty">실행 완료 후 리포트가 여기 표시됩니다.</p>
       </div>
     );
@@ -313,6 +334,9 @@ export function ReportPanel({
   if (loading) {
     return (
       <div className="report-panel">
+        {backButton !== null && (
+          <div className="report-panel__toolbar">{backButton}</div>
+        )}
         <p className="report-panel__loading">
           리포트 로딩 중… ({ids.length === 1 ? ids[0] : `${ids.length}개 묶음`})
         </p>
@@ -323,6 +347,9 @@ export function ReportPanel({
   if (error !== null) {
     return (
       <div className="report-panel">
+        {backButton !== null && (
+          <div className="report-panel__toolbar">{backButton}</div>
+        )}
         <p className="report-panel__error" role="alert">
           {error}
         </p>
@@ -340,9 +367,12 @@ export function ReportPanel({
     return (
       <div className="report-panel">
         <div className="report-panel__toolbar">
-          <span className="report-panel__runid" title={onlyId}>
-            {onlyId}
-          </span>
+          <div className="report-panel__toolbar-left">
+            {backButton}
+            <span className="report-panel__runid" title={onlyId}>
+              {onlyId}
+            </span>
+          </div>
           <BpButton
             icon="folder-open"
             small
@@ -364,9 +394,12 @@ export function ReportPanel({
     <div className="report-panel report-panel--batch">
       {/* 헤더: 통합 리포트 파일 액션 */}
       <div className="report-panel__batch-toolbar">
-        <span className="report-panel__batch-meta">
-          {reports.length}개 TC · 총 {formatDuration(summary?.durationMs ?? 0)}
-        </span>
+        <div className="report-panel__batch-toolbar-left">
+          {backButton}
+          <span className="report-panel__batch-meta">
+            {reports.length}개 TC · 총 {formatDuration(summary?.durationMs ?? 0)}
+          </span>
+        </div>
         <div className="report-panel__batch-toolbar-right">
           {batchId !== null && (
             <BpButton

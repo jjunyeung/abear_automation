@@ -1,0 +1,26 @@
+# 인기 상품 추천 개선 / 상품카드 — P0 미작성 TC 2건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p0-인기-상품-추천-개선-상품카드.spec.ts 에 구현
+#   2. tests/collected-product/p0-인기-상품-추천-개선-상품카드.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 인기 상품 추천 개선 / 상품카드 영역 P0 TC 묶음 (2건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 2건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3684_타오바오-상품명-표시
+    do: 타오바오 상품명 중국어 원문 노출 확인
+  - id: tc3685_타오바오-평점-미노출
+    do: 타오바오 상품 카드 평점 미노출 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

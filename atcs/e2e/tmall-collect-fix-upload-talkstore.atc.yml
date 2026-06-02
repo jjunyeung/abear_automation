@@ -1,0 +1,52 @@
+# A2. 티몰 단건 수집 → 옵션가격 수정 → 톡스토어 업로드.
+
+title: 티몰 단건 수집 → 옵션가격 수정 → 톡스토어 업로드 → 등록 확인 (e2e)
+priority: P0
+
+description: |
+  티몰 단건 URL 수집 후 옵션가격을 직접 수정하고 톡스토어로 업로드. 톡스토어 마켓 경로 회귀.
+  매일 회귀 메인 (스스+톡스토어 = 가장 트래픽 큰 2개 마켓).
+
+inputs:
+  product_url:
+    type: string
+    description: 티몰 detail.tmall.com URL. 매 실행 새 값.
+    example: https://detail.tmall.com/item.htm?id=...
+
+outputs:
+  source_product_id:
+    type: string
+    description: 수집된 윈들리 상품 내부 코드.
+
+steps:
+  - id: open_collect_menu
+    do: 상품 수집 메뉴 진입.
+  - id: open_url_collect
+    do: URL 수집 모달 열기.
+  - id: submit_url
+    do: product_url 입력 후 수집 실행.
+  - id: wait_completion
+    do: BulkImportTable 완료 (CheckIcon) 대기.
+  - id: close_modal_goto_collected
+    do: 모달 닫고 수집상품 목록 진입.
+  - id: wait_first_card_ready
+    do: 첫 카드 ProductCard 전환 대기.
+  - id: enter_product_detail
+    do: 첫 카드 클릭 상세 진입. source_product_id emit.
+
+  - id: bump_option_price
+    do: 옵션 탭에서 첫 옵션의 가격을 +100원 수정 후 저장.
+
+  - id: trigger_upload
+    do: 업로드 트리거 + 유의사항 모달 → 업로드 하기.
+  - id: wait_upload_complete
+    do: 업로드 완료 대기 (성공 ≥1).
+
+  - id: open_registered_list
+    do: 등록상품 목록 진입.
+  - id: verify_in_registered
+    do: source_product_id 매칭.
+  - id: verify_talkstore_active
+    do: 등록상품 카드에서 톡스토어 마켓 아이콘 활성 확인.
+
+expected: 티몰 수집 → 옵션가 수정 → 톡스토어 업로드 → 등록 매칭. unhandled 0건.

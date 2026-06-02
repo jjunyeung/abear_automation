@@ -1,0 +1,44 @@
+# 상품수집 / 아마존 스페인 — P2 미작성 TC 11건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/product-collect/p2-상품수집-아마존-스페인.spec.ts 에 구현
+#   2. tests/product-collect/p2-상품수집-아마존-스페인.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 상품수집 / 아마존 스페인 영역 P2 TC 묶음 (11건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 11건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc291_⑥
+    do: 아마존 스페인 상품수집
+  - id: tc292_⑥
+    do: 수집 실패
+  - id: tc293_⑥
+    do: 수집 실패
+  - id: tc294_⑥
+    do: 수집 실패
+  - id: tc295_⑥
+    do: 아마존 스페인 검색결과 리스트 수집
+  - id: tc296_⑥
+    do: 리스트에 등록된 상품 있을 때
+  - id: tc297_⑥
+    do: 검색결과 리스트 수집
+  - id: tc298_⑥
+    do: 아마존 스페인 카테고리 리스트 수집
+  - id: tc299_⑥
+    do: 리스트에 등록된 상품 있을 때
+  - id: tc300_⑥
+    do: 검색결과 리스트 수집
+  - id: tc301_⑥
+    do: 썸네일 수집
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

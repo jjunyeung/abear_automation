@@ -71,27 +71,75 @@ function writeAll(urls: readonly string[]): void {
 }
 
 /**
- * 새 URL 들을 풀 뒤에 append. 빈 줄/공백/중복은 자동 정리 (기존 풀 + 신규 머지 후 dedupe,
- * 순서는 첫 등장 순서 유지). 잘못된 URL 검증은 호출자 (GUI) 책임 — 여기서는 단순 보관소.
+ * 실제 상품 페이지 URL 호스트 화이트리스트. 광고/추적/검색 URL 은 거부.
+ * Tier 3 e2e (A1 taobao, A2 tmall, A3 rakuten) 가 의도한 상품 URL 만 풀에 들어가도록.
+ *
+ * 패턴 매칭 (URL 의 origin + pathname prefix 검증):
+ *   - 타오바오:  item.taobao.com/item.htm
+ *   - 티몰:      detail.tmall.com/item.htm
+ *   - 라쿠텐:    item.rakuten.co.jp/<shop>/<sku>/
+ *
+ * 차단되는 대표 패턴:
+ *   - click.mz.simba.taobao.com (광고 추적)
+ *   - s.taobao.com (검색)
+ *   - tmall.com 의 다른 경로
  */
-export function addToPool(urls: readonly string[]): { added: number; total: number } {
+export interface UrlValidation {
+  ok: boolean;
+  reason?: string;
+}
+
+export function validateProductUrl(raw: string): UrlValidation {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return { ok: false, reason: '유효한 URL 아님' };
+  }
+  const host = u.hostname.toLowerCase();
+  const pathStartsWith = (p: string) => u.pathname === p || u.pathname.startsWith(p);
+
+  if (host === 'item.taobao.com' && pathStartsWith('/item.htm')) return { ok: true };
+  if (host === 'detail.tmall.com' && pathStartsWith('/item.htm')) return { ok: true };
+  if (host === 'item.rakuten.co.jp' && /^\/[^/]+\/[^/]+\/?$/.test(u.pathname)) return { ok: true };
+
+  return {
+    ok: false,
+    reason: `지원 host 아님: ${host}${u.pathname} (item.taobao.com/item.htm | detail.tmall.com/item.htm | item.rakuten.co.jp/<shop>/<sku>/ 만 허용)`,
+  };
+}
+
+/**
+ * 새 URL 들을 풀 뒤에 append. 빈 줄/공백/중복/잘못된 host 자동 거름.
+ *
+ * 반환의 rejected 는 호출자 (GUI) 에서 사용자에게 표시.
+ */
+export function addToPool(
+  urls: readonly string[],
+): { added: number; total: number; rejected: Array<{ url: string; reason: string }> } {
   const cleaned = urls
     .map((u) => u.trim())
     .filter((u) => u.length > 0 && !u.startsWith('#'));
   if (cleaned.length === 0) {
-    return { added: 0, total: listPool().length };
+    return { added: 0, total: listPool().length, rejected: [] };
   }
   const existing = listPool();
   const seen = new Set<string>(existing);
+  const rejected: Array<{ url: string; reason: string }> = [];
   let added = 0;
   for (const u of cleaned) {
     if (seen.has(u)) continue;
+    const v = validateProductUrl(u);
+    if (!v.ok) {
+      rejected.push({ url: u, reason: v.reason ?? '잘못된 URL' });
+      continue;
+    }
     existing.push(u);
     seen.add(u);
     added += 1;
   }
   writeAll(existing);
-  return { added, total: existing.length };
+  return { added, total: existing.length, rejected };
 }
 
 /**

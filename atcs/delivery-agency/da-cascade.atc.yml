@@ -5,6 +5,7 @@
 # 검증: cascade 3단계 정상 선택 + 부가서비스 영역 노출 + disabled checkbox/radio ≥1.
 
 title: 배송대행지 토스토스 cascade 옵션 검증 (region × shipping × customs)
+priority: P0
 
 description: |
   토스토스 신청서에서 region/shipping/customs 3-stage cascade 가

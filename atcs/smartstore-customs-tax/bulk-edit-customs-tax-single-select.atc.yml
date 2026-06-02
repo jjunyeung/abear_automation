@@ -6,6 +6,7 @@
 #   BulkEditModal.step3 isNextStepUnavailable: isEmpty(payload.smartStoreCustomsTax).
 
 title: 스스 관부가세 단일 선택 동작 검증
+priority: P2
 
 description: |
   관부가세 step3 → 수정 모드 → 옵션 A 클릭 → 다음 enabled 검증 → 옵션 B 클릭 →

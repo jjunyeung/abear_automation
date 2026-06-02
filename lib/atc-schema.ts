@@ -77,6 +77,12 @@ export const atcSchema = z
   .object({
     title: z.string(),
     /**
+     * TC 우선순위 (엑셀 TC export 의 P 컬럼과 동일). GUI 카탈로그에서 필터/태그로
+     * 사용. 통합 ATC 는 묶인 TC# 들 중 최고 priority (P0 > P1 > P2). 신규 작성
+     * 시 필수에 가까우나 backfill 점진 적용을 위해 optional.
+     */
+    priority: z.enum(['P0', 'P1', 'P2']).optional(),
+    /**
      * TC 가 무엇을 하는 지 사람이 읽는 설명/메모. GUI InputForm 헤더 아래에 표시되어
      * "이 TC 가 뭔지" 알려준다. 실행에는 사용 안 함 — 순수 표시용.
      * composes 의 child ATC 의 description 은 부모로 병합 안 됨 (inputs 와 같은 정책).

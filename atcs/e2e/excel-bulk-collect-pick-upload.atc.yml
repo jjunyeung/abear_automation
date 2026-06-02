@@ -1,0 +1,15 @@
+title: 엑셀 벌크 수집 모달 진입 (e2e)
+priority: P2
+description: 상품 수집 → 엑셀 URL 가져오기 모달 노출 검증. 실제 파일 업로드 X.
+
+inputs: {}
+
+steps:
+  - id: open_collect_menu
+    do: 상품 수집 메뉴 진입.
+  - id: open_excel_import_modal
+    do: 엑셀 URL 가져오기 카드 클릭하여 모달 노출.
+  - id: verify_modal_visible
+    do: 모달의 파일 업로드 영역 노출 확인.
+
+expected: 엑셀 수집 모달 진입. unhandled 0건.

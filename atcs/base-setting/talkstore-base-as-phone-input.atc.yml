@@ -6,6 +6,7 @@
 #   <TextField label="A/S 전화번호" ... onBlur={...handleUpdateBaseSetting(...)} />
 
 title: 기본설정 톡스토어 A/S 전화번호 입력
+priority: P2
 
 description: |
   배송 정보 탭 → A/S 전화번호 input 에 테스트 값 입력 → 반영 검증 + 원복.

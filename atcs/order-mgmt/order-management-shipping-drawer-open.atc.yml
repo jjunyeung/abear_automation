@@ -38,6 +38,7 @@
 #       TextField placeholder=송장번호 입력
 
 title: 주문 관리 - 배송준비중 탭 송장정보 수정 Drawer 노출 검증
+priority: P2
 
 description: |
   주문 관리 — 배송준비중 탭 진입 → 송장정보 수정 Drawer 노출까지의 1단계만 검증하는 ATC.

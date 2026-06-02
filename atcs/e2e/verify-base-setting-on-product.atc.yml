@@ -26,6 +26,7 @@
 #   - 환율 — 통화 KRW 면 미노출
 
 title: 첫 수집상품 판매가 탭의 BaseSettingItem 들이 글로벌 base setting 과 일치하는지 검증
+priority: P2
 
 description: |
   첫 수집상품의 판매가 탭 BaseSettingItem 6개가 글로벌 base setting 의 값 (구매처/판매처 수수료, 판매가 단위, 할인율, 마진, 관세) 과 정확히 일치하는지 매치 검증.

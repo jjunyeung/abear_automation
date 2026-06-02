@@ -1,0 +1,13 @@
+title: 워터마크 베이스세팅 페이지 smoke (e2e)
+priority: P2
+description: 베이스세팅 워터마크 카테고리 페이지 진입.
+
+inputs: {}
+
+steps:
+  - id: open_watermark_setting
+    do: 베이스세팅 워터마크 카테고리 페이지 직접 goto.
+  - id: verify_setting_visible
+    do: 워터마크 설정 영역 노출 확인.
+
+expected: 워터마크 베이스세팅 페이지 마운트. unhandled 0건.

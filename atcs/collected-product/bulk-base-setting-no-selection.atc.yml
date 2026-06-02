@@ -1,0 +1,39 @@
+# 수집상품 일괄 → 기본 설정값 적용: 선택 없음 예외 검증 (non-destructive).
+#
+# TC 원본 (P0, 1건):
+#   - Case No 3555 / 선택 없음 예외 / 선택 상품이 없으면 기본 설정값 적용을 수행할 수 없다
+#
+# 코드 출처: windly_repo/sesame/src/features/InterestedProduct/InterestedProduct.tsx
+#   - 라인 1055-1081: <AnchoredModal isClickActionDisabled={isEmptySelection}>
+#       <Button disabled={isEmptySelection}> ... 더보기 버튼
+#       AnchoredModalItem "기본 설정값 적용" (employeeRole 가 아닐 때만 노출)
+#   - isEmptySelection = 선택된 카드 0개 시 true → 더보기 버튼 disabled
+#
+# 사전조건: 수집상품 목록 진입 가능. 카드 데이터 0개여도 OK (선택 X 상태 검증).
+# 본 ATC 는 destructive 동작 없음 — 더보기 버튼 disabled 만 확인.
+
+title: 수집상품 일괄 → 기본 설정값 적용 선택 없음 예외 (TC 3555)
+priority: P0
+
+description: |
+  수집상품 목록 진입 → 어떤 카드도 선택하지 않은 상태 → 일괄 도구 영역의 ... 더보기 버튼이
+  disabled 상태인지 확인 (isEmptySelection=true). 모달 트리거 자체가 막혀 있어
+  기본 설정값 적용이 수행 불가능한 상태임을 검증.
+  TC 원본: Case No 3555 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_collected_products
+    do: 수집상품 목록 페이지 진입
+
+  - id: ensure_no_card_selected
+    do: 모든 카드 체크박스 해제 상태 보장 (이미 0건 선택이면 noop)
+
+  - id: verify_more_button_disabled
+    do: 일괄 도구 영역의 ... 더보기 버튼이 disabled 상태인지 확인
+
+  - id: verify_modal_not_opened_on_disabled_click
+    do: disabled 더보기 버튼 클릭 시도 → AnchoredModal 컨테이너 미노출 및 기본 설정값 적용 메뉴 항목 미노출 확인
+
+expected: ... 더보기 버튼 disabled. 메뉴 미오픈. 모달 미오픈. 상품 데이터 변경 없음. unhandled 0건.

@@ -1,0 +1,102 @@
+# 배송대행지 / 신청서 작성 — P2 미작성 TC 40건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/delivery-agency/p2-배송대행지-신청서-작성.spec.ts 에 구현
+#   2. tests/delivery-agency/p2-배송대행지-신청서-작성.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 배송대행지 / 신청서 작성 영역 P2 TC 묶음 (40건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 40건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1369_센터-주소-확인
+    do: 토스토스 신청서 작성 선택
+  - id: tc1370_센터-주소-확인
+    do: 신청서 작성 화면
+  - id: tc1371_센터-주소-확인
+    do: 상품 정보
+  - id: tc1372_센터-주소-확인
+    do: 배송방법
+  - id: tc1373_센터-주소-확인
+    do: 받는사람 정보
+  - id: tc1374_센터-주소-확인
+    do: 상품 금액
+  - id: tc1468
+    do: 상품이미지 URL
+  - id: tc1469
+    do: 구매 사이트 URL*
+  - id: tc1470
+    do: 구매 주문번호
+  - id: tc1471
+    do: 트래킹번호
+  - id: tc1472
+    do: 상품 카테고리(HS)*
+  - id: tc1473
+    do: 영문 상품명*
+  - id: tc1474
+    do: 중문 상품명*
+  - id: tc1475
+    do: 택배 개봉 금지
+  - id: tc1476
+    do: 기본검수(택배 개봉)
+  - id: tc1477
+    do: 본 상품 개봉 금지
+  - id: tc1478
+    do: 수량 확인
+  - id: tc1479
+    do: 사이즈 실측
+  - id: tc1480
+    do: 구성품 확인
+  - id: tc1481
+    do: 실물 상세 검수
+  - id: tc1482
+    do: 폴리백 포장
+  - id: tc1483
+    do: 박스 포장
+  - id: tc1484
+    do: 에어캡(뽁뽁이)
+  - id: tc1485
+    do: 스틱형 에어팩
+  - id: tc1486
+    do: 특수 포장
+  - id: tc1487
+    do: 우드 특수 포장
+  - id: tc1488
+    do: 모서리 보호 포장
+  - id: tc1489
+    do: 어댑터
+  - id: tc1490
+    do: 110V 어댑터
+  - id: tc1491
+    do: 택배 박스 제거
+  - id: tc1492
+    do: 신발 박스 제거
+  - id: tc1493
+    do: 영수증 제거
+  - id: tc1494
+    do: 원산지 증명서
+  - id: tc1495
+    do: 수출 신고서
+  - id: tc1496
+    do: 스티커
+  - id: tc1497
+    do: 도장
+  - id: tc1498
+    do: 케어라벨
+  - id: tc1499
+    do: 바느질
+  - id: tc1500
+    do: 고리택작업
+  - id: tc1501
+    do: 구매물품보상보험
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

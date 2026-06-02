@@ -1,0 +1,46 @@
+# D2. 등록상품 삭제 cascade (모달 → 실행 → 완료).
+#
+# child ATC 들이 자체 완결 (open list → select → modal → confirm) 이라 composes 시 중복.
+# 대신 cascade 흐름을 직접 step 으로 정의.
+
+title: 등록상품 삭제 cascade (모달 → 실행 → 완료) (e2e)
+priority: P0
+
+description: |
+  등록상품 첫 카드 선택 → 삭제 모달 노출 → 1개 마켓만 체크 → 삭제 확정 → 로딩 완료 → 목록에서 사라짐.
+  매일 회귀. 삭제는 destructive 작업이라 회귀 신호 가장 중요.
+
+inputs: {}
+
+steps:
+  - id: open_registered_list
+    do: 사이드바 "등록상품" 메뉴 클릭하여 /view2/registered-product 진입.
+
+  - id: select_only_first_card
+    do: 등록상품 목록의 첫 카드 체크박스만 선택 (다른 카드는 unchecked).
+
+  - id: snapshot_first_card_id
+    do: 첫 카드의 productId (또는 카드 href 의 /view2/registered-product/{id}) snapshot. 삭제 후 사라짐 검증 비교용.
+
+  - id: open_delete_modal
+    do: 툴바의 "삭제" 버튼 클릭하여 삭제 확인 모달 노출.
+
+  - id: verify_modal_visible
+    do: 삭제 모달이 visible 인지 확인 (모달 title 또는 "삭제하시겠습니까?" 텍스트).
+
+  - id: check_all_markets
+    do: 모달 안 "전체 선택" 체크박스 클릭하여 모든 마켓 체크. (1개 마켓만 체크하면 그 마켓에서만 내림 = 상품 entity 잔존.)
+
+  - id: confirm_delete
+    do: 모달 안 "삭제하기" / "삭제" 확정 버튼 클릭.
+
+  - id: verify_modal_closed
+    do: 모달이 hidden 상태가 될 때까지 대기 (5초 안).
+
+  - id: wait_loading_done
+    do: 로딩 인디케이터 / spinner 가 사라질 때까지 대기 (최대 30초).
+
+  - id: verify_first_card_removed
+    do: 등록상품 목록 재조회 → snapshot 한 productId 가 첫 페이지에 없는지 확인 (검색 결과 0건 또는 다른 productId).
+
+expected: 등록상품 첫 카드 삭제 완료 + 목록에서 사라짐. unhandled 0건.

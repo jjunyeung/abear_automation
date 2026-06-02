@@ -1,0 +1,1 @@
+["open_first_product_detail", "click_detail_page_tab", "hover_ai_description_button", "verify_tooltip_visible", "click_ai_description_button", "verify_modal_opened", "close_modal_with_cancel", "verify_modal_closed"]

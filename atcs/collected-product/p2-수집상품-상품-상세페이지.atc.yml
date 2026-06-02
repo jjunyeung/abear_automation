@@ -1,0 +1,388 @@
+# 수집상품 / 상품 상세페이지 — P2 미작성 TC 183건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/collected-product/p2-수집상품-상품-상세페이지.spec.ts 에 구현
+#   2. tests/collected-product/p2-수집상품-상품-상세페이지.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 수집상품 / 상품 상세페이지 영역 P2 TC 묶음 (183건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 183건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc387_기본-설정값-적용
+    do: 상품 선택
+  - id: tc388_gnb
+    do: 상품 페이지 확인
+  - id: tc389_gnb
+    do: < 버튼 선택
+  - id: tc390_gnb
+    do: 프로필 아이콘 선택
+  - id: tc391_gnb
+    do: 업로드 마켓 선택
+  - id: tc392_gnb
+    do: 상품 삭제 버튼 선택
+  - id: tc393_gnb
+    do: 원본 상품 버튼 선택
+  - id: tc394_gnb
+    do: 메모 버튼 선택
+  - id: tc395_gnb
+    do: AI 일괄번역 버튼 선택
+  - id: tc396_gnb
+    do: 사용 가이드 선택
+  - id: tc397_gnb
+    do: 체크박스 선택
+  - id: tc398_gnb
+    do: 옵션탭에서 체크된 옵션만 선택
+  - id: tc399_gnb
+    do: 이미지 호버
+  - id: tc400_gnb
+    do: 이미지 선택
+  - id: tc401_gnb
+    do: 선택된 이미지 번역
+  - id: tc402_gnb
+    do: 에러체크 버튼 선택
+  - id: tc403_gnb
+    do: 업로드 버튼 선택
+  - id: tc404_gnb
+    do: 업로드 버튼 선택
+  - id: tc405_gnb
+    do: ... 메뉴 선택
+  - id: tc406_gnb
+    do: 리소스 다운로드
+  - id: tc407_gnb
+    do: 상품 링크 수정
+  - id: tc408_gnb
+    do: 상품 링크 수정 모달
+  - id: tc409_gnb
+    do: 링크 에러
+  - id: tc410_gnb
+    do: 상품 복제
+  - id: tc411_gnb
+    do: 실시간 상품 에러체크 선택
+  - id: tc412
+    do: 기본정보 탭
+  - id: tc413
+    do: AI 상품명 다듬기 버튼
+  - id: tc414
+    do: 원본 상품명으로 초기화 버튼
+  - id: tc415
+    do: 상품명 키워드 추천 버튼
+  - id: tc416
+    do: 키워드 검색
+  - id: tc417
+    do: 키워드 추가
+  - id: tc418
+    do: 상품명 입력
+  - id: tc419
+    do: 상품명 입력
+  - id: tc420
+    do: 상품명 입력
+  - id: tc421
+    do: 카테고리/태그 변경 버튼 선택
+  - id: tc422
+    do: 카테고리 복사
+  - id: tc423
+    do: 카테고리 붙여넣기
+  - id: tc424
+    do: 카테고리 추천
+  - id: tc425
+    do: 카테고리 드롭박스 선택
+  - id: tc426
+    do: 카테고리 검색결과 없음
+  - id: tc427
+    do: 추천 태그 검색 버튼 선택
+  - id: tc428
+    do: 태그 입력
+  - id: tc429
+    do: 태그 붙여넣기
+  - id: tc430
+    do: 태그 입력
+  - id: tc431
+    do: 중복된 태그 입력
+  - id: tc432
+    do: 이미지 탭 선택
+  - id: tc433
+    do: 이미지 탭 선택
+  - id: tc434
+    do: 이미지 선택
+  - id: tc435
+    do: 동영상 선택
+  - id: tc436
+    do: 이미지 추가 선택
+  - id: tc437
+    do: 동영상 추가 선택
+  - id: tc438
+    do: 이미지 편집 버튼 선택
+  - id: tc439
+    do: AI 번역 버튼 선택
+  - id: tc440
+    do: 옵션탭 선택
+  - id: tc441
+    do: 옵션 전체 보기
+  - id: tc442
+    do: 옵션이미지를 대표이미지로 사용
+  - id: tc443
+    do: 임시 그룹명 사용
+  - id: tc444
+    do: 쿠팡 옵션그룹 정책 배너 확인
+  - id: tc445
+    do: 쿠팡 옵션그룹 정책 배너 확인
+  - id: tc446
+    do: AI 옵션명 다듬기 버튼 선택
+  - id: tc447
+    do: 빈칸 버튼 선택
+  - id: tc448
+    do: 특문 버튼 선택
+  - id: tc449
+    do: 25글자 버튼 선택
+  - id: tc450
+    do: 순번 추가하기 버튼 선택
+  - id: tc451
+    do: A-Z 버튼 선택
+  - id: tc452
+    do: 연필 버튼선택
+  - id: tc453
+    do: 회전 버튼 선택
+  - id: tc454
+    do: 옵션 개수 제한 확인 (200개 초과 시 비활성화)
+  - id: tc455
+    do: _x0008_옵션 이미지 설정 확인
+  - id: tc456
+    do: 옵션 그룹 추가
+  - id: tc457
+    do: 옵션 그룹 추가 제한 확인
+  - id: tc458
+    do: 옵션 그룹 삭제 기능 확인
+  - id: tc459
+    do: 옵션 그룹명 수정 기능 확인
+  - id: tc460
+    do: 옵션 그룹명 특수문자 입력
+  - id: tc461
+    do: 옵션 그룹명 25자 초과 입력
+  - id: tc462
+    do: 옵션 추가 기능 확인
+  - id: tc463
+    do: 옵션 삭제 기능 확인
+  - id: tc464
+    do: 옵션 순서 변경 기능 확인
+  - id: tc465
+    do: 옵션 선택/해제 기능 확인
+  - id: tc466
+    do: 옵션 최대 개수 제한 확인
+  - id: tc467
+    do: 옵션 그룹 비활성화
+  - id: tc468
+    do: 옵션 그룹 없을 때 옵션 탭 확인
+  - id: tc469
+    do: 판매가탭 선택
+  - id: tc470
+    do: 소싱몰 배송비
+  - id: tc471
+    do: 배송비 유형
+  - id: tc472
+    do: 기본 배송비
+  - id: tc473
+    do: 반품 배송비
+  - id: tc474
+    do: 교환 배송비
+  - id: tc475
+    do: 판매가 펼치기
+  - id: tc476
+    do: 상품 판매가 변경
+  - id: tc477
+    do: 가격 공식으로 판매가 변경 모달 동작 확인
+  - id: tc478
+    do: 실시간/고정 토글 선택
+  - id: tc479
+    do: 구매처 수수료 입력
+  - id: tc480
+    do: 소싱몰 배송비 버튼 선택
+  - id: tc481
+    do: 소싱몰 배송비 값 입력
+  - id: tc482
+    do: 배송대행지 비용 입력
+  - id: tc483
+    do: 마진 토글 선택
+  - id: tc484
+    do: 원 마진 입력
+  - id: tc485
+    do: '% 마진 입력'
+  - id: tc486
+    do: 판매가 단위 입력
+  - id: tc487
+    do: 판매처 수수료 입력
+  - id: tc488
+    do: 관세 입력
+  - id: tc489
+    do: 관세 적용 기준가
+  - id: tc490
+    do: 예상 판매가 ⋁ 선택
+  - id: tc491
+    do: 예상 순수익 ⋁ 선택
+  - id: tc492
+    do: 취소 선택
+  - id: tc493
+    do: 저장 선택
+  - id: tc494
+    do: 판매가 할인율 입력
+  - id: tc495
+    do: 마켓별 판매가 확인
+  - id: tc496
+    do: 전체보기 토글 동작
+  - id: tc497
+    do: 일괄변경 선택
+  - id: tc498
+    do: 판매가 일괄변경
+  - id: tc499
+    do: 판매가에 값 더하기/빼기
+  - id: tc500
+    do: 판매가 통일하기
+  - id: tc501
+    do: 가격 공식으로 바꾸기
+  - id: tc502
+    do: 재고 일괄 변경
+  - id: tc503
+    do: 원가 일괄 변경
+  - id: tc504
+    do: 관세 설정 선택
+  - id: tc505
+    do: 관세 설정 선택
+  - id: tc506
+    do: 스마트스토어 옵션가 필터 적용 선택
+  - id: tc507
+    do: 체크박스 선택
+  - id: tc508
+    do: 옵션가 기준 변경
+  - id: tc509
+    do: 원가 변경
+  - id: tc510
+    do: 판매가 변경
+  - id: tc511
+    do: 재고 변경
+  - id: tc512
+    do: 연필 선택
+  - id: tc513_상품-속성
+    do: 상품 속성탭 선택
+  - id: tc514_상품-속성
+    do: 상품 정보고시 직접 추가 버튼 선택
+  - id: tc515_상품-속성
+    do: 상품 정보고시 직접 추가 동작
+  - id: tc516_상품-속성
+    do: 템블릿 불러오기
+  - id: tc517_상품-속성
+    do: 스마트스토어 상품 속성 확인
+  - id: tc518_상품-속성
+    do: 스마트스토어 상품속성 확인
+  - id: tc519_상품-속성
+    do: 속성 구분 타입 케이스
+  - id: tc520_상품-속성
+    do: 마우스 호버 및 버튼 선택 동작 확인
+  - id: tc521_업로드-마켓
+    do: 업로드 마켓 확인
+  - id: tc522_업로드-마켓
+    do: 업로드 마켓 동작
+  - id: tc523_업로드-마켓
+    do: GNB 업로드 마켓과 업로드 설정 동기화 확인
+  - id: tc524_업로드-마켓
+    do: 업로드 마켓 확인
+  - id: tc525
+    do: 상세페이지 탭 선택
+  - id: tc526
+    do: 상세페이지 좌측 이미지
+  - id: tc527
+    do: 이미지 복사
+  - id: tc528
+    do: 에디터 동작
+  - id: tc529
+    do: 에디터 GNB 동작
+  - id: tc530
+    do: 미리보기
+  - id: tc531
+    do: AI번역
+  - id: tc532
+    do: 이미지편집
+  - id: tc533
+    do: 상하단이미지수정
+  - id: tc534
+    do: 상하단이미지수정
+  - id: tc535
+    do: 상하단이미지수정
+  - id: tc536
+    do: 상하단이미지수정
+  - id: tc537
+    do: 상세페이지구조
+  - id: tc538
+    do: 소제목보이기
+  - id: tc539
+    do: 옵션이미지 표 설정
+  - id: tc540_업로드-설정
+    do: 업로드 설정 탭
+  - id: tc541_업로드-설정
+    do: 업로드 설정 탭
+  - id: tc542_업로드-설정
+    do: 스스 업로드 설정
+  - id: tc543_업로드-설정
+    do: 스마트스토어 모음전 정책 적용 확인
+  - id: tc544_업로드-설정
+    do: 상품명 및 첫번째 옵션 순서 변경 사용
+  - id: tc545_업로드-설정
+    do: 썸네일 이미지 변경 토글 동작
+  - id: tc546_업로드-설정
+    do: 스마트스토어 리뷰 포인트 설정 확인
+  - id: tc547_업로드-설정
+    do: 텍스트 인풋박스 확인
+  - id: tc548_업로드-설정
+    do: 포토-동영상 인풋박스 입력
+  - id: tc549_업로드-설정
+    do: validation 확인
+  - id: tc550_업로드-설정
+    do: 한달사용 텍스트 인풋박스 입력
+  - id: tc551_업로드-설정
+    do: 한달사용 포토-동영상 인풋박스 입력
+  - id: tc552_업로드-설정
+    do: validation 확인
+  - id: tc553_업로드-설정
+    do: 알림받기 동의 고객 리뷰 작성 인풋박스 입력
+  - id: tc554_업로드-설정
+    do: 쿠팡 업로드 설정
+  - id: tc555_업로드-설정
+    do: 쿠팡 업로드 설정 확인
+  - id: tc556_업로드-설정
+    do: 검색 필터 확인
+  - id: tc557_업로드-설정
+    do: ESM
+  - id: tc558_업로드-설정
+    do: 추천옵션 모드 확인
+  - id: tc559_업로드-설정
+    do: 자율옵션 모드 확인
+  - id: tc560_업로드-설정
+    do: 버튼 선택
+  - id: tc561_업로드-설정
+    do: 단일옵션 모드 확인
+  - id: tc562_업로드-설정
+    do: A 영역 동작
+  - id: tc563_업로드-설정
+    do: B 영역 동작
+  - id: tc564_업로드-설정
+    do: A + B 영역 동작
+  - id: tc565_업로드-설정
+    do: 버튼 선택
+  - id: tc566_업로드-설정
+    do: 업로드 설정 확인
+  - id: tc567_업로드-설정
+    do: 업로드 설정 확인
+  - id: tc568_업로드-설정
+    do: 롯데온
+  - id: tc569_업로드-설정
+    do: 마켓 토글 모두 on 상태일 때 설정 노출 순서
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

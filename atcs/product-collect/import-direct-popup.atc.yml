@@ -6,6 +6,7 @@
 #       ownerclan/rakuten/taobao/temu/tmall/vvic/1688-aibuy) 등록.
 
 title: 상품 수집 - 직진입 마켓 버튼 popup 검증
+priority: P2
 
 description: |
   윈들리 "상품 수집" 페이지의 마켓 직진입 버튼(SourcingMallButton)이 정상 동작하는지

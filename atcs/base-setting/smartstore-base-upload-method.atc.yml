@@ -1,0 +1,28 @@
+# 기본설정 / 스마트스토어 업로드 설정 (Upload 방식) 진입 (non-destructive).
+#
+# TC 원본 (P0, 1건):
+#   - Case No 3494 / 화면 진입 / 스마트스토어 업로드 설정 화면이 정상 진입된다
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/SmartStore/Upload/index.tsx
+#   - 2 Radio: "판매자센터 로그인 방식" / "서버 방식"
+# 라우트: /view3/base-setting?setting=SMARTSTORE&category=UPLOAD
+
+title: 스마트스토어 업로드 설정 화면 진입 (TC 3494)
+priority: P0
+
+description: |
+  /view3/base-setting?setting=SMARTSTORE&category=UPLOAD 진입 → 2 Radio 라벨
+  (판매자센터 로그인 방식 / 서버 방식) 노출 확인.
+  라디오 선택은 destructive (smartstoreUploadMethod 저장) 라 skip.
+  TC 원본: Case No 3494 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_smartstore_upload_setting
+    do: 스마트스토어 업로드 설정 페이지 진입
+
+  - id: verify_upload_method_radios
+    do: 2 Radio 라벨 (판매자센터 로그인 방식 / 서버 방식) 노출 확인
+
+expected: 페이지 + Radio 라벨 노출. unhandled 0건.

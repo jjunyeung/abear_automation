@@ -13,6 +13,7 @@
 #   "실시간 삭제" 텍스트 + SpinLoader (loading indicator)
 
 title: 등록상품 삭제 실제 트리거 (단일 카드 + 단일 마켓)
+priority: P0
 
 description: |
   첫 카드 1개 단독 체크 → 상품 삭제 → 모달 → 스마트스토어 단독 체크 → 삭제 클릭 →

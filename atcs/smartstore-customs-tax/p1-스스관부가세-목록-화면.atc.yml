@@ -1,0 +1,38 @@
+# 스스관부가세 / 목록 화면 — P1 미작성 TC 8건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p1-스스관부가세-목록-화면.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p1-스스관부가세-목록-화면.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 목록 화면 영역 P1 TC 묶음 (8건)
+priority: P1
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P1 미작성 TC 8건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3537_상단-검색-영역
+    do: 상단 검색 및 액션 영역이 정상 노출된다
+  - id: tc3540_상품-카드-ui
+    do: 상품 카드의 기본 정보가 정상 노출된다
+  - id: tc3543_선택-개수-표시
+    do: 선택한 상품 개수가 정상 표시된다
+  - id: tc3544_상품명-변경-액션
+    do: 상품명 변경 액션이 노출된다
+  - id: tc3546_기본-설정값-적용-툴팁
+    do: 기본 설정값 적용 툴팁이 정상 노출된다
+  - id: tc3567_상단-기본-ui
+    do: 등록상품 화면의 상단 검색 및 액션 영역이 정상 노출된다
+  - id: tc3568_목록-테이블-ui
+    do: 등록상품 목록 테이블이 정상 노출된다
+  - id: tc3571_선택-개수-표시
+    do: 선택한 상품 개수가 정상 표시된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -1,0 +1,27 @@
+title: 라쿠텐 단건 수집 → 상세 진입 (e2e)
+priority: P2
+description: 라쿠텐 URL 수집 + 상세 진입까지. 업로드 X (빨간 탭 잔존 가능).
+
+inputs:
+  product_url:
+    type: string
+    description: 라쿠텐 item.rakuten.co.jp URL.
+    example: https://item.rakuten.co.jp/...
+
+steps:
+  - id: open_collect_menu
+    do: 상품 수집 메뉴 진입.
+  - id: open_url_collect
+    do: URL 수집 모달 열기.
+  - id: submit_url
+    do: product_url 입력 후 수집 실행.
+  - id: wait_completion
+    do: BulkImportTable 완료 대기.
+  - id: close_modal_goto_collected
+    do: 모달 닫고 수집상품 목록 진입.
+  - id: wait_first_card_ready
+    do: 첫 카드 ProductCard 전환 대기.
+  - id: enter_product_detail
+    do: 첫 카드 상세 진입.
+
+expected: 라쿠텐 수집 → 상세 진입 성공. unhandled 0건.

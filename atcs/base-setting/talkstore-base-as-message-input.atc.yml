@@ -8,6 +8,7 @@
 #   <TextField label="A/S 안내 내용" maxTextLength={1000} ... />
 
 title: 기본설정 톡스토어 A/S 안내 내용 입력
+priority: P0
 
 description: |
   배송 정보 탭 → A/S 안내 내용 input 에 테스트 값 입력 → 반영 검증 + 원복.

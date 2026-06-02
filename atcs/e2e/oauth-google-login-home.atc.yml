@@ -1,0 +1,26 @@
+# I2. OAuth 구글 로그인 → 홈 진입.
+
+title: OAuth 구글 로그인 → 홈 진입 (e2e)
+priority: P1
+
+description: |
+  setup project 의 persistent userDataDir 에 구글 로그인 세션 이미 저장되어 있다고 가정.
+  로그아웃 → 구글 OAuth 버튼 → 다시 홈 진입 사이클 검증.
+  실패 시 = 구글 OAuth flow 깨짐 / 세션 만료.
+
+inputs: {}
+
+steps:
+  - id: logout_if_logged_in
+    do: 현재 로그인 상태면 로그아웃. 이미 로그아웃이면 통과.
+
+  - id: open_login_page
+    do: /login 또는 홈에서 로그인 버튼 클릭하여 로그인 페이지 진입.
+
+  - id: click_google_oauth
+    do: 구글로 로그인 버튼 클릭.
+
+  - id: wait_back_to_home
+    do: 구글 OAuth flow 종료 후 윈들리 홈 (해구대 카드 또는 /view2) 도달 대기. 최대 60초.
+
+expected: OAuth 구글 로그인 후 홈 진입. unhandled 0건.

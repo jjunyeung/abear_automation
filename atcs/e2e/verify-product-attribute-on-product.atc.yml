@@ -25,6 +25,7 @@
 #   3개 모두 적용됨.
 
 title: 상품 속성 base setting 변경 후 첫 수집상품 상품 속성 탭 매치 검증
+priority: P2
 
 description: |
   상품 속성 base setting (제조사 / 브랜드 / 미성년자 구매) 변경 → bulk-apply → 첫 수집상품 상품 속성 탭 매치 검증.

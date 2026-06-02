@@ -1,0 +1,40 @@
+# 스스관부가세 / 목록 화면 — P0 미작성 TC 9건 (auto-generated skeleton).
+#
+# 이 ATC 는 'scripts/generate-p0-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p0-스스관부가세-목록-화면.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p0-스스관부가세-목록-화면.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 목록 화면 영역 P0 TC 묶음 (9건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 9건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3536_화면-진입
+    do: 수집상품 화면이 정상 진입된다
+  - id: tc3541_상품-선택
+    do: 상품 카드를 개별 선택할 수 있다
+  - id: tc3542_다중-선택
+    do: 여러 상품을 동시에 선택할 수 있다
+  - id: tc3545_기본-설정값-적용-액션
+    do: 기본 설정값 적용 액션이 노출된다
+  - id: tc3566_화면-진입
+    do: 등록상품 화면이 정상 진입된다
+  - id: tc3569_상품-선택
+    do: 등록상품을 개별 선택할 수 있다
+  - id: tc3570_다중-선택
+    do: 여러 등록상품을 동시에 선택할 수 있다
+  - id: tc3572_수정-업로드-액션
+    do: 수정 업로드 액션이 정상 노출된다
+  - id: tc3573_수정-업로드-진입
+    do: 수정 업로드 모달이 정상 오픈된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

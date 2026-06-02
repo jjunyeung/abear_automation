@@ -1,0 +1,40 @@
+# 스스관부가세 / 수정 업로드 — P1 미작성 TC 9건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/smartstore-customs-tax/p1-스스관부가세-수정-업로드.spec.ts 에 구현
+#   2. tests/smartstore-customs-tax/p1-스스관부가세-수정-업로드.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 스스관부가세 / 수정 업로드 영역 P1 TC 묶음 (9건)
+priority: P1
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P1 미작성 TC 9건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc3574_단계-표시
+    do: 수정 업로드 단계 표시가 정상 노출된다
+  - id: tc3575_모달-제목
+    do: 수정 업로드 모달 제목이 정상 노출된다
+  - id: tc3584_다음-버튼-상태
+    do: 다음 버튼 상태가 선택값에 따라 정상 제어된다
+  - id: tc3587_2단계-상단-문구
+    do: 수정할 정보 선택 단계의 상단 문구가 정상 노출된다
+  - id: tc3592_이전-버튼-동작
+    do: 이전 버튼 클릭 시 이전 단계로 이동한다
+  - id: tc3594_스마트스토어-관부가세-문구
+    do: 스마트스토어 관부가세 입력 영역의 문구가 정상 노출된다
+  - id: tc3595_스마트스토어-관부가세-액션
+    do: 기본 설정값 불러오기와 수정 정보 초기화 버튼이 정상 노출된다
+  - id: tc3599_3단계-버튼-노출
+    do: 이전 및 수정 업로드 버튼이 정상 노출된다
+  - id: tc3603_단계-값-유지
+    do: 이전 단계로 이동 후에도 선택값이 정상 유지된다
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

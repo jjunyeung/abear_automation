@@ -29,6 +29,7 @@
 #   talkstore:  톡스토어 ↔ 톡스토어
 
 title: 첫 수집상품 판매가 탭의 마켓별 가중치 가 글로벌 base setting 과 일치하는지 검증 (활성 마켓만)
+priority: P2
 
 description: |
   첫 수집상품의 판매가 탭 "마켓별 가중치" 가 글로벌 base setting 의 마켓별 판매가 가중치와 일치하는지 검증.

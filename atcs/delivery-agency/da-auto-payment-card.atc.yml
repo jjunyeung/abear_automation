@@ -5,6 +5,7 @@
 #   CheckBoxRow label="자동결제신청" + RadioRow label="카드" (AUTO_CARD)
 
 title: 배송대행지 토스토스 자동결제 카드 검증
+priority: P2
 
 description: |
   자동결제신청 토글 → 카드 라디오 클릭 가능 검증.

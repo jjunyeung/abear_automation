@@ -9,6 +9,7 @@
 #   "나에게 알맞는 설정 추천받기" 타이틀 + "복잡한 설정은 윈들리가 대신..." + 괜찮아요/좋아요 버튼.
 
 title: 기본설정 추천 설문 모달 노출
+priority: P2
 
 description: |
   기본설정 진입 → SurveyBanner 의 "기본설정을 추천" 링크 클릭 → SurveyModal 노출 검증.

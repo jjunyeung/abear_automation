@@ -1,0 +1,33 @@
+# 기본설정 톡스토어 리뷰 포인트 탭 — "리뷰 시 포인트 지급" 토글 OFF 검증.
+#
+# TC 원본 (P0, 1건):
+#   - Case No 1063 / 리뷰 포인트 / 포인트 지급 토글 off
+#
+# 기존 talkstore-base-review-point-toggle.atc.yml 는 ON/OFF 양방향 검증 (원복) 인 반면,
+# 본 TC 는 "OFF 로 끄면 fields 가 사라지는지" 확인.
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/ReviewPoint/index.tsx
+#   - Toggle "리뷰 시 포인트 지급 여부 설정" (talkstoreIsReviewPointGranted)
+#   - ON 일 때만 "텍스트 리뷰" / "포토 리뷰" TextField 노출
+
+title: 기본설정 톡스토어 리뷰 포인트 토글 OFF + 필드 숨김 검증
+priority: P0
+
+description: |
+  리뷰 포인트 탭 → "리뷰 시 포인트 지급" 토글 강제 OFF → "텍스트 리뷰" / "포토 리뷰"
+  TextField 사라짐 확인.
+  TC 원본: Case No 1063 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_review_point_tab
+    do: 기본설정 톡스토어 리뷰 포인트 탭 진입
+
+  - id: toggle_off_review_point
+    do: 리뷰 시 포인트 지급 여부 설정 토글 OFF (이미 OFF 면 noop)
+
+  - id: verify_review_fields_hidden
+    do: 텍스트 리뷰 / 포토 리뷰 TextField label 들이 DOM 에서 사라졌는지 확인
+
+expected: 토글 OFF 후 리뷰 fields 비표시. unhandled 0건.

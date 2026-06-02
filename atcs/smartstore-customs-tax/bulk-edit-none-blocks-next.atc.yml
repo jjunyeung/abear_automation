@@ -7,6 +7,7 @@
 #   → step1 에서 selected.market 비어있으면 다음 버튼 disabled.
 
 title: 등록상품 수정 업로드 모달 마켓 미선택 시 다음 버튼 비활성 검증
+priority: P0
 
 description: |
   모달 진입 직후 (selected.market = []) 의 다음 버튼이 disabled 인지 확인.

@@ -1,0 +1,42 @@
+# 수집상품 상세 → 업로드 설정 → ESM 2.0 옵션 모드 영역 확인 (non-destructive).
+#
+# TC 원본 (P0, 3건):
+#   - Case No 867 / esm 2.0 / 옵션 모드 모달 확인
+#   - Case No 868 / esm 2.0 / 옵션 모드 모달 확인
+#   - Case No 869 / esm 2.0 / 옵션 모드 모달 확인
+#
+# 세 TC 모두 동일 타이틀 — backfill 패턴 (동일 모달의 다른 진입 경로/상태).
+# 모달 실제 오픈/저장은 ESM 카테고리 선택 필요 + 저장 destructive 라 skip.
+# 본 spec 은 ESM 영역의 핵심 컴포넌트 (추천옵션 모드 토글 + 옵션설정 버튼) 노출만 확인.
+#
+# 코드 출처: windly_repo/sesame/src/features/ProductDetail/ProductDetailTabs/UploadTab/EsmUploadSettings/
+#   - EsmUploadSettings.tsx L108-117: <Toggle label="추천옵션 모드">
+#   - EsmUploadSettings.tsx L138-146: <Button>옵션설정</Button>
+#   - L91-93: esmCategory === '0' 면 "먼저 ESM 2.0 카테고리를 선택해주세요" 표시
+#
+# 사전조건: ESM 마켓 활성 (uploadMarkets.esm) + ESM 카테고리 설정. 미설정 시 안내 메시지로 skip.
+
+title: 수집상품 → 업로드 설정 → ESM 2.0 옵션 모드 영역 (TC 867/868/869)
+priority: P0
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 업로드 설정 탭 → ESM 2.0 영역 노출 확인 →
+  추천옵션 모드 토글 + 옵션설정 버튼 노출 확인. ESM 카테고리 미설정 환경이면 안내 메시지로 skip.
+  TC 원본: Case No 867, 868, 869 / P0.
+
+inputs: {}
+
+steps:
+  - id: open_first_product_detail
+    do: 수집상품 목록 진입 후 첫 카드의 상세 페이지 진입
+
+  - id: click_upload_tab
+    do: ProductDetail 의 업로드 설정 탭 클릭
+
+  - id: verify_esm_section_or_skip
+    do: ESM 2.0 옵션설정 섹션 노출 확인 - 마켓 비활성/카테고리 미설정 시 skip success
+
+  - id: verify_esm_option_mode_components_or_skip
+    do: 추천옵션 모드 토글 + 옵션설정 버튼 노출 확인 - 카테고리 미설정 안내 노출 시 skip
+
+expected: ESM 영역 + 옵션 모드 컴포넌트 노출 (또는 환경 의존 skip). 데이터 변경 없음. unhandled 0건.

@@ -1,0 +1,34 @@
+# 등록상품 / 추가 업로드 — P2 미작성 TC 6건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/registered-product/p2-등록상품-추가-업로드.spec.ts 에 구현
+#   2. tests/registered-product/p2-등록상품-추가-업로드.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 등록상품 / 추가 업로드 영역 P2 TC 묶음 (6건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 6건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc582_업로드-설정
+    do: 추가업로드
+  - id: tc583_업로드-설정
+    do: 마켓에 마우스 오버
+  - id: tc584_업로드-설정
+    do: 다음 선택
+  - id: tc585_업로드-설정
+    do: 업로드 가능한 마켓 선택
+  - id: tc586_업로드-설정
+    do: 상품 기본정보 변경
+  - id: tc587_업로드-설정
+    do: 상품 기본정보 변경
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

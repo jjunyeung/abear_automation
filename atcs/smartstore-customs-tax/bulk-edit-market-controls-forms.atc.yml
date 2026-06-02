@@ -5,6 +5,7 @@
 #   StepChoiceForm.tsx checkDisableForm — smartStore* form 들은 'smartstore' 마켓 포함 여부로 결정.
 
 title: 등록상품 수정 업로드 step1 마켓 선택 따라 step2 form 활성/비활성 변화 검증
+priority: P0
 
 description: |
   같은 모달 안에서 두 시나리오 비교:

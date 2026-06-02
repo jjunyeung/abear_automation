@@ -1,0 +1,47 @@
+# 로그인 페이지 OAuth 버튼 존재 검증 — strict (R8 raid #1).
+#
+# Case No: 6, 7, 8, 11
+# Sub-fn: 일반 / 로그인 / 이메일 + 네이버 + 구글 로그인 버튼 visibility.
+#
+# 정책 (결정 10 — "로그인만 되는지 확인"):
+#   - 실 OAuth 로그인은 캡차/2FA 위험으로 안 함. 로그인 페이지의 3개 진입 버튼
+#     (이메일 input + 네이버 SocialButton + 구글 SocialButton) 이 노출됐는지만 검증.
+#   - cookies clear → 로그인 페이지 진입 → 버튼들 visibility → 끝.
+#   - 다음 spec/run 을 위해 spec 종료 직전 loginIfNeeded 로 세션 복구.
+#
+# 코드 출처:
+#   windly_repo/hub-frontend-web/src/features/Account/Login/Form/index.tsx
+#   - LoginEmailForm (이메일 input + 비밀번호 input)
+#   - DividerWithText text="간편 로그인" (anchor)
+#   - SocialButton socialType="NAVER" / "GOOGLE" (SVG only, click → window.open OAuth url)
+#
+# Fresh project (setup 의존 X) — 이 spec 시작 시 세션이 있을 수 있고
+# 없을 수도 있음. cookies clear 로 강제 fresh.
+
+title: 로그인 페이지 OAuth 버튼 존재 검증
+priority: P2
+
+description: |
+  hub.windly.cc/accounts/login 진입 → 이메일 / 네이버 / 구글 로그인 진입점
+  3개가 모두 visible 한지 strict 검증. 실 로그인은 안 함 — 페이지 구조 회귀
+  방지가 목적.
+
+inputs: {}
+
+steps:
+  - id: tc6_login_email_button
+    do: 로그인 페이지 진입 + 이메일 input visible 검증
+    expect: 이메일 input + 비밀번호 input 둘 다 visible.
+  - id: tc8_login_naver_button
+    do: 네이버 SocialButton visible 검증
+    expect: 간편 로그인 텍스트 + 네이버 SocialButton 노출 (background-color #03c75a).
+  - id: tc11_login_google_button
+    do: 구글 SocialButton visible 검증
+    expect: 구글 SocialButton 노출 (white border with #e9eaed).
+  - id: tc7_login_register_link
+    do: 회원가입 링크 visible 검증
+    expect: 회원가입하기 링크 노출 (/accounts/register 로 이동).
+
+expected: |
+  4 step 모두 strict pass. 로그인 페이지의 3개 OAuth 진입점 + 회원가입 링크
+  selector 가 회귀 없이 살아있음. unhandled 0.

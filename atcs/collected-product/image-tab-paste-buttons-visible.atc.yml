@@ -1,0 +1,42 @@
+# 수집상품 이미지탭 → 붙여넣기 버튼 노출/호버 확인 (non-destructive).
+#
+# TC 원본 (P0, 2건 + 1건 skip):
+#   - Case No 863 / 이미지 복사 / 이미지 붙여넣기 버튼 확인
+#       → 개별 이미지의 CopyIcon 버튼 (ImageCopyButton, 파란색) 가시 검증
+#   - Case No 864 / 이미지 복사 / 일괄 붙여넣기 버튼 호버
+#       → "상세페이지 탭으로 붙여넣기" 버튼 가시 + 호버 확인
+#   - Case No 865 / 이미지 복사 / 일괄 붙여넣기 버튼 선택 → SKIP (destructive — 상세페이지 데이터 수정)
+#
+# 코드 출처: windly_repo/sesame/src/features/ProductDetail/ProductDetailTabs/ImageTab/
+#   - ImageTab.tsx L359-364: <Button onClick={handleCopyImagesToDescription}>상세페이지 탭으로 붙여넣기</Button>
+#   - SortableImageGroup/SortableImageGroup.tsx L237-249: Tooltip "상세페이지 탭에 붙여넣기" + ImageCopyButton
+#
+# 사전조건: 수집상품 ≥ 1개 + 이미지 ≥ 1개 (이미지탭에 SortableImageGroup 렌더링).
+
+title: 수집상품 이미지탭 → 붙여넣기 버튼 노출/호버 (TC 863/864)
+priority: P0
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 이미지 탭 활성화 → 일괄 붙여넣기 버튼 ("상세페이지 탭으로 붙여넣기")
+  과 개별 이미지 CopyIcon 버튼이 노출되는지 확인. 일괄 버튼 호버까지만, 클릭은 destructive 라 skip.
+  TC 원본: Case No 863, 864 / P0. TC 865 (클릭 동작)는 상세페이지 데이터 수정 destructive 라 본 spec 에서 제외.
+
+inputs: {}
+
+steps:
+  - id: open_first_product_detail
+    do: 수집상품 목록 진입 후 첫 카드의 상세 페이지 진입
+
+  - id: click_image_tab
+    do: ProductDetail 의 이미지 탭 클릭
+
+  - id: verify_bulk_paste_button_visible
+    do: 상세페이지 탭으로 붙여넣기 버튼 노출 확인
+
+  - id: hover_bulk_paste_button
+    do: 일괄 붙여넣기 버튼 호버 - 에러 없이 노출 유지
+
+  - id: verify_per_image_copy_button_visible
+    do: 개별 이미지 CopyIcon 붙여넣기 버튼 1개 이상 노출 확인
+
+expected: 일괄 + 개별 붙여넣기 버튼 노출 + 호버 OK. unhandled 0건. 상품 데이터 변경 없음.

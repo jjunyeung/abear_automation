@@ -22,6 +22,7 @@
 #       이 ATC 는 "임의 첫 상품 + 자동수정 가능한 만큼만 자동 수정" 시나리오.
 
 title: 에러체크 → 빨간 탭 진단 → (있으면) 자동 수정 → verify clean
+priority: P2
 
 description: |
   임의 수집상품 → 에러체크 → 빨간 탭 진단 → (있으면) 자동 수정 → verify clean 까지 묶은 통합 파이프라인 ATC.

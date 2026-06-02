@@ -1,0 +1,41 @@
+# 공통설정 / 배송비 / 관부가세 설정 영역 P0 검증 (non-destructive).
+#
+# TC 원본 (P0, 3건):
+#   - Case No 3482 / 관부가세 설정 / 관부가세 설정 영역이 정상 노출된다
+#   - Case No 3483 / 관부가세 설정 / 관부가세 옵션 3개가 모두 노출된다
+#   - Case No 3484 / 관부가세 설정 / 관부가세 옵션은 단일 선택으로 동작한다
+#
+# 위치 정정: 엑셀 backlog 는 "기본설정 / 스마트스토어 배송 및 A/S" 카테고리로 분류했으나
+# 실제 코드는 windly-frontend-web/src/features/BaseSetting/Common/DeliveryInfoTab/CustomsTax 에 있음
+# (CustomsTax 자체 hint: "이 설정은 스마트스토어, ESM 에서만 적용돼요"). 화면 위치 = COMMON/DELIVERY_INFO.
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Common/DeliveryInfoTab/CustomsTax/index.tsx
+#   - FormField title="관부가세 설정"
+#   - SegmentedButtonGroup with 3 buttons: "부과 대상 아님" / "관부가세 포함" / "관부가세 미포함"
+#   - 단일 선택 — selected={selectedCustomsTaxType === ...}
+
+title: 공통설정 / 관부가세 설정 영역 노출 검증 (TC 3482/3483/3484)
+priority: P0
+
+description: |
+  /view3/base-setting?setting=COMMON&category=DELIVERY_INFO 진입 →
+  관부가세 설정 영역 + 3 옵션 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) 노출 확인.
+  단일 선택 동작은 데이터 안 건드리고 현재 상태 (selected 1개) 만 확인.
+  TC 원본: Case No 3482, 3483, 3484 / P0.
+
+inputs: {}
+
+steps:
+  - id: enter_common_delivery_info
+    do: 공통설정 배송비/관부가세 페이지 진입
+
+  - id: verify_customs_tax_section
+    do: 관부가세 설정 FormField title 노출 확인
+
+  - id: verify_three_options_visible
+    do: 관부가세 옵션 3개 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함) 모두 노출 확인
+
+  - id: verify_exactly_one_selected
+    do: 관부가세 옵션 중 정확히 1개만 selected 상태인지 확인
+
+expected: 관부가세 영역 + 옵션 3개 + 단일 선택 확인. 데이터 변경 없음. unhandled 0건.

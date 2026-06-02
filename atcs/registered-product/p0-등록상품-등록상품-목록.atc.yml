@@ -1,0 +1,42 @@
+# 등록상품 / 등록상품 목록 — P0 7건 (R11 strict 채움 완료).
+#
+# Case No: 1105, 1106, 1107, 1108, 1109, 1110, 1112
+# Sub-fn: 상품명 (1105/1106 등록상품에서 확인 + 1107 톡스토어 이동 + 1108 기본 정보 +
+#   1109 상세 오픈마켓 링크) / 수정업로드 (1110) / 추가업로드 (1112).
+#
+# spec: tests/registered-product/p0-등록상품-등록상품-목록.spec.ts
+# handlerKeys: tests/registered-product/p0-등록상품-등록상품-목록.handlerKeys.json
+#
+# 검증: 카드 상품명 visible + 마켓 아이콘 + 가격 + 상세 외부 마켓 링크 + 수정/추가 업로드
+# 버튼 enabled. destructive X (실 업로드/외부 호출 안 함).
+#
+# 코드 출처:
+#   windly_repo/sesame/src/features/RegisteredProduct/RegisteredProduct.tsx
+#   line 391-402: 추가 업로드 / 수정 업로드 Button (ItemToolBox)
+
+title: 등록상품 / 등록상품 목록 영역 P0 TC 묶음 (7건)
+priority: P0
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P0 미작성 TC 7건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc1105
+    do: 등록상품에서 확인
+  - id: tc1106
+    do: 등록상품에서 확인
+  - id: tc1107
+    do: 톡스토어 이동
+  - id: tc1108
+    do: 등록상품 기본 정보
+  - id: tc1109
+    do: 등록상품 상세에서 오픈마켓 링크 선택
+  - id: tc1110
+    do: 수정업로드
+  - id: tc1112
+    do: 톡스토어 추가 업로드
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

@@ -1,0 +1,26 @@
+# 기본설정 톡스토어 상품 속성 탭 — 원산지 dropdown 선택 검증.
+#
+# TC 원본 (P0, 1건):
+#   - Case No 1068 / 상품 속성 / 드롭다운 선택
+#
+# 코드 출처: windly-frontend-web/src/features/BaseSetting/Talkstore/ProductAttribute/index.tsx
+#   - Dropdown label="원산지", search 가능 (search.onChangeSearchText)
+#   - 옵션: useGetTalkstoreOriginArea() — level !== 1 인 area 만 노출.
+
+title: 기본설정 톡스토어 상품 속성 원산지 dropdown 선택
+priority: P0
+
+description: |
+  상품 속성 탭 → "원산지" dropdown 첫 옵션 선택 → 반영 검증.
+  TC 원본: Case No 1068 / P0
+
+inputs: {}
+
+steps:
+  - id: goto_attribute_tab
+    do: 기본설정 톡스토어 상품 속성 탭 진입
+
+  - id: select_origin_first
+    do: 원산지 dropdown 클릭 → 첫 옵션 선택 → 반영 확인
+
+expected: 원산지 옵션 선택 반영. unhandled 0건.

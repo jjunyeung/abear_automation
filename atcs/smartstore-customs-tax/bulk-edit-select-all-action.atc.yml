@@ -9,6 +9,7 @@
 #   동작: 전체 선택 클릭 → updatableMarketList 전체가 selected.market 에 들어감.
 
 title: 등록상품 수정 업로드 모달 1단계 전체 선택 동작 검증
+priority: P0
 
 description: |
   수정 업로드 모달 1단계의 "전체 선택" label 클릭 → 모달 안 input[type=checkbox]:checked

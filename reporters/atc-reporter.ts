@@ -215,9 +215,13 @@ class ATCReporter implements Reporter {
       case 'recovered':
         body = `에러 발생 → 복구 플로우 \`${s.recovery_id ?? '(unknown)'}\`로 해결 (error_key: \`${s.error_key ?? '(unknown)'}\`)`;
         break;
-      case 'unhandled':
-        body = `🚨 **UNHANDLED** error_key: \`${s.error_key ?? '(unknown)'}\` → \`recoveries/${s.error_key ?? 'TODO'}.ts\` 추가 필요`;
+      case 'unhandled': {
+        const key = s.error_key ?? '(unknown)';
+        const detail =
+          typeof s.message === 'string' && s.message.length > 0 ? ` — ${s.message}` : '';
+        body = `🚨 **UNHANDLED** error_key: \`${key}\` → \`recoveries/${s.error_key ?? 'TODO'}.ts\` 추가 필요${detail}`;
         break;
+      }
       case 'skipped':
         body = '건너뜀';
         break;

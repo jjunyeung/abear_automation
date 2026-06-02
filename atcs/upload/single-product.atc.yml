@@ -8,6 +8,7 @@
 # 사전조건: setup project (tests/auth.setup.ts) 가 로그인 + 해구대 진입을 완료한 상태.
 
 title: 단건 상품 업로드 후 등록상품 목록 검증
+priority: P0
 
 description: |
   단건 상품 업로드 + 등록상품 검증 시나리오 — 수집상품에서 source_product_id 로 검색 → 상세 → 업로드 트리거 → 업로드 완료 대기 → 등록상품 메뉴 이동 → 등록상품 목록에 해당 상품 존재 확인.

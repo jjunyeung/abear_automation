@@ -1,0 +1,70 @@
+# 주문관리 / 상세 — P2 미작성 TC 24건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/order-mgmt/p2-주문관리-상세.spec.ts 에 구현
+#   2. tests/order-mgmt/p2-주문관리-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 주문관리 / 상세 영역 P2 TC 묶음 (24건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 24건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc756_업로드-설정
+    do: 주문관리
+  - id: tc757_업로드-설정
+    do: 주문관리 리스트 확인
+  - id: tc758_업로드-설정
+    do: 주문관리 리스트 확인
+  - id: tc759_업로드-설정
+    do: 업데이트 버튼 선택
+  - id: tc760_업로드-설정
+    do: 검색
+  - id: tc761_업로드-설정
+    do: 날짜 필터 선택
+  - id: tc762_업로드-설정
+    do: 마켓 드롭박스 선택
+  - id: tc763_업로드-설정
+    do: 검색, 필터, 마켓 선택 시 결과가 없을 때 화면
+  - id: tc764_업로드-설정
+    do: 리스트에서 마우스 호버 액션
+  - id: tc765_업로드-설정
+    do: 주문 리스트 확인
+  - id: tc766_업로드-설정
+    do: 상세 페이지 확인
+  - id: tc767_업로드-설정
+    do: 리스트 목록 확인
+  - id: tc768_업로드-설정
+    do: 리스트 버튼 동작 확인
+  - id: tc769_업로드-설정
+    do: 상세 페이지 확인
+  - id: tc770_업로드-설정
+    do: 리스트 목록 확인
+  - id: tc771_업로드-설정
+    do: 리스트 버튼 동작 확인
+  - id: tc772_업로드-설정
+    do: 상세 페이지 확인
+  - id: tc773_업로드-설정
+    do: 리스트 목록 확인
+  - id: tc774_업로드-설정
+    do: 리스트 버튼 동작 확인
+  - id: tc775_업로드-설정
+    do: 상세 페이지 확인
+  - id: tc776_업로드-설정
+    do: 직원 정보 수정에서 주문관리 안내 확인
+  - id: tc777_업로드-설정
+    do: 상세페이지에서 데이터가 없는 정보 확인
+  - id: tc778_업로드-설정
+    do: 리스트에서 마우스 호버, 버튼 선택 액션
+  - id: tc779_업로드-설정
+    do: 취소된 주문 확인
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

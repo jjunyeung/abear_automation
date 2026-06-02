@@ -1,0 +1,102 @@
+# 등록상품 / 상세 — P2 미작성 TC 40건 (auto-generated skeleton).
+#
+# 'scripts/generate-all-priority-skeletons.py' 가 자동 생성한 placeholder.
+# 각 step = 엑셀 TC 1건. spec.ts 는 아직 없음 → catalog 에서 stale 로 노출됨.
+#
+# 작업 방법:
+#   1. step.id ↔ Playwright 액션 매핑을 tests/registered-product/p2-등록상품-상세.spec.ts 에 구현
+#   2. tests/registered-product/p2-등록상품-상세.handlerKeys.json 에 step.id 들 등록
+#   3. selector 는 windly_repo/* 의 해당 컴포넌트 코드 확인 후 추출
+
+title: 등록상품 / 상세 영역 P2 TC 묶음 (40건)
+priority: P2
+
+description: |
+  자동 생성된 영역 단위 skeleton. 엑셀 export 의 P2 미작성 TC 40건을 step 으로 모음.
+  spec.ts 구현 전까지 catalog 에서 stale (handlerKeys 매니페스트 없음) 로 표시.
+
+inputs: {}
+
+steps:
+  - id: tc639_gnb
+    do: 상품 상세 진입
+  - id: tc640
+    do: 기본 정보 탭 확인
+  - id: tc641
+    do: 정보 수정
+  - id: tc642
+    do: 이미지 탭 확인
+  - id: tc643
+    do: 정보 수정
+  - id: tc644
+    do: 옵션 탭 확인
+  - id: tc645
+    do: 정보 수정
+  - id: tc646
+    do: 호버 툴팁
+  - id: tc647
+    do: 판매가 탭 확인
+  - id: tc648
+    do: 정보 수정
+  - id: tc649
+    do: 상품 속성 탭 확인
+  - id: tc650
+    do: 정보 수정
+  - id: tc651
+    do: 상세페이지 탭 확인
+  - id: tc652
+    do: 정보 수정
+  - id: tc653_업로드-설정
+    do: 업로드 설정 탭 확인
+  - id: tc654_업로드-설정
+    do: 스스 정보 수정
+  - id: tc655_업로드-설정
+    do: 쿠팡 정보 수정
+  - id: tc656_업로드-설정
+    do: ESM 정보 수정
+  - id: tc657_업로드-설정
+    do: ESM 정보 수정
+  - id: tc658_업로드-설정
+    do: '[제목 없음] - 2026-01-16 02:55:55'
+  - id: tc659_업로드-설정
+    do: ESM 정보 수정
+  - id: tc660_업로드-설정
+    do: ESM 정보 수정
+  - id: tc661_업로드-설정
+    do: 상품 수정
+  - id: tc662_업로드-설정
+    do: 업로드 마켓 선택 모달
+  - id: tc663_업로드-설정
+    do: 선택 동작
+  - id: tc664_업로드-설정
+    do: 수정 업로드 모달
+  - id: tc665_업로드-설정
+    do: 버튼 선택
+  - id: tc666_업로드-설정
+    do: 업로드 마켓 선택 모달
+  - id: tc667_업로드-설정
+    do: 선택 동작
+  - id: tc668_업로드-설정
+    do: 수정 업로드 모달
+  - id: tc669_업로드-설정
+    do: 버튼 선택
+  - id: tc670_업로드-설정
+    do: 업로드 실패
+  - id: tc671_업로드-설정
+    do: 수정 / 뒤로가기
+  - id: tc672_업로드-설정
+    do: 추가업로드 / 카테고리수정
+  - id: tc673_업로드-설정
+    do: 경고단어
+  - id: tc674_업로드-설정
+    do: 경고단어 업로드
+  - id: tc675_업로드-설정
+    do: 서버방식
+  - id: tc676_업로드-설정
+    do: 업로드
+  - id: tc677_업로드-설정
+    do: 판매자방식
+  - id: tc678_업로드-설정
+    do: 업로드
+
+expected: 모든 step 이 성공. spec.ts 구현 후 활성화.

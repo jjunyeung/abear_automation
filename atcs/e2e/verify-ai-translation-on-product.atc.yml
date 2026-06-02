@@ -1,0 +1,13 @@
+title: AI 번역 설정 → 페이지 진입 smoke (e2e)
+priority: P2
+description: 베이스세팅 AI 번역 카테고리 진입 + 설정 input 노출 검증.
+
+inputs: {}
+
+steps:
+  - id: open_ai_translation_setting
+    do: 베이스세팅 AI 번역 카테고리 페이지 직접 goto.
+  - id: verify_setting_visible
+    do: 번역 설정 input 또는 토글 노출 확인.
+
+expected: AI 번역 베이스세팅 페이지 마운트. unhandled 0건.

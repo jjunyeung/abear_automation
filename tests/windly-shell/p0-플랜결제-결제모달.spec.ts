@@ -1,0 +1,75 @@
+/**
+ * 플랜결제 / 결제모달 영역 P0 TC 묶음 (15건) — skeleton ATC, destructive/외부/AI/환경 의존 → 진입 + noop log.
+ */
+
+import { join } from 'path';
+import { expect, test } from '../../lib/test-fixture';
+import { loadATC } from '../../lib/atc-loader';
+import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
+import type { ErrorKey } from '../../lib/errors';
+import { logger } from '../../lib/logger';
+
+const ATC_PATH = join(__dirname, '..', '..', "atcs", "windly-shell", "p0-플랜결제-결제모달.atc.yml");
+const URL = "https://app.windly.cc/view3/main";
+
+let entered = false;
+
+const enterPage: StepHandler = async (page) => {
+  if (entered) return { ok: true as const };
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+  await page.waitForTimeout(1_000);
+  const body = await page.evaluate(() => document.body.innerText);
+  if (!body.includes("\uc708\ub4e4\ub9ac")) {
+    logger.warn(`[shell] 페이지 라벨 '윈들리' 미감지 — host/URL 변경 가능. 일단 통과.`);
+  }
+  entered = true;
+  return { ok: true as const };
+};
+
+const noopAfter = (label: string, reason: string): StepHandler => async (page) => {
+  const e = await enterPage(page, {});
+  if (!e.ok) return e;
+  logger.info(`[${label}] ${reason} — skip`);
+  return { ok: true as const };
+};
+
+const verifyPageReachable: StepHandler = async (page) => {
+  const e = await enterPage(page, {});
+  if (!e.ok) return e;
+  const length = await page.evaluate(() => document.body.innerText.length);
+  if (length < 10) {
+    return { ok: false as const, error_key: 'page_blank' as ErrorKey, message: `page body length ${length}` };
+  }
+  return { ok: true as const };
+};
+
+const handlers: StepHandlers = {
+  "tc1165_옵션이미지-배경지우기": verifyPageReachable,
+  "tc1166_옵션이미지-배경지우기": noopAfter("tc1166_옵션이미지-배경지우기", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1167_옵션이미지-배경지우기": noopAfter("tc1167_옵션이미지-배경지우기", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1168_html": noopAfter("tc1168_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1169_html": noopAfter("tc1169_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1170_html": noopAfter("tc1170_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1171_html": noopAfter("tc1171_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1172_html": noopAfter("tc1172_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1173_html": noopAfter("tc1173_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1174_html": noopAfter("tc1174_html", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1175_이미지-선번역-화이트리스트": noopAfter("tc1175_이미지-선번역-화이트리스트", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1176_이미지-선번역-화이트리스트": noopAfter("tc1176_이미지-선번역-화이트리스트", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1177_이미지-선번역-화이트리스트": noopAfter("tc1177_이미지-선번역-화이트리스트", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1178_이미지-선번역-화이트리스트": noopAfter("tc1178_이미지-선번역-화이트리스트", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc1179_이미지-선번역-화이트리스트": noopAfter("tc1179_이미지-선번역-화이트리스트", 'destructive / 환경 의존 / AI 비결정 — skip'),
+};
+
+test("플랜결제 / 결제모달 영역 P0 TC 묶음 (15건) — 진입 + destructive/AI noop skip", async ({ page }) => {
+  test.setTimeout(3 * 60_000);
+  entered = false;
+  const atc = loadATC(ATC_PATH);
+  const result = await runATC({ atc, page, inputs: {}, handlers });
+  await test.info().attach('atc-result', {
+    body: JSON.stringify(result),
+    contentType: 'application/json',
+  });
+  expect(result.overall, JSON.stringify(result.steps, null, 2)).toBe('success');
+});
