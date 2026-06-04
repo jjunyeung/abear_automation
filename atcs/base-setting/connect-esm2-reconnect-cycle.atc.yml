@@ -1,0 +1,38 @@
+title: 연결설정 / ESM 2.0 해제 → 동일 계정 재연결 사이클 (TC 996/999/1000/1005/1006)
+priority: P0
+
+description: |
+  ESM 2.0 (옥션/지마켓) 마켓을 실제로 설정 초기화(연결 해제)한 뒤 동일 계정(.env 의
+  ESM2_AUCTION_ID/ESM2_GMARKET_ID)으로 재연결하는 destructive 사이클.
+
+  안전 가드: 해제 전 현재 연결된 옥션/지마켓 아이디가 .env 키와 동일한지 확인.
+  다르면(=다른 계정) 등록상품 연결이 영구 단절되므로 해제하지 않고 abort.
+  동일 계정 재연결은 윈들리 경고("계정이 다른 경우")에 해당하지 않아 데이터 무손상.
+
+  주의: 설정 초기화는 finite quota 를 소모(소진 시 채널톡 문의 필요). 1 사이클 = 1 소모.
+
+  키는 .env 에서 주입 (atc-decisions-form.md → .env). 미설정 시 가드에서 fail.
+
+inputs: {}
+
+steps:
+  - id: enter_esm2_connect
+    do: ESM 2.0 마켓 연결 페이지 진입 + 설정 초기화 버튼(연결됨 상태) 확인
+  - id: guard_same_account
+    do: 현재 연결된 옥션/지마켓 아이디가 .env 키와 동일한지 확인 (다르면 abort, 해제 안 함)
+  - id: open_reset_modal
+    do: 설정 초기화 클릭 → ESM 2.0 연결 해제 모달 + 경고문/취소/설정초기화 버튼 노출 (TC 1005)
+  - id: fill_reason_and_reset
+    do: 초기화 사유 입력 후 모달 설정 초기화 클릭 → 연결 해제 실행 (TC 1006)
+  - id: verify_disconnected
+    do: 스토어 연결하기 버튼 + 입력 가능 필드 노출 (미연결 상태 확인)
+  - id: fill_and_connect
+    do: 옥션/지마켓 아이디(.env 동일 값) 입력 후 스토어 연결하기 클릭 (TC 996/1007)
+  - id: verify_connect_complete_modal
+    do: 연결을 완료했어요 모달 + 다음에 하기/설정하러 가기 버튼 노출 (TC 999/1000)
+  - id: close_complete_modal
+    do: 다음에 하기 클릭하여 모달 닫기 (TC 999)
+  - id: verify_reconnected
+    do: 설정 초기화 버튼 복귀 = 연결됨 상태 복구 + 아이디 동일 확인
+
+expected: ESM2 해제 → 동일 계정 재연결 성공, 연결됨 상태로 복구. 등록상품 연결 무손상.

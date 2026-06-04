@@ -1,0 +1,31 @@
+title: 연결설정 / 스마트스토어 해제 → 동일 계정 재연결 사이클 (TC 1005/1006/996/999/1000)
+priority: P0
+
+description: |
+  스마트스토어(네이버 커머스) 마켓을 설정 초기화 후 동일 판매자 ID(.env SMARTSTORE_SELLER_ID)로
+  재연결하는 destructive 사이클. 연결 버튼 = 연결하기 → URL 검증 → 스토어 연결 확인 모달 맞습니다.
+  안전 가드: 해제 전 현재 판매자 ID == .env 키 확인, 다르면 abort. 초기화 quota 1 소모.
+
+inputs: {}
+
+steps:
+  - id: enter_connect
+    do: 스마트스토어 연결 페이지 진입 + 설정 초기화 버튼(연결됨) 확인
+  - id: guard_same_account
+    do: 현재 연결 판매자 ID 가 .env 키와 동일한지 확인 (다르면 해제 안 함)
+  - id: open_reset_modal
+    do: 설정 초기화 클릭 → 연결 해제 모달(취소/설정초기화/경고문) 노출 (TC 1005)
+  - id: fill_reason_and_reset
+    do: 초기화 사유 입력 후 설정 초기화 클릭 → 연결 해제 실행 (TC 1006)
+  - id: verify_disconnected
+    do: 연결하기 버튼 노출 (미연결 확인)
+  - id: fill_and_connect
+    do: 판매자 ID 입력 후 연결하기 → 스토어 연결 확인 모달 맞습니다 클릭 (TC 996)
+  - id: verify_connect_complete_modal
+    do: 연결을 완료했어요 모달 + 다음에 하기/설정하러 가기 (TC 999/1000)
+  - id: close_complete_modal
+    do: 다음에 하기 클릭하여 모달 닫기 (TC 999)
+  - id: verify_reconnected
+    do: 설정 초기화 버튼 복귀 = 연결됨 복구
+
+expected: 스마트스토어 해제 → 동일 판매자 ID 재연결 성공, 연결됨 복구. 무손상.

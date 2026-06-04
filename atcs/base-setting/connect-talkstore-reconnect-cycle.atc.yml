@@ -1,0 +1,32 @@
+title: 연결설정 / 톡스토어 해제 → 동일 계정 재연결 사이클 (TC 1005/1006/996/998/1010/999/1000)
+priority: P0
+
+description: |
+  톡스토어 마켓을 설정 초기화 후 동일 계정(.env TALKSTORE_OPENAPI_KEY)으로 재연결하는
+  destructive 사이클. 2단계 연결: 스토어 연결하기 → Open API 인증키 확인 모달 확인했어요.
+  안전 가드: 해제 전 현재 스토어 URL(채널)이 .env TALKSTORE_CHANNEL_ID 와 동일한지 확인.
+  연결엔 인증키만 사용. 초기화 quota 1 소모.
+
+inputs: {}
+
+steps:
+  - id: enter_connect
+    do: 톡스토어 연결 페이지 진입 + 설정 초기화 버튼(연결됨) 확인
+  - id: guard_same_account
+    do: 현재 연결 스토어 URL(채널)이 .env 채널과 동일한지 확인 (다르면 해제 안 함)
+  - id: open_reset_modal
+    do: 설정 초기화 클릭 → 연결 해제 모달(취소/설정초기화/경고문) 노출 (TC 1005)
+  - id: fill_reason_and_reset
+    do: 초기화 사유 입력 후 설정 초기화 클릭 → 연결 해제 실행 (TC 1006)
+  - id: verify_disconnected
+    do: 스토어 연결하기 버튼 노출 (미연결 확인)
+  - id: fill_and_connect
+    do: Open API 인증키 입력 후 스토어 연결하기 → 인증키 확인 모달 확인했어요 클릭 (TC 996/998/1010)
+  - id: verify_connect_complete_modal
+    do: 연결을 완료했어요 모달 + 다음에 하기/설정하러 가기 (TC 999/1000)
+  - id: close_complete_modal
+    do: 다음에 하기 클릭하여 모달 닫기 (TC 999)
+  - id: verify_reconnected
+    do: 설정 초기화 버튼 복귀 = 연결됨 복구
+
+expected: 톡스토어 해제 → 동일 계정 재연결 성공, 연결됨 복구. 무손상.

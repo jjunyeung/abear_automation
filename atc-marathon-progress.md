@@ -629,3 +629,134 @@ npx playwright test --project=windly-registered-product tests/registered-product
 - **등록상품 / 상세페이지 P0 (TC 1213, 1 TC)** — 상하단 이미지.
 - **연결설정 / 오픈마켓 P0 (15 TC, TC 994-1010)** — 마켓 연결 모달 visibility.
 - **배송대행지 / 신청서 작성 P2 (85 TC tooltip 영역)** — 가장 단조롭지만 큼.
+
+---
+
+## Round 13 (R13) — 2026-06-04 (수집상품 상세 ESM 2.0 옵션 모달 3 TC strict)
+
+> 트리거: 사용자 "자동화 진행할 내용 확인" → P0 잔여 중 비-destructive 포켓 = esm 2.0 옵션 모달 선택.
+> 사전 발견: 연결설정/오픈마켓 P0 는 이미 별도 handwritten spec (connect-talkstore/connect-smartstore-market-page/connect-markets-smoke) 으로 대부분 strict 커버됨 + 잔여는 destructive → 패스.
+
+### 승격: TC 867/868/869 (수집상품 상세 ESM 2.0 옵션 모드 모달) noop → strict
+
+위치: 수집상품 상세 → [업로드 설정] 탭 → "ESM 2.0 옵션설정" 섹션 (sesame `ProductDetailTabs/UploadTab/EsmUploadSettings`).
+게이팅: 섹션은 `(uploadMarkets.esm || uploadedMarkets.esm)` 일 때만 렌더 (인터파크/ESM 연결 + esm 업로드 ON 전제 = 환경 의존). 환경에 없으면 fail 아니라 정직 skip 으로 분기.
+
+| step.id | TC# | 검증 | 결과 |
+|---|---:|---|---|
+| tc867_esm-20 | 867 | ESM 2.0 옵션설정 섹션 + "추천옵션 모드" 토글 노출 | ✅ strict |
+| tc868_esm-20 | 868 | "옵션설정" 버튼 클릭 → 옵션 모드 모달 오픈 (닫기/저장 버튼) | ✅ strict |
+| tc869_esm-20 | 869 | 모달 "닫기"(비저장) → 모달 닫힘 | ✅ strict |
+
+### 실행 결과
+
+`npx playwright test --project=windly-collected-product tests/collected-product/p0-수집상품-상품상세.spec.ts`
+- 27초, 2 passed. 이 환경은 인터파크/ESM 연결 + esm 업로드 ON 상태라 3 TC 전부 모달까지 라이브 strict 검증.
+- 닫기 = onClose 만 호출 (저장 X) 라 상품 상태 변화 없음 = 비-destructive.
+- runId: `result_2026-06-04_12-37-21`.
+
+### 부수 정정
+
+- `windly_repo` 가 `/Users/a1/windly_repo` → `/Users/a1/windly 자동화/windly_repo` 로 이동 (디렉토리명도 `sesame-frontend-web` → `sesame`). 메모리 reference 갱신.
+
+### R13 누적
+
+| 지표 | R12 종료 | R13 종료 | 변화 |
+|---|---:|---:|---:|
+| strict verified | 118 | **121** | +3 |
+| loose verified | 156 | 156 | 0 |
+| noop skip | 1489 | **1486** | -3 |
+
+---
+
+## Round 14 (R14) — 2026-06-04 (배송대행지 신청서 확인 상태 탭 9 TC loose)
+
+> 트리거: 사용자 "ㄱㄱ" → 비-destructive P0 포켓 = 배송대행지 신청서 수정 화면(TC 1511~1515).
+> 결과 정직성: 이 테스트 계정에 **배대지 신청서 데이터 0건** → 정작 요청한 수정 화면(1511~1515)은
+> 진입점("신청서 상세")이 없어 strict 검증 불가 → honest skip. 대신 신청서 확인 페이지 구조
+> (토스토스 상태 탭 7종 노출) 를 loose 로 확보.
+
+### 발견
+
+- `/view3/delivery-agency` 는 `global.windly.cc` 로 리다이렉트되고 기본 활성 공급자 = **QUICKSTAR**.
+- Excel TC 들(접수대기/접수신청/전체입고/출고확정 등)은 **토스토스 상태 용어** → "토스토스" 공급자 탭으로 전환 후 검증해야 함. (퀵스타 상태 라벨은 임시저장/입고대기/미트래킹/무게측정/출고준비 등으로 상이.)
+- 토스토스 상태 탭 7종: 접수대기/접수신청/부분입고/오류입고/전체입고/출고확정/결제대기 (constants/tosstoss.ts → RECEIPT_PENDING ... PAYMENT_PENDING).
+
+### 결과 (tests/delivery-agency/p0-배송대행지-신청서-확인.spec.ts)
+
+| step.id | TC# | 처리 |
+|---|---:|---|
+| tc1503/1507/1508/1509/1510/1516/1517/1518/1519 | 접수대기~결제대기 | ✅ loose (토스토스 상태 탭 노출 = 페이지 구조 렌더). 1517/1518/1519 = 결제대기 중복 |
+| tc1504 트래킹번호 입력 | 1504 | 🟨 skip (신청서 데이터/상태 의존) |
+| tc1505 송장번호 복사 | 1505 | 🟨 skip (출고 신청서 + clipboard 의존) |
+| tc1506 ... 메뉴 | 1506 | 🟨 skip (신청서 행 없음) |
+| tc1511~1515 신청서 수정 화면 | 1511-1515 | 🟨 skip (신청서 데이터 0건 → "신청서 상세" 진입점 부재) |
+
+- 클릭 기반 strict (탭 클릭 → `?deliveryStatus=ENUM` navigate) 는 데이터 0건 환경에서 URL 무변화라 정직하게 loose(라벨 노출)로만 표기. 신청서 데이터가 있는 환경에서 재실행 시 수정 화면(1511~1515) strict 승격 가능 (spec 에 진입 로직 이미 구현됨, 데이터만 있으면 자동 동작).
+- runId: `result_2026-06-04_13-39-...`.
+
+### R14 누적
+
+| 지표 | R13 종료 | R14 종료 | 변화 |
+|---|---:|---:|---:|
+| strict verified | 121 | 121 | 0 |
+| loose verified | 156 | **165** | +9 |
+| noop skip | 1486 | **1477** | -9 |
+
+---
+
+## Round 15 (R15) — 2026-06-04 (마켓 연결 destructive 사이클 — ESM2 카나리아)
+
+> 트리거: 사용자 "마켓 연결 tc 쓰자" + 마켓 API 키 문서(atc-decisions-form.md) 제공.
+> 발견: 5개 마켓(스스/쿠팡/11번가국내/ESM2/톡스토어) 전부 이미 연결됨 → 연결 TC 는 해제→재연결 필요(destructive).
+> 안전: 해제는 (1) finite quota 소모(소진 시 채널톡 문의), (2) **다른 계정** 재연결 시 등록상품 영구 단절(앱 경고). 동일 계정 재연결은 무손상.
+
+### 키 이관 + config
+
+- 마켓 키 10개 atc-decisions-form.md → .env (사용자 실행). lib/config.ts envSchema 에 필드 추가.
+- 마켓 enum: SMARTSTORE / COUPANG / ELEVENSTREET_DOMESTIC / ESM2 / TALKSTORE. 연결폼: /view3/connect?setting=MARKET&openMarket=<ENUM>.
+
+### ESM2 카나리아 (tests/base-setting/connect-esm2-reconnect-cycle.spec.ts)
+
+안전 가드(guard_same_account): 현재 연결 옥션/지마켓 아이디 == .env 키 확인, 불일치면 해제 전 abort.
+
+| step | TC# | 결과 |
+|---|---:|---|
+| 설정 초기화 모달 (경고문/취소/초기화) | 1005 | ✅ strict |
+| 사유 입력 후 초기화 실행 | 1006 | ✅ strict (실제 해제) |
+| 동일 키 재연결 (스토어 연결하기) | 996/1007 | ✅ strict |
+| 연결완료 모달 (다음에 하기/설정하러 가기) | 999/1000 | ✅ strict |
+| 연결됨 복구 확인 | — | ✅ (옥션 아이디=junjia430 동일, 무손상) |
+
+- 16.6초, 재연결 1회 성공. ESM2 quota 1 소모. 등록상품 무손상(동일 계정).
+- **strict +5 (TC 996/999/1000/1005/1006)**. 잔여 4개 마켓(스스/쿠팡/11번가국내/톡스토어)은 동일 패턴 확장 예정.
+
+### R15 누적 (ESM2 까지)
+
+| 지표 | R14 종료 | R15(ESM2) | 변화 |
+|---|---:|---:|---:|
+| strict verified | 121 | **126** | +5 |
+| loose verified | 165 | 165 | 0 |
+
+### R15 확장 — 5개 마켓 전부 완료 (2026-06-04)
+
+ESM2 카나리아 검증 후 동일 패턴(공통 헬퍼 `tests/base-setting/_market-reconnect-cycle.ts`)으로 나머지 4개 확장. 각 1 quota 소모, 전부 동일 계정 재연결 → 연결됨 복구 확인(무손상).
+
+| 마켓 | spec | 연결 방식 | 결과 |
+|---|---|---|---|
+| ESM 2.0 | connect-esm2-reconnect-cycle | 직접 연결 | ✅ |
+| 11번가 국내 | connect-elevenstreet-domestic-reconnect-cycle | 직접 연결 | ✅ |
+| 쿠팡 | connect-coupang-reconnect-cycle | 2단계 (확인했어요) | ✅ |
+| 톡스토어 | connect-talkstore-reconnect-cycle | 2단계 (확인했어요) | ✅ |
+| 스마트스토어 | connect-smartstore-reconnect-cycle | 연결하기 → 맞습니다 | ✅ |
+
+- 공통 안전 가드: 해제 전 현재 연결 식별필드 == .env 키 확인 → 동일 계정 보장 (다르면 해제 abort).
+- 커버 TC (연결설정/오픈마켓): **996/998/999/1000/1005/1006/1010** strict (마켓 5종 × 연결/해제 플로우).
+- 발견: 마켓 해제는 finite 초기화 quota 소모 + 다른 계정 재연결 시 등록상품 영구 단절(앱 경고). 동일 계정 재연결로 무손상 처리.
+
+### R15 최종 누적
+
+| 지표 | R14 종료 | R15 종료 | 변화 |
+|---|---:|---:|---:|
+| strict verified | 121 | **128** | +7 (996/998/999/1000/1005/1006/1010) |
+| loose verified | 165 | 165 | 0 |

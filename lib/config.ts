@@ -44,6 +44,23 @@ const envSchema = z.object({
   SLACK_BOT_TOKEN: z.string().startsWith('xoxb-').optional(),
   SLACK_TARGET_CHANNEL: z.string().optional(),
   SLACK_WEBHOOK_URL: z.string().url().optional(),
+  // ─── 마켓 연결 TC 용 자격증명 (atc-decisions-form.md → .env 로 이관) ───
+  // 연결설정/오픈마켓 연결 TC (TC 994~1012) 가 폼에 입력. 미설정 시 해당 마켓 연결 TC skip.
+  // 스마트스토어 (네이버 커머스 — 폼은 "API 연동용 판매자 ID" 1개만 요구)
+  SMARTSTORE_SELLER_ID: z.string().optional(),
+  // 쿠팡 (쿠팡 ID / 업체 코드 / Access Key / Secret Key)
+  COUPANG_ID: z.string().optional(),
+  COUPANG_CODE: z.string().optional(),
+  COUPANG_ACCESS_KEY: z.string().optional(),
+  COUPANG_SECRET_KEY: z.string().optional(),
+  // 11번가 국내 (Open API Key)
+  ELEVENSTREET_DOMESTIC_API_KEY: z.string().optional(),
+  // ESM 2.0 (옥션 아이디 / 지마켓 아이디)
+  ESM2_AUCTION_ID: z.string().optional(),
+  ESM2_GMARKET_ID: z.string().optional(),
+  // 톡스토어 (Open API 인증키 / 채널명 = store.kakao.com/<channel>)
+  TALKSTORE_OPENAPI_KEY: z.string().optional(),
+  TALKSTORE_CHANNEL_ID: z.string().optional(),
 });
 
 /** Inferred env shape — all fields optional at runtime. */
