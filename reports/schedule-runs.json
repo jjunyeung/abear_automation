@@ -762,5 +762,177 @@
         "overall": "passed"
       }
     ]
+  },
+  {
+    "scheduleId": "1cd6b72f-41b5-4163-aceb-1cfea5ed4508",
+    "firedAt": "2026-06-02T20:00:03.000Z",
+    "completedAt": "2026-06-02T20:10:11.998Z",
+    "overall": "failed",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/shell-menu-smoke-all.atc.yml",
+        "runId": "result_2026-06-03_05-00-03_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-detail-smoke.atc.yml",
+        "runId": "result_2026-06-03_05-00-40_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/registered-delete-cascade.atc.yml",
+        "runId": "result_2026-06-03_05-02-21_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/red-tab-detect-fix-recheck.atc.yml",
+        "runId": "result_2026-06-03_05-03-03_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/option-normalize-then-pass-check.atc.yml",
+        "runId": "result_2026-06-03_05-04-19_5",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-category-then-pass-check.atc.yml",
+        "runId": "result_2026-06-03_05-04-57_6",
+        "exitCode": 1,
+        "overall": "failed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-name-suggest-apply-save.atc.yml",
+        "runId": "result_2026-06-03_05-05-37_7",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-category-suggest-apply.atc.yml",
+        "runId": "result_2026-06-03_05-06-21_8",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/verify-base-setting-on-product.atc.yml",
+        "runId": "result_2026-06-03_05-07-02_9",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/verify-talkstore-points-on-product.atc.yml",
+        "runId": "result_2026-06-03_05-07-30_10",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/bulk-customs-tax-edit-then-upload.atc.yml",
+        "runId": "result_2026-06-03_05-07-51_11",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/da-application-submit-end-to-end.atc.yml",
+        "runId": "result_2026-06-03_05-08-27_12",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/registered-edit-name-reupload-verify.atc.yml",
+        "runId": "result_2026-06-03_05-08-53_13",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
+  },
+  {
+    "scheduleId": "1cd6b72f-41b5-4163-aceb-1cfea5ed4508",
+    "firedAt": "2026-06-03T20:00:06.000Z",
+    "completedAt": "2026-06-03T20:10:09.473Z",
+    "overall": "success",
+    "runs": [
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/shell-menu-smoke-all.atc.yml",
+        "runId": "result_2026-06-04_05-00-06_1",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/url-collect-detail-smoke.atc.yml",
+        "runId": "result_2026-06-04_05-00-46_2",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/registered-delete-cascade.atc.yml",
+        "runId": "result_2026-06-04_05-02-29_3",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/red-tab-detect-fix-recheck.atc.yml",
+        "runId": "result_2026-06-04_05-03-12_4",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/option-normalize-then-pass-check.atc.yml",
+        "runId": "result_2026-06-04_05-04-14_5",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-category-then-pass-check.atc.yml",
+        "runId": "result_2026-06-04_05-04-53_6",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-name-suggest-apply-save.atc.yml",
+        "runId": "result_2026-06-04_05-05-32_7",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/ai-category-suggest-apply.atc.yml",
+        "runId": "result_2026-06-04_05-06-17_8",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/verify-base-setting-on-product.atc.yml",
+        "runId": "result_2026-06-04_05-06-58_9",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/verify-talkstore-points-on-product.atc.yml",
+        "runId": "result_2026-06-04_05-07-27_10",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/bulk-customs-tax-edit-then-upload.atc.yml",
+        "runId": "result_2026-06-04_05-07-50_11",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/da-application-submit-end-to-end.atc.yml",
+        "runId": "result_2026-06-04_05-08-27_12",
+        "exitCode": 0,
+        "overall": "passed"
+      },
+      {
+        "atcPath": "/Users/a1/windly 자동화/atcs/e2e/registered-edit-name-reupload-verify.atc.yml",
+        "runId": "result_2026-06-04_05-09-01_13",
+        "exitCode": 0,
+        "overall": "passed"
+      }
+    ]
   }
 ]

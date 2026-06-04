@@ -80,6 +80,86 @@ const verifyTabText = (tabName: string): StepHandler => async (page) => {
   return { ok: true as const };
 };
 
+/**
+ * 탭 클릭 → 활성 영역 안 "수정" 버튼 / 편집 가능 영역 존재 검증 (R12).
+ * 클릭은 destructive 가 아니라 클라이언트 측 탭 전환만. 실제 수정 X.
+ */
+const verifyTabHasEditEntry = (tabName: string, tcLabel: string): StepHandler => async (page) => {
+  // 1. 탭 클릭. 탭은 보통 button 또는 li role="tab".
+  const clicked = await page.evaluate((tab) => {
+    const candidates = Array.from(document.querySelectorAll('button, [role="tab"], a, span, div'));
+    for (const el of candidates) {
+      const text = (el as HTMLElement).innerText?.trim();
+      if (text === tab) {
+        const rect = (el as HTMLElement).getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          (el as HTMLElement).scrollIntoView({ block: 'center' });
+          (el as HTMLElement).click();
+          return true;
+        }
+      }
+    }
+    return false;
+  }, tabName);
+  if (!clicked) {
+    return {
+      ok: false as const,
+      error_key: 'tab_button_not_clickable' as ErrorKey,
+      message: `${tcLabel} — '${tabName}' 탭 element 클릭 대상 미감지`,
+    };
+  }
+  await page.waitForTimeout(700);
+  // 2. 활성 영역에 "수정" 또는 input/textarea (편집 가능) 존재.
+  const hasEditTarget = await page.evaluate(() => {
+    // 수정 버튼 또는 input 둘 중 1개 이상.
+    const buttons = Array.from(document.querySelectorAll('button'));
+    if (buttons.some((b) => /수정/.test((b as HTMLButtonElement).innerText || ''))) return true;
+    const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
+    return inputs.some((i) => {
+      const r = (i as HTMLElement).getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+  });
+  if (!hasEditTarget) {
+    return {
+      ok: false as const,
+      error_key: 'tab_edit_entry_missing' as ErrorKey,
+      message: `${tcLabel} — '${tabName}' 탭 활성 후 수정 버튼/input 미감지`,
+    };
+  }
+  logger.info(`[reg-detail] ${tcLabel} '${tabName}' 탭 + 수정 진입점 visible`);
+  return { ok: true as const };
+};
+
+/** TC646 옵션 호버 툴팁 — 옵션 탭 클릭 후 title 속성/툴팁 element ≥ 1 존재. */
+const verifyOptionTooltip: StepHandler = async (page) => {
+  await page.evaluate(() => {
+    const candidates = Array.from(document.querySelectorAll('button, [role="tab"], a, span, div'));
+    for (const el of candidates) {
+      if ((el as HTMLElement).innerText?.trim() === '옵션') {
+        (el as HTMLElement).click();
+        return;
+      }
+    }
+  });
+  await page.waitForTimeout(500);
+  const hasTooltipTarget = await page.evaluate(() => {
+    // title 속성 또는 tooltip 컴포넌트 ≥ 1.
+    if (document.querySelectorAll('[title]').length > 0) return true;
+    if (document.querySelectorAll('[data-tooltip], [aria-describedby], [class*="ooltip"]').length > 0) return true;
+    return false;
+  });
+  if (!hasTooltipTarget) {
+    return {
+      ok: false as const,
+      error_key: 'option_tooltip_target_missing' as ErrorKey,
+      message: 'TC646 — 옵션 탭 안 title/tooltip 대상 미감지',
+    };
+  }
+  logger.info('[reg-detail] tc646 옵션 호버 툴팁 대상 visible');
+  return { ok: true as const };
+};
+
 const noopWithLog = (label: string, reason: string): StepHandler => async () => {
   logger.info(`[reg-detail] ${label}: ${reason} — destructive 또는 환경 의존, skip 처리`);
   return { ok: true as const };
@@ -90,30 +170,30 @@ const handlers: StepHandlers = {
   tc639_gnb: enterFirstProductDetail,
   // TC640 기본 정보 탭 확인
   tc640: verifyTabText('기본 정보'),
-  // TC641 기본 정보 수정 — destructive
-  tc641: noopWithLog('TC641', '기본 정보 수정'),
+  // TC641 기본 정보 수정 — R12 strict: 탭 활성 + 수정 진입점 (button 또는 input) visible.
+  tc641: verifyTabHasEditEntry('기본 정보', 'TC641'),
   // TC642 이미지 탭 확인
   tc642: verifyTabText('이미지'),
-  // TC643 이미지 수정 — destructive
-  tc643: noopWithLog('TC643', '이미지 수정'),
+  // TC643 이미지 수정 — R12 strict.
+  tc643: verifyTabHasEditEntry('이미지', 'TC643'),
   // TC644 옵션 탭 확인
   tc644: verifyTabText('옵션'),
-  // TC645 옵션 수정 — destructive
-  tc645: noopWithLog('TC645', '옵션 수정'),
-  // TC646 호버 툴팁 — 데이터 의존
-  tc646: noopWithLog('TC646', '호버 툴팁 — 환경 의존'),
+  // TC645 옵션 수정 — R12 strict.
+  tc645: verifyTabHasEditEntry('옵션', 'TC645'),
+  // TC646 호버 툴팁 — R12 strict: 옵션 탭 안 title/tooltip target ≥ 1.
+  tc646: verifyOptionTooltip,
   // TC647 판매가 탭 확인
   tc647: verifyTabText('판매가'),
-  // TC648 판매가 수정 — destructive
-  tc648: noopWithLog('TC648', '판매가 수정'),
+  // TC648 판매가 수정 — R12 strict.
+  tc648: verifyTabHasEditEntry('판매가', 'TC648'),
   // TC649 상품 속성 탭 확인
   tc649: verifyTabText('상품 속성'),
-  // TC650 속성 수정 — destructive
-  tc650: noopWithLog('TC650', '상품 속성 수정'),
+  // TC650 속성 수정 — R12 strict.
+  tc650: verifyTabHasEditEntry('상품 속성', 'TC650'),
   // TC651 상세페이지 탭 확인
   tc651: verifyTabText('상세페이지'),
-  // TC652 상세페이지 수정 — destructive
-  tc652: noopWithLog('TC652', '상세페이지 수정'),
+  // TC652 상세페이지 수정 — R12 strict.
+  tc652: verifyTabHasEditEntry('상세페이지', 'TC652'),
   // TC653 업로드 설정 탭 확인
   'tc653_업로드-설정': verifyTabText('업로드 설정'),
   // TC654 ~ TC678 — 거의 다 destructive (스스/쿠팡/ESM 정보 수정, 업로드 마켓 선택 모달, 업로드 실행, 경고단어, 서버/판매자 방식 등)

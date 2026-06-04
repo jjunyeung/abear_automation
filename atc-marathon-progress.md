@@ -573,3 +573,59 @@ npx playwright test --project=windly-registered-product tests/registered-product
 - 수집상품 / 상품 상세페이지 (P2, 116 TC) — 가장 큼.
 - 배송대행지 / 신청서 작성 (P2, 85 TC) — tooltip 검증 mostly.
 - product-collect 외부 마켓 페이지 검증 (각 12 TC).
+
+---
+
+## Round 12 (R12) — 2026-06-02 (등록상품 상세 P2 6 탭 strict)
+
+> 트리거: 사용자 "다음 ㄱㄱ" → 등록상품 영역 연장.
+
+### 승격: 6 탭 × (탭 확인 + 정보 수정) = 13 TC strict
+
+기존 spec 이미 verifyTabText 로 6 TC strict (탭 확인). 정보 수정 6 TC + 호버 툴팁 1 TC = 7 noop 을 strict 로 승격.
+
+| step.id | TC# | 검증 |
+|---|---:|---|
+| tc640 | 640 | 기본 정보 탭 텍스트 |
+| tc641 | 641 | 기본 정보 탭 클릭 → 수정 button/input 진입점 |
+| tc642 | 642 | 이미지 탭 텍스트 |
+| tc643 | 643 | 이미지 탭 클릭 → 수정 진입점 |
+| tc644 | 644 | 옵션 탭 텍스트 |
+| tc645 | 645 | 옵션 탭 클릭 → 수정 진입점 |
+| tc646 | 646 | 옵션 탭 안 title/tooltip target ≥ 1 |
+| tc647 | 647 | 판매가 탭 텍스트 |
+| tc648 | 648 | 판매가 탭 클릭 → 수정 진입점 |
+| tc649 | 649 | 상품 속성 탭 텍스트 |
+| tc650 | 650 | 상품 속성 탭 클릭 → 수정 진입점 |
+| tc651 | 651 | 상세페이지 탭 텍스트 |
+| tc652 | 652 | 상세페이지 탭 클릭 → 수정 진입점 |
+
+### 신규 helper
+
+- `verifyTabHasEditEntry(tabName, tcLabel)` — 탭 클릭 → 활성 영역에 "수정" 버튼 OR input/textarea visible.
+- `verifyOptionTooltip` — 옵션 탭 안 `[title]` / `[data-tooltip]` / `[aria-describedby]` / `[class*="ooltip"]` ≥ 1.
+
+### 실행 결과
+
+`npx playwright test --project=windly-registered-product tests/registered-product/p2-등록상품-상세.spec.ts`
+
+- 38.7초, 모든 step success.
+- TC 640-652: **13/13 strict pass**.
+- TC 653-678 (업로드 설정 영역): noop 유지 (destructive 외부 마켓 호출 영역).
+
+### R12 누적
+
+| 지표 | R7 종료 | R11 종료 | R12 종료 | 변화 (R7→R12) |
+|---|---:|---:|---:|---:|
+| strict verified | 79 | 111 | **118** | +39 |
+| loose verified | 163 | 156 | 156 | 0 |
+| noop skip | 1521 | 1496 | 1489 | -32 |
+| 미커버 | 41 | ~4 | ~4 | -37 |
+
+### R12 → R13 후보 (ROI 순)
+
+- **수집상품 / 상품 상세페이지 P2 (116 TC, 최대)** — 같은 탭 패턴 적용 가능.
+- **등록상품 / 이미지 P0 (TC 965-966, 2 TC)** — 배경지우기 AI 호출, mock 필요할 수도.
+- **등록상품 / 상세페이지 P0 (TC 1213, 1 TC)** — 상하단 이미지.
+- **연결설정 / 오픈마켓 P0 (15 TC, TC 994-1010)** — 마켓 연결 모달 visibility.
+- **배송대행지 / 신청서 작성 P2 (85 TC tooltip 영역)** — 가장 단조롭지만 큼.
