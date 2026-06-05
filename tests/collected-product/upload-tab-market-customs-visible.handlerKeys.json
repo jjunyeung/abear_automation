@@ -1,0 +1,1 @@
+["open_first_product_detail", "click_upload_tab", "wait_uploading_market_toggles", "verify_market_toggles_visible", "verify_market_toggle_states", "verify_customs_tax_section", "verify_customs_tax_options"]

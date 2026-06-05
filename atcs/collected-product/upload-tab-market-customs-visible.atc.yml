@@ -1,0 +1,53 @@
+# 수집상품 상세 → 업로드 설정 탭 → 업로드 대상 마켓 토글 + 관부가세 설정 영역 노출 (non-destructive).
+#
+# TC 원본 (P0, 업로드설정 / 스마트스토어 업로드 설정):
+#   - Case No 3499 / 업로드 대상 마켓 토글 노출
+#   - Case No 3500 / 마켓별 활성/비활성 상태 시각 구분
+#   - Case No 3515 / 관부가세 설정 영역 노출
+#   - Case No 3516 / 관부가세 옵션 3개 노출 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함)
+#
+# TC 3501 (토글 변경) / 3517 (관부가세 옵션 선택 변경) = 서버 onUpdateProduct 호출 → destructive → skip.
+#
+# 코드 출처:
+#   - windly_repo/sesame/.../UploadTab/UploadingMarketToggles/UploadingMarketToggles.tsx
+#       Subheader title="업로드 대상 마켓" + 마켓별 Toggle(label=MarketKeyToLabel)
+#   - windly_repo/sesame/.../UploadTab/CommonUploadSettings/CustomsTax/index.tsx
+#       Subheader title="관부가세 설정" + SegmentedButton 3개
+
+title: 수집상품 상세 → 업로드 설정 탭 → 업로드 대상 마켓 + 관부가세 영역 노출 (TC 3499/3500/3515/3516)
+priority: P0
+
+description: |
+  수집상품 첫 카드 → 상세 진입 → 업로드 설정 탭 → 업로드 대상 마켓 Subheader + 마켓 토글 노출 확인
+  → 마켓 토글의 활성/비활성(disabled) 상태 시각 구분 확인 → 관부가세 설정 Subheader + 3 옵션 노출 확인.
+  TC 원본: Case No 3499/3500/3515/3516 P0. 토글/옵션 변경(3501/3517)은 서버 호출 destructive 라 skip.
+
+inputs: {}
+
+steps:
+  - id: open_first_product_detail
+    do: 수집상품 목록 진입 후 첫 카드의 상세 페이지 진입
+
+  - id: click_upload_tab
+    do: 업로드 설정 탭 클릭
+
+  - id: wait_uploading_market_toggles
+    do: 업로드 대상 마켓 토글 영역 렌더 대기
+
+  - id: verify_market_toggles_visible
+    do: 업로드 대상 마켓 Subheader 와 마켓 토글들이 노출되는지 확인
+    expect: 업로드 대상 마켓 제목 + 1개 이상의 마켓 토글 노출
+
+  - id: verify_market_toggle_states
+    do: 마켓 토글의 활성/비활성 상태가 구분 가능한지 확인 (checkbox input 의 checked/disabled 속성 존재)
+    expect: 토글 input 들이 존재하고 상태 속성으로 구분됨
+
+  - id: verify_customs_tax_section
+    do: 관부가세 설정 Subheader 노출 확인
+    expect: 관부가세 설정 제목 노출
+
+  - id: verify_customs_tax_options
+    do: 관부가세 옵션 3개 노출 확인 (부과 대상 아님 / 관부가세 포함 / 관부가세 미포함)
+    expect: 3개 옵션 모두 노출
+
+expected: 업로드 대상 마켓 토글 + 관부가세 설정 영역이 모두 노출. 변경 액션은 destructive 라 미수행. unhandled 0건.

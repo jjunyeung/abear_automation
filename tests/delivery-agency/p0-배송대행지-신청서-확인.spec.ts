@@ -1,5 +1,8 @@
 /**
- * 배송대행지 / 신청서 확인 영역 P0 TC 묶음 (17건) — skeleton ATC, destructive/외부/AI/환경 의존 → 진입 + noop log.
+ * 배송대행지 / 신청서 확인 영역 P0 TC 묶음 (17건).
+ * 상태 탭 노출(접수대기/접수신청/부분입고/오류입고/전체입고/출고확정/결제대기) loose verified —
+ * tc1503/1506~1519 는 verifyStatusTab/verifyRowMoreMenu/verifyApplicationDetail 로 실제 검증.
+ * tc1504/1505 (트래킹 입력·송장 복사) 만 신청서 데이터/clipboard 의존으로 noop skip.
  */
 
 import { join } from 'path';
