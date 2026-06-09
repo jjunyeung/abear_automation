@@ -36,6 +36,30 @@ const RECOMMEND_SECTION_TEXT = '쿠팡의 추천 옵션그룹명';
 const ADD_GROUP_BUTTON = '옵션그룹 추가';
 const DELETE_GROUP_CONFIRM = '옵션 그룹 삭제';
 
+/** "(택N) 이름" 추천명에서 앞 "(택N) " 표시를 제거. 매칭은 ID 로 저장되므로 그룹명은 clean 으로. */
+function stripChoosePrefix(name: string): string {
+  return name.replace(/^\(택\d+\)\s*/, '').trim();
+}
+
+/**
+ * 추천 옵션그룹명 중 "(택N)" 묶음은 택일 — 같은 N 은 첫 항목만 채택, prefix 없는 건 전부 유지.
+ * 태그 클릭용 원본 텍스트(prefix 포함)는 그대로 반환한다.
+ * 예: ["(택1) 개당 용량", "(택1) 개당 중량", "수량"] → ["(택1) 개당 용량", "수량"].
+ */
+function collapseChooseOneNames(names: string[]): string[] {
+  const seenChoose = new Set<string>();
+  const out: string[] = [];
+  for (const name of names) {
+    const m = name.match(/^\(택(\d+)\)/);
+    if (m !== null) {
+      if (seenChoose.has(m[1])) continue;
+      seenChoose.add(m[1]);
+    }
+    out.push(name);
+  }
+  return out;
+}
+
 /** TabGroup 의 탭은 텍스트 매칭으로 클릭 (기존 spec 패턴과 동일). */
 async function clickTab(page: Page, name: string): Promise<boolean> {
   const tab = page.getByText(name, { exact: true }).first();
@@ -347,11 +371,13 @@ async function clickTagInRow(page: Page, rowIndex: number, name: string): Promis
 async function assignMatchableNames(page: Page, recommendedNames: string[]): Promise<number> {
   for (let guard = 0; guard < 12; guard += 1) {
     const matches = await readGroupMatches(page);
-    const covered = matches.filter((m) => m.length > 0);
+    // covered = recommendedNames(effective) 기준만 — 비-effective 매칭(개당중량 등)은 미커버로 본다.
+    const covered = matches.filter((m) => recommendedNames.includes(m));
     const uncovered = recommendedNames.filter((n) => !covered.includes(n));
     if (uncovered.length === 0) break;
-    const targetRow = matches.findIndex((m) => m.length === 0);
-    if (targetRow < 0) break; // 미매칭 그룹 없음
+    // 빈 그룹 또는 비-effective 추천명에 매칭된 그룹을 재매칭 대상으로 (잔여 상태 robust).
+    const targetRow = matches.findIndex((m) => m.length === 0 || !recommendedNames.includes(m));
+    if (targetRow < 0) break; // 재매칭 가능한 그룹 없음
     const name = uncovered[0];
     const ok = await clickTagInRow(page, targetRow, name);
     if (!ok) {
@@ -365,97 +391,260 @@ async function assignMatchableNames(page: Page, recommendedNames: string[]): Pro
 }
 
 /**
- * 매칭 후 비어있는 그룹(주로 새로 추가한 그룹)의 그룹명 + 옵션값을 채운다.
- *   - 그룹명: 해당 그룹에 매칭된 쿠팡 추천 속성명(recommendedNames[i])
- *   - 옵션값: 그룹의 "입력 가능한 옵션"(usableUnits) 첫 값. 제약 없으면 '1'
- * 이미 채워진 그룹(기존 그룹)은 건너뛴다 — idempotent.
+ * 그룹 라벨 정렬: 각 그룹 라벨을 자신의 ID-매칭 추천명(clean)으로 맞춘다.
+ *  - 잔여/오염 라벨이 *다른* 추천속성명과 일치하면 validateOption 이 그 속성 기준으로 옵션값을
+ *    오검사한다(예: 라벨 "개당 중량" → 수량 그룹의 "1개"에 g/kg 검사 적용 → red). 비어있지 않아도
+ *    매칭명과 다르면 덮어쓴다. 매칭 없는 빈 라벨만 "옵션N" fallback. 라벨은 그룹 헤더라 가상화 영향 적음.
  */
-async function fillIncompleteGroups(page: Page, recommendedNames: string[]): Promise<void> {
-  // 매 반복마다 re-query — fill 시 React 재렌더로 DOM 노드가 교체돼 마크가 날아갈 수 있음.
+async function fixGroupLabels(page: Page): Promise<void> {
   for (let guard = 0; guard < 12; guard += 1) {
+    const cleanMatched = (await readGroupMatches(page)).map(stripChoosePrefix);
     const target = await page.evaluate((names: string[]) => {
       const norm = (s: string | null): string => (s ?? '').trim();
-      const yOf = (el: Element): number => el.getBoundingClientRect().y;
-
-      // 그룹명 input: class `option-group-<id>` (active 토글 제외). DOM 순서 = 그룹 순서.
       const nameInputs = (
         Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
       ).filter((inp) => {
         const cls = inp.getAttribute('class') ?? '';
         return /(^|\s)option-group-[0-9a-f]/.test(cls) && !cls.includes('option-group-active');
       });
-      const groups = nameInputs.map((ni, gi) => ({ gi, y: yOf(ni), empty: norm(ni.value).length === 0 }));
-      const groupOf = (y: number): number => {
-        let gi = 0;
-        for (const g of groups) if (g.y <= y) gi = g.gi;
-        return gi;
-      };
+      for (let gi = 0; gi < nameInputs.length; gi += 1) {
+        const cur = norm(nameInputs[gi].value);
+        const matched = names[gi] ?? '';
+        if (matched.length > 0 && cur !== matched) {
+          nameInputs[gi].setAttribute('data-atc-fill', '1');
+          return { gi, value: matched };
+        }
+        if (matched.length === 0 && cur.length === 0) {
+          nameInputs[gi].setAttribute('data-atc-fill', '1');
+          return { gi, value: `옵션${gi + 1}` };
+        }
+      }
+      return null;
+    }, cleanMatched);
+    if (target === null) break;
+    const loc = page.locator('[data-atc-fill]').first();
+    await loc.click();
+    await loc.fill(target.value);
+    await loc.press('Tab');
+    await page.waitForTimeout(2_500);
+    await page.evaluate(() =>
+      document.querySelector('[data-atc-fill]')?.removeAttribute('data-atc-fill'),
+    );
+    logger.info(`[fill] 그룹 ${target.gi + 1} name → ${target.value}`);
+  }
+}
 
-      // 그룹별 usableUnits: "입력 가능한 옵션" leaf 다음 텍스트, y 로 그룹 매핑.
-      const unitsByGroup: Record<number, string> = {};
+interface CollectedGroup {
+  key: string;
+  units: string[];
+  /** 옵션 id → 현재 값 (스크롤 수집, DOM 순서 유지). */
+  options: Array<{ id: string; value: string }>;
+}
+
+/**
+ * 옵션 리스트를 끝까지 스크롤하며 **모든** 옵션을 그룹별로 수집(가상화 대응).
+ * 옵션 id(option_input_<id>)로 dedup 하므로 mount/unmount 와 무관하게 전수 확보.
+ */
+async function collectAllOptions(page: Page): Promise<CollectedGroup[]> {
+  await page.evaluate(scrollOptionContainersToTopFn).catch(() => undefined);
+  await page.waitForTimeout(400);
+  const acc = new Map<string, { order: number; units: string[]; options: Map<string, string> }>();
+  let orderSeq = 0;
+  for (let s = 0; s < 40; s += 1) {
+    const snap = await page.evaluate(() => {
+      const norm = (x: string | null): string => (x ?? '').trim();
+      const yOf = (el: Element): number => el.getBoundingClientRect().y;
+      const nameInputs = (
+        Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
+      ).filter((i) => {
+        const c = i.getAttribute('class') ?? '';
+        return /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+      });
+      const gMeta = nameInputs.map((ni) => ({
+        key: (ni.getAttribute('class') ?? '').match(/option-group-([^\s]+)/)?.[1] ?? '',
+        y: yOf(ni),
+      }));
+      const keyByY = (y: number): string => {
+        let k = gMeta[0]?.key ?? '';
+        for (const g of gMeta) if (g.y <= y) k = g.key;
+        return k;
+      };
+      const unitsByKey: Record<string, string[]> = {};
       const leaves = Array.from(document.querySelectorAll('*')).filter((e) => e.children.length === 0);
       for (let i = 0; i < leaves.length; i += 1) {
         if (norm(leaves[i].textContent) !== '입력 가능한 옵션') continue;
         for (let j = i + 1; j < Math.min(i + 5, leaves.length); j += 1) {
           const t = norm(leaves[j].textContent);
           if (t.length > 0) {
-            unitsByGroup[groupOf(yOf(leaves[i]))] = t.split(',')[0].trim();
+            unitsByKey[keyByY(yOf(leaves[i]))] = t
+              .split(',')
+              .map((u) => u.trim())
+              .filter((u) => u.length > 0);
             break;
           }
         }
       }
-
-      // 1순위: 빈 그룹명.
-      for (const g of groups) {
-        if (g.empty) {
-          nameInputs[g.gi].setAttribute('data-atc-fill', '1');
-          return { kind: 'name', gi: g.gi, value: names[g.gi] ?? '' };
-        }
-      }
-      // 2순위: 옵션값 input (class `option_input_<id>`).
-      //  - 단위 그룹(쿠팡 숫자+단위 속성): 값이 ^\d+(\.\d+)?(unit)$ 아니면 "1<unit>" 로 교정
-      //    (예: 빈칸/"단" → "1단"). validation L585-590 의 regex/unitExample 과 동일.
-      //  - 단위 없는 그룹(예: 색상): 빈칸일 때만 "1" 로 채움. 기존 값(예: A)은 안 건드림.
-      const optInputs = (
+      const opts = (
         Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
-      ).filter((inp) => /(^|\s)option_input_/.test(inp.getAttribute('class') ?? ''));
-      for (const oi of optInputs) {
-        const gi = groupOf(yOf(oi));
-        const unit = unitsByGroup[gi] ?? '';
-        const cur = norm(oi.value);
-        if (unit.length > 0) {
-          const re = new RegExp(`^\\d+(\\.\\d+)?(${unit})$`);
-          if (!re.test(cur)) {
-            oi.setAttribute('data-atc-fill', '1');
-            return { kind: 'option', gi, value: `1${unit}` };
-          }
-        } else if (cur.length === 0) {
-          oi.setAttribute('data-atc-fill', '1');
-          return { kind: 'option', gi, value: '1' };
-        }
-      }
-      return null;
-    }, recommendedNames);
-
-    if (target === null) break;
-    if (target.value.length === 0) {
-      // 채울 값이 없음(이론상 name 은 항상 있음) — 무한루프 방지.
-      await page.evaluate(() =>
-        document.querySelector('[data-atc-fill]')?.removeAttribute('data-atc-fill'),
-      );
-      logger.info(`[fill] 그룹 ${target.gi + 1} ${target.kind} 채울 값 없음 — 건너뜀`);
-      break;
+      ).filter((i) => /(^|\s)option_input_/.test(i.getAttribute('class') ?? ''));
+      const optList = opts.map((i) => ({
+        id: (i.getAttribute('class') ?? '').match(/option_input_(\S+)/)?.[1] ?? '',
+        value: norm(i.value),
+        groupKey: keyByY(yOf(i)),
+      }));
+      return { groupKeys: gMeta.map((g) => g.key), unitsByKey, optList };
+    });
+    for (const k of snap.groupKeys) {
+      if (k.length > 0 && !acc.has(k)) acc.set(k, { order: orderSeq++, units: [], options: new Map() });
     }
+    for (const [k, u] of Object.entries(snap.unitsByKey)) {
+      const g = acc.get(k);
+      if (g && u.length > 0) g.units = u;
+    }
+    for (const o of snap.optList) {
+      const g = acc.get(o.groupKey);
+      if (g && o.id.length > 0) g.options.set(o.id, o.value);
+    }
+    const moved = await page.evaluate(stepScrollOptionContainersFn);
+    await page.waitForTimeout(500);
+    if (!moved) break;
+  }
+  return [...acc.entries()]
+    .sort((a, b) => a[1].order - b[1].order)
+    .map(([key, g]) => ({
+      key,
+      units: g.units,
+      options: [...g.options.entries()].map(([id, value]) => ({ id, value })),
+    }));
+}
 
-    const loc = page.locator('[data-atc-fill]').first();
-    await loc.click();
-    await loc.fill(target.value);
-    await loc.press('Tab');
-    await page.waitForTimeout(2_000);
-    await page.evaluate(() =>
-      document.querySelector('[data-atc-fill]')?.removeAttribute('data-atc-fill'),
-    );
-    logger.info(`[fill] 그룹 ${target.gi + 1} ${target.kind} → ${target.value}`);
+/** 가상화된 옵션 input(option_input_<id>)을 렌더될 때까지 스크롤로 찾아 value 로 채운다. */
+async function scrollAndFillOption(page: Page, id: string, value: string): Promise<boolean> {
+  const sel = `input[class*="option_input_${id}"]`;
+  for (let s = 0; s < 40; s += 1) {
+    if ((await page.locator(sel).count()) > 0) break;
+    const moved = await page.evaluate(stepScrollOptionContainersFn);
+    await page.waitForTimeout(350);
+    if (!moved) {
+      await page.evaluate(scrollOptionContainersToTopFn).catch(() => undefined);
+      await page.waitForTimeout(300);
+    }
+  }
+  const loc = page.locator(sel).first();
+  if ((await loc.count()) === 0) {
+    logger.info(`[fill] 옵션 ${id} 미발견(스크롤 후에도)`);
+    return false;
+  }
+  await loc.scrollIntoViewIfNeeded().catch(() => undefined);
+  await loc.click();
+  await loc.fill(value);
+  await loc.press('Tab');
+  await page.waitForTimeout(2_500);
+  logger.info(`[fill] 옵션 → ${value}`);
+  return true;
+}
+
+/**
+ * 옵션값 전역 수정: 그룹별 **전체** 옵션 기준으로 중복/형식위반/빈값을 고유값으로 교체.
+ *  - 단위 그룹: `^\d+(\.\d+)?(단위들)$` 위반/중복인 옵션을 그룹 전역에서 안 겹치는 `${n}${unit}`
+ *    (generic 단위 — g/cm/ml/개…)로. 이미 유효+고유한 값(첫 등장)은 보존.
+ *  - 단위 없는 그룹: 빈/중복만 "옵션N".
+ * 가상화로 중복 짝이 같은 화면에 안 떠도, 전수 수집 후 전역 판정하므로 누락 없음.
+ * @returns 적용한 fix 수.
+ */
+async function fixOptionValues(page: Page): Promise<number> {
+  const groups = await collectAllOptions(page);
+  let applied = 0;
+  for (const g of groups) {
+    const unit = g.units[0] ?? '';
+    const re = g.units.length > 0 ? new RegExp(`^\\d+(\\.\\d+)?(${g.units.join('|')})$`) : null;
+    const used = new Set<string>();
+    const seen = new Set<string>();
+    const fixes: Array<{ id: string; value: string }> = [];
+    for (const opt of g.options) {
+      const v = opt.value;
+      const valid = re !== null ? re.test(v) : v.length > 0;
+      if (valid && !seen.has(v)) {
+        seen.add(v);
+        used.add(v);
+        continue;
+      }
+      let value = '';
+      if (unit.length > 0) {
+        let n = 1;
+        while (used.has(`${n}${unit}`)) n += 1;
+        value = `${n}${unit}`;
+      } else {
+        let n = 1;
+        while (used.has(`옵션${n}`)) n += 1;
+        value = `옵션${n}`;
+      }
+      used.add(value);
+      fixes.push({ id: opt.id, value });
+    }
+    for (const f of fixes) {
+      const ok = await scrollAndFillOption(page, f.id, f.value);
+      if (ok) applied += 1;
+    }
+  }
+  return applied;
+}
+
+/** 브라우저 컨텍스트 실행용 — option_input_ 의 overflow 스크롤 컨테이너들을 맨 위로. */
+function scrollOptionContainersToTopFn(): void {
+  const opts = Array.from(document.querySelectorAll('input[class*="option_input_"]')) as HTMLElement[];
+  const containers = new Set<HTMLElement>();
+  for (const o of opts) {
+    let el: HTMLElement | null = o.parentElement;
+    while (el !== null) {
+      if (el.scrollHeight > el.clientHeight + 5 && getComputedStyle(el).overflowY !== 'visible') {
+        containers.add(el);
+        break;
+      }
+      el = el.parentElement;
+    }
+  }
+  containers.forEach((c) => {
+    c.scrollTop = 0;
+  });
+}
+
+/** 브라우저 컨텍스트 실행용 — 옵션 컨테이너 + 윈도우를 한 스텝 내림. 더 못 내려가면 false. */
+function stepScrollOptionContainersFn(): boolean {
+  const opts = Array.from(document.querySelectorAll('input[class*="option_input_"]')) as HTMLElement[];
+  const containers = new Set<HTMLElement>();
+  for (const o of opts) {
+    let el: HTMLElement | null = o.parentElement;
+    while (el !== null) {
+      if (el.scrollHeight > el.clientHeight + 5 && getComputedStyle(el).overflowY !== 'visible') {
+        containers.add(el);
+        break;
+      }
+      el = el.parentElement;
+    }
+  }
+  let moved = false;
+  containers.forEach((c) => {
+    const before = c.scrollTop;
+    c.scrollTop = Math.min(c.scrollTop + Math.max(c.clientHeight * 0.6, 120), c.scrollHeight);
+    if (c.scrollTop !== before) moved = true;
+  });
+  const wy = window.scrollY;
+  window.scrollBy(0, Math.round(window.innerHeight * 0.6));
+  if (window.scrollY !== wy) moved = true;
+  return moved;
+}
+
+async function fillGroups(page: Page): Promise<void> {
+  // 1) 그룹 라벨 정렬 — 오염 라벨이 타 속성 검사를 유발하지 않도록 (가상화 영향 적은 헤더).
+  await fixGroupLabels(page);
+  // 2) 옵션값 전역 수정 — 가상화로 숨은 옵션까지 전수 수집해 그룹 전역 고유성 보장.
+  //    race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
+  for (let round = 0; round < 5; round += 1) {
+    const fixes = await fixOptionValues(page);
+    if (fixes === 0) break;
+    logger.info(`[fill] 옵션값 라운드 ${round + 1}: ${fixes}건 수정 — 재수집/재검사`);
+    await page.waitForTimeout(3_000);
   }
 }
 
@@ -473,7 +662,15 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
     };
   }
 
-  const target = state.recommendedNames.length;
+  // "(택N)" 묶음은 택일 — 같은 N 은 하나만 매칭하면 됨 (groupNumber 단위 필수, 윈들리 validateOption).
+  const effectiveNames = collapseChooseOneNames(state.recommendedNames);
+  if (effectiveNames.length !== state.recommendedNames.length) {
+    logger.info(
+      `[match_option_groups] (택N) 택일 적용: ${state.recommendedNames.length} → ${effectiveNames.length} [${effectiveNames.join(', ')}]`,
+    );
+  }
+
+  const target = effectiveNames.length;
 
   // 1) 부족하면 먼저 추가 (빈 그룹). 초과분은 매칭 후 삭제 — 위치가 아니라 미매칭 그룹을 지움.
   let addGuard = 0;
@@ -492,8 +689,8 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
   }
 
   // 2) 매칭 먼저 — 추천명을 매칭 가능한 그룹에 할당. 자연 매칭(그룹명===추천명) 그룹은 유지되고,
-  //    매칭 안 되는 그룹만 미매칭으로 남는다.
-  const covered = await assignMatchableNames(page, state.recommendedNames);
+  //    매칭 안 되는 그룹만 미매칭으로 남는다. (택N) 택일이 적용된 effectiveNames 만 매칭.
+  const covered = await assignMatchableNames(page, effectiveNames);
   if (covered < target) {
     return {
       ok: false as const,
@@ -508,8 +705,9 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
   while ((await readMatchState(page)).groupCount > target && delGuard < 6) {
     delGuard += 1;
     const matches = await readGroupMatches(page);
-    let gi = matches.findIndex((m) => m.length === 0); // 미매칭 그룹 우선
-    if (gi < 0) gi = matches.length - 1; // (이론상 없음) fallback: 마지막
+    // 미매칭 그룹 또는 effectiveNames 에 없는 매칭(예: 택N 에서 안 고른 개당중량, 잔여 그룹) 우선 삭제.
+    let gi = matches.findIndex((m) => m.length === 0 || !effectiveNames.includes(m));
+    if (gi < 0) gi = matches.length - 1; // fallback: 마지막
     const beforeCount = matches.length;
     const ok = await deleteGroupAtIndex(page, gi);
     if (!ok) {
@@ -531,8 +729,8 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
     };
   }
 
-  // 4) 빈 그룹(추가한 그룹)의 그룹명 + 옵션값 채우기.
-  await fillIncompleteGroups(page, state.recommendedNames);
+  // 4) 그룹명(빈 라벨만) + 옵션값(고유·단위형식·비파괴) 채우기.
+  await fillGroups(page);
 
   return { ok: true as const };
 };

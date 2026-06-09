@@ -17,6 +17,6 @@ steps:
   - id: recommend_category
     do: AI 카테고리 추천 버튼 클릭 + 로딩 종료 대기.
   - id: error_check_after_category
-    do: 에러체크 트리거 후 7개 탭의 status 가져와 빨간 dot 검사.
+    do: 에러체크 트리거 후 기본 정보(카테고리) 탭이 빨강이면 빨간 카테고리 드롭다운을 열어 바지 로 검색하고 맨 위 결과를 선택해 채운 뒤 재검사. 그래도 빨강이면 진단과 함께 실패.
 
-expected: AI 카테고리 추천 후 카테고리/속성 관련 탭 정상. unhandled 0건.
+expected: AI 카테고리 추천(+빨강 시 바지 수동 선택) 후 기본 정보 탭 정상. unhandled 0건.
