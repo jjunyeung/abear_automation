@@ -1,0 +1,44 @@
+# 배송대행지 토스토스 신청서 — 부가서비스 조건부 옵션(활성/비활성) 검증.
+#
+# TC 원본: Case No 1413~1437 (배송대행지 › 신청서 작성 › 옵션 조건부 선택, P0 25건).
+#   엑셀 원문은 step 이 비어있고 제목이 25건 전부 동일('옵션 조건부 선택'),
+#   expect 만 '~ 비활성화' 상태를 기술 — 즉 옵션 선택에 따른 조건부 disable 메커니즘 검증.
+#
+# 코드 출처 (windly-frontend-web view3):
+#   features/DeliveryAgencyApplication/Tosstoss/AddtionalService/index.tsx
+#     <Collapse title="부가 서비스 요청"> 카테고리(검수/포장/제거/보험/사업자/원산지) 별 CheckBoxRow
+#   hooks/useControlAddtionalService.ts
+#     disabledOptions = uniq(선택옵션들의 disabledOptions + exclusiveOptions) + 통관정책 disabledOptions
+#     → 옵션 선택 시 다른 옵션이 disabled 로 전환되는 규칙은 API 데이터(option.disabledOptions 등) 의존.
+#
+# 검증 강도: loose/sweep (기존 da-* ATC 와 동일 tier).
+#   조건부 disable 규칙 자체가 백엔드 옵션 메타데이터 의존이라 25개 순열을 정적으로 못 박지 않고,
+#   '부가서비스 섹션 렌더 + 옵션 선택 시 선택/비활성 상태가 실제로 변하는 메커니즘' 을 검증.
+
+title: 배송대행지 토스토스 신청서 부가서비스 조건부 옵션 검증
+priority: P0
+
+description: |
+  토스토스 신청서 진입 → 수동 양식 추가 → 부가 서비스 요청 섹션 확인 →
+  옵션 1개 선택 시 선택 상태 변화 + 조건부 비활성화/필수 메커니즘 동작 검증.
+  TC 원본: Case No 1413~1437 / 배송대행지 › 신청서 작성 › 옵션 조건부 선택 / P0 (25건)
+  검증 강도: loose (조건부 규칙은 API 옵션 메타데이터 의존 — 메커니즘 동작까지 검증).
+
+inputs: {}
+
+steps:
+  - id: open_tosstoss_application
+    do: app.windly.cc/view3/delivery-agency/application?agency=tosstoss 직접 이동
+
+  - id: add_manual_form
+    do: 수동으로 추가하기 버튼 클릭하여 신청서 양식 1개 추가
+
+  - id: verify_additional_service_section
+    do: 부가 서비스 요청 섹션 노출 + 1개 이상 필수 선택 안내문 + 부가서비스 옵션 체크박스 렌더 검증
+    expect: 부가서비스 섹션과 옵션 체크박스가 1개 이상 노출
+
+  - id: verify_conditional_toggle
+    do: 활성 옵션 1개 선택 후 선택 상태 또는 비활성 옵션 집합이 변하는지 검증 (조건부 메커니즘 동작)
+    expect: 옵션 선택 시 선택/비활성 상태가 실제로 변함
+
+expected: 부가서비스 섹션 노출 + 조건부 옵션 토글 메커니즘 동작. unhandled 0건. 신청서 제출 없음.

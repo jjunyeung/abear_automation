@@ -23,7 +23,7 @@ R1-R7 마라톤에서 사용된 ATC 일괄 생성/패치 스크립트. R8+ 에�
 1. 새 일괄 패치가 필요하면 이 디렉토리에 `roundN-<purpose>.py` 추가.
 2. SKIP set 에 직전 라운드 SKIP + 이번 라운드까지 손댄 spec 들을 cumulative 로 추가.
 3. 실행 후 결과 카운트 (Patched / Skipped) 출력.
-4. `atc-marathon-progress.md` 에 라운드 결과 append.
+4. `atc-marathon.md` 에 라운드 결과 append.
 
 ## 함수명 정책
 

@@ -22,26 +22,38 @@ import {
 const ATC_PATH = join(__dirname, '..', '..', 'atcs', 'collected-product', 'talkstore-category-dropdown-open.atc.yml');
 
 const openCategoryDropdownStep: StepHandler = async (page) => {
-  // "톡스토어 카테고리" 텍스트 노드를 가진 element (Text component = span 또는 div).
-  // 그 element 의 ancestor 중 FieldWrapper (자식에 button SelectedBox 가 있는 div) 찾기.
+  // Dropdown DOM (sesame components/atoms/Dropdown/Dropdown.tsx):
+  //   <DropdownContainer>
+  //     <LabelBox>톡스토어 카테고리</LabelBox>          (styled(Box) = div)
+  //     <DropdownInnerContainer>
+  //       <SelectedBox onMouseDown>...</SelectedBox>     (styled.button — 컨테이너당 유일 button)
+  //   </DropdownContainer>
+  // 기존 버그: label 에서 ancestor 를 올라가며 첫 button 을 찾으면 위쪽 다른 마켓
+  //          dropdown / CategoryButtonGroup 버튼과 충돌. → LabelBox 의 부모(DropdownContainer)
+  //          로 정확히 좁힌 뒤 그 안 단일 button 만 잡는다.
+  // caution 상태면 LabelBox 안에 CategoryCautionGuideButton("사용 가이드") 가 추가로 렌더되어
+  // querySelector('button') 가 그 가이드 버튼을 잡을 수 있다. SelectedBox 는 width:100% 풀폭 button
+  // 이므로 DropdownContainer 안 button 중 가장 넓은 것을 고른다.
   const handle = await page.evaluateHandle(() => {
-    const all = Array.from(document.querySelectorAll('*'));
-    const labelElt = all.find((el) => {
-      // 직접 textContent 가 정확히 "톡스토어 카테고리" 인 element (자식 element 없는 leaf 또는 단일 text node).
-      if (el.children.length === 0 && el.textContent?.trim() === '톡스토어 카테고리') return true;
-      return false;
+    const candidates = Array.from(document.querySelectorAll('*')).filter((el) => {
+      const t = (el.textContent || '').trim();
+      return t.startsWith('톡스토어 카테고리') && t.length < 30;
     });
-    if (!labelElt) return null;
-    // ancestor chain 에서 button 자식을 가진 가장 가까운 element.
-    let cur: Element | null = labelElt;
-    while (cur) {
-      const parent: Element | null = cur.parentElement;
-      if (!parent) break;
-      const btn = parent.querySelector('button') as HTMLElement | null;
-      if (btn) return btn;
-      cur = parent;
+    let labelBox: Element | null = null;
+    let minLen = Infinity;
+    for (const el of candidates) {
+      const len = (el.textContent || '').trim().length;
+      if (len < minLen) {
+        minLen = len;
+        labelBox = el;
+      }
     }
-    return null;
+    const container = labelBox?.parentElement; // DropdownContainer
+    if (!container) return null;
+    const btns = Array.from(container.querySelectorAll('button')) as HTMLElement[];
+    if (btns.length === 0) return null;
+    btns.sort((a, b) => b.offsetWidth - a.offsetWidth); // SelectedBox = 풀폭
+    return btns[0];
   });
   const btn = handle.asElement();
   if (!btn) {
@@ -52,21 +64,31 @@ const openCategoryDropdownStep: StepHandler = async (page) => {
     };
   }
   await btn.evaluate((el) => el.scrollIntoView({ block: 'center' }));
-  // Dropdown SelectedBox 는 onMouseDown 으로 트리거. Playwright click() 으로 full mouse event 발사.
-  await btn.click();
-  await page.waitForTimeout(800);
 
-  // 열림 검증 — searchPlaceholder="카테고리 검색하기" placeholder input 노출.
-  const searchInput = page.getByPlaceholder(/카테고리\s*검색하기/).first();
-  const opened = await searchInput
-    .waitFor({ state: 'visible', timeout: 5_000 })
-    .then(() => true)
-    .catch(() => false);
+  // 마켓별 카테고리 dropdown 들이 모두 "카테고리 검색하기" 검색 input 을 DOM 에 갖고 있고
+  // 닫힌 것은 hidden 이다. 따라서 .first() 로는 안 되고, 클릭으로 "visible 한 검색 input 이
+  // 새로 생기는지" 로 판정한다 (열림 = talkstore 것이 visible 로 전환).
+  const visibleSearchCount = () =>
+    page.locator('input[placeholder*="카테고리 검색"]:visible').count();
+  const before = await visibleSearchCount();
+
+  // Dropdown SelectedBox 는 onMouseDown 으로 트리거.
+  await btn.dispatchEvent('mousedown');
+  await page.waitForTimeout(1_000);
+
+  let after = await visibleSearchCount();
+  if (after <= before) {
+    // mousedown 만으로 안 열리면 click 으로 재시도.
+    await btn.click().catch(() => undefined);
+    await page.waitForTimeout(1_000);
+    after = await visibleSearchCount();
+  }
+  const opened = after > before;
   if (!opened) {
     return {
       ok: false as const,
       error_key: 'talkstore_category_dropdown_not_opened' as ErrorKey,
-      message: '드롭다운 클릭 후 검색 input 미노출',
+      message: `드롭다운 클릭 후 visible 검색 input 증가 없음 (before=${before}, after=${after})`,
     };
   }
   // 다시 닫음 (esc 또는 dropdown 외부 클릭).
@@ -81,11 +103,9 @@ const handlers: StepHandlers = {
   open_talkstore_category_dropdown: openCategoryDropdownStep,
 };
 
-test.skip('톡스토어 카테고리 Dropdown 열림', async ({ page }) => {
-  // ⚠️ skip 사유: Dropdown.tsx 의 SelectedBox onMouseDown 트리거가 ancestor 매칭 fragile.
-  // 톡스토어 카테고리 위 다른 마켓 카테고리 dropdown 들 + CategoryButtonGroup 의 button 들과
-  // ancestor 안 button 검색이 충돌. uniqueKey="talkstore" 가 DOM 노출 안 됨.
-  // 검증을 위해선 specific role/data-attribute 가 필요 — 코드 측 개선 또는 spec 별 inline xpath 필요.
+test('톡스토어 카테고리 Dropdown 열림', async ({ page }) => {
+  // LabelBox 부모(DropdownContainer) 스코프로 talkstore dropdown 의 SelectedBox 만 정확히 클릭하도록
+  // openCategoryDropdownStep 을 수정 → 기존 ancestor 충돌 해소. (이전 skip 사유 해결)
   test.setTimeout(3 * 60_000);
   const atc = loadATC(ATC_PATH);
   const result = await runATC({ atc, page, inputs: {}, handlers });

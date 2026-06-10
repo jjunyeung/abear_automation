@@ -260,8 +260,8 @@ done
 
 | 파일 | 용도 |
 |---|---|
-| `atc-coverage-report.md` | 엑셀 1804 TC ↔ ATC 매핑 + 사유 분류 + **마라톤 전후 비교 표** (상단) |
-| `atc-marathon-progress.md` (본 파일) | 마라톤 진행 로그 (R1-R7) |
+| `atc-coverage.md` | 엑셀 1804 TC ↔ ATC 매핑 + 사유 분류 + **마라톤 전후 비교 표** (상단) |
+| `atc-marathon.md` (본 파일) | 마라톤 진행 로그 (R1-R7) |
 | `/tmp/gen-skel-specs.py` | Round 3 spec.ts generator (재사용 가능) |
 | `/tmp/gen-round4.py` | Round 4 spec.ts generator |
 | `/tmp/round6-loose-verify.py` | Round 6 first-step loose verify patcher |
@@ -324,7 +324,7 @@ ATC 마라톤의 1차 목표 (catalog stale 해소 + 다음 작업자용 stub) �
 
 ## Round 8 (R8) — 2026-06-01 (이어서)
 
-> 시작 트리거: `atc-decisions-form.md` 사용자 결정 완료 + `atc-next-steps.md` 의 ROI 우선 순위 합의.
+> 시작 트리거: `atc-decisions.md` 사용자 결정 완료 + `next-steps.md` 의 ROI 우선 순위 합의.
 > 진행자: claude opus-4-7, 사용자 결정 = 결정1(a+b) / 결정2(a) / 결정3(a) / 결정4(a) / 결정5(a) /
 > 결정6-8(a) / 결정9(c) / 결정10(로그인만 확인) / 결정11(a).
 
@@ -394,7 +394,7 @@ ATC 마라톤의 1차 목표 (catalog stale 해소 + 다음 작업자용 stub) �
 ### R9.b — 네이버/구글 실 OAuth 로그인 (C3.c)
 
 - 사용자 결정: "그냥 파일에 있는거 그대로 비밀번호에 넣으면됨" → 평문 자격증명을 env 로 주입.
-- 마스터 자격증명 (사용자 갱신, atc-decisions-form.md):
+- 마스터 자격증명 (사용자 갱신, atc-decisions.md):
   - 네이버: `john_dk` / `asdf1234!`
   - 구글: `johnchoi980430@gmail.com` / `Jun430819!`
 - 신규 helpers: `lib/windly-actions.ts` 끝에 `loginViaNaver` / `loginViaGoogle` 추가 (clickSocialButton SVG-only 매치 + 자격증명 입력 + 콜백 hostname 검증).
@@ -431,7 +431,7 @@ ATC 마라톤의 1차 목표 (catalog stale 해소 + 다음 작업자용 stub) �
 
 ### R9 → R10 핸드오프
 
-다음 단계 (사용자 요청 "순서대로" — atc-next-steps.md ROI 순):
+다음 단계 (사용자 요청 "순서대로" — next-steps.md ROI 순):
 1. **C1 destructive 자동화** (40h+, +400 strict) — 가장 ROI 큼. 시작 전 fixture 자동 생성 패턴 (결정 4(a)) 선행. API 키 5개 보유 (스스/쿠팡/11번가국내/ESM/톡스토어). 추천 첫 영역: **등록상품 상품 삭제 P0 (TC 948-962, 15 TC)**.
 2. **C2 AI mock** (15h, +100 strict) — 결정 6/7/8 (a) 통과. mock route 또는 윈비 충전 필요.
 3. **B1-4 loose → strict fill** (60h, +130-250) — 결정 1(a) 우선 영역 (등록상품 / 수집상품 / 배대지).
@@ -707,13 +707,13 @@ npx playwright test --project=windly-registered-product tests/registered-product
 
 ## Round 15 (R15) — 2026-06-04 (마켓 연결 destructive 사이클 — ESM2 카나리아)
 
-> 트리거: 사용자 "마켓 연결 tc 쓰자" + 마켓 API 키 문서(atc-decisions-form.md) 제공.
+> 트리거: 사용자 "마켓 연결 tc 쓰자" + 마켓 API 키 문서(atc-decisions.md) 제공.
 > 발견: 5개 마켓(스스/쿠팡/11번가국내/ESM2/톡스토어) 전부 이미 연결됨 → 연결 TC 는 해제→재연결 필요(destructive).
 > 안전: 해제는 (1) finite quota 소모(소진 시 채널톡 문의), (2) **다른 계정** 재연결 시 등록상품 영구 단절(앱 경고). 동일 계정 재연결은 무손상.
 
 ### 키 이관 + config
 
-- 마켓 키 10개 atc-decisions-form.md → .env (사용자 실행). lib/config.ts envSchema 에 필드 추가.
+- 마켓 키 10개 atc-decisions.md → .env (사용자 실행). lib/config.ts envSchema 에 필드 추가.
 - 마켓 enum: SMARTSTORE / COUPANG / ELEVENSTREET_DOMESTIC / ESM2 / TALKSTORE. 연결폼: /view3/connect?setting=MARKET&openMarket=<ENUM>.
 
 ### ESM2 카나리아 (tests/base-setting/connect-esm2-reconnect-cycle.spec.ts)

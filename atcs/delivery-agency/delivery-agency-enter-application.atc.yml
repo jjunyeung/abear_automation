@@ -94,7 +94,7 @@ steps:
     do: |
       신청 완료 버튼 1회 클릭 → URL /view3/delivery-agency 전환 대기 (최대 30초, /application 제외).
       WS1014 토스트 발생 시 즉시 fail (재시도 안 함 — 백엔드 이슈 노출용).
-      상세: bug-report-delivery-agency-WS1014.md
+      상세: delivery-agency-WS1014.md
     expect: 신청 완료 클릭 + 배송대행지 메인 화면으로 랜딩.
 
 expected: 12개 step 모두 success, unhandled 0건. 배송대행지 → 신청서 작성 → 카테고리 선택 → 동의 → 신청 완료 → 배송대행지 메인 화면 랜딩까지.

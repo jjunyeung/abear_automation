@@ -6,8 +6,8 @@
 이 문서는 **Claude를 위한 단일 진입점**이다. 새 세션의 Claude는 작업 시작 전 이 문서를 1회 읽으면 충분하도록 설계됐다 (R-A3.1). 결정의 근거가 더 필요할 때만 `.hoyeon/specs/atc-framework/requirements.md`로 들어간다.
 
 > **새 ATC 만들 때는 두 문서 추가 참조 ((d) 절차 참고)**:
-> - `CODE-MAP.md` — 시나리오 ↔ 윈들리 frontend 4개 레포 매핑 (어디 컴포넌트 보면 되는지, 어느 host 인지, selector 우선순위)
-> - `shortcuts_index.md` — 레거시 `automation/` 코드의 헬퍼·픽스처·패턴 카탈로그 (D1 의 "패턴만 차용" 참조용)
+> - `docs/reference/code-map.md` — 시나리오 ↔ 윈들리 frontend 4개 레포 매핑 (어디 컴포넌트 보면 되는지, 어느 host 인지, selector 우선순위)
+> - `docs/reference/legacy-shortcuts.md` — 레거시 `automation/` 코드의 헬퍼·픽스처·패턴 카탈로그 (D1 의 "패턴만 차용" 참조용)
 
 ---
 
@@ -78,19 +78,19 @@
 ## (d) 새 ATC 추가 절차
 
 > **항상 시작 전 참고할 두 문서**:
-> - **`CODE-MAP.md`** — 시나리오 ↔ 윈들리 4개 frontend 레포 (`windly_repo/{hub,windly,sesame,koco}-frontend-web`) 매핑. 어느 컴포넌트/디렉토리 봐야 하는지, 어느 host (`app.windly.cc` vs `global.windly.cc`) 에서 도는지, selector 우선순위 (role > label > text > CSS 마지막) 등.
-> - **`shortcuts_index.md`** — `/Users/a1/windly 자동화/automation/` 레거시 코드베이스의 헬퍼·픽스처·패턴 카탈로그 (D1 의 "패턴만 차용" 참조용). MENU_MAP, navigation helpers, locator 정책 등이 이미 정리되어 있어 같은 문제를 다시 풀 필요 없음.
+> - **`docs/reference/code-map.md`** — 시나리오 ↔ 윈들리 4개 frontend 레포 (`windly_repo/{hub,windly,sesame,koco}-frontend-web`) 매핑. 어느 컴포넌트/디렉토리 봐야 하는지, 어느 host (`app.windly.cc` vs `global.windly.cc`) 에서 도는지, selector 우선순위 (role > label > text > CSS 마지막) 등.
+> - **`docs/reference/legacy-shortcuts.md`** — `/Users/a1/windly 자동화/automation/` 레거시 코드베이스의 헬퍼·픽스처·패턴 카탈로그 (D1 의 "패턴만 차용" 참조용). MENU_MAP, navigation helpers, locator 정책 등이 이미 정리되어 있어 같은 문제를 다시 풀 필요 없음.
 
 ```
 0. 참고 자료 확인:
-   - CODE-MAP.md §1 cross-reference 표에서 이 시나리오가 어느 앱·디렉토리에 매칭되는지 1줄 확인
+   - docs/reference/code-map.md §1 cross-reference 표에서 이 시나리오가 어느 앱·디렉토리에 매칭되는지 1줄 확인
    - 신/구 (windly-frontend-web vs sesame, view3 vs view2) 둘 다면 사용자에게 어느 거인지 한 번 되묻기
    - 새 selector 가 필요하면 해당 컴포넌트 1회 read → user-perspective selector (role/text/label) 추출
-   - shortcuts_index.md 에 비슷한 헬퍼/패턴이 있는지 grep — 있으면 그 패턴 참고 (코드는 직접 import 하지 말고, 우리 lib/windly-actions 에 그 패턴 적용)
+   - docs/reference/legacy-shortcuts.md 에 비슷한 헬퍼/패턴이 있는지 grep — 있으면 그 패턴 참고 (코드는 직접 import 하지 말고, 우리 lib/windly-actions 에 그 패턴 적용)
 
 1. /atc-new 호출 (또는 사용자 의도 듣고 직접):
    - 도메인 분류 → atcs/<domain>/<name>.atc.yml
-   - 도메인 후보 (Excel Category 기준 재정렬, atc-consolidation-log.md §11):
+   - 도메인 후보 (Excel Category 기준 재정렬, docs/reference/atc-consolidation-log.md §11):
      일반 → Main Category: collected-product / product-collect / registered-product / delivery-agency / base-setting / upload / order-mgmt / windly-shell
      비-일반 → Category: smartstore-customs-tax / popular-product-rec / ai-thumbnail-gen
      cross-cutting: e2e
@@ -234,7 +234,7 @@ tests/auth.setup.ts
 
 **규칙**: spec.ts 의 step handler 안에서 동일 동작을 raw Playwright 로 다시 짜고 있다면 — 그 함수가 windly-actions 에 이미 있는지 먼저 확인. 새 공통 패턴이 발견되면 windly-actions 에 추가하고 다른 spec 도 마이그레이션.
 
-**참조**: `shortcuts_index.md` 에 레거시 `automation/` 코드베이스의 비슷한 헬퍼/픽스처들이 카탈로그되어 있음 (MENU_MAP, navigation helpers, locator 정책 등). 새 헬퍼 추가 전 거기서 비슷한 게 있는지 1회 grep — 같은 문제를 다시 풀 필요 없음 (단, 코드 직접 import X — 패턴만 차용 D1).
+**참조**: `docs/reference/legacy-shortcuts.md` 에 레거시 `automation/` 코드베이스의 비슷한 헬퍼/픽스처들이 카탈로그되어 있음 (MENU_MAP, navigation helpers, locator 정책 등). 새 헬퍼 추가 전 거기서 비슷한 게 있는지 1회 grep — 같은 문제를 다시 풀 필요 없음 (단, 코드 직접 import X — 패턴만 차용 D1).
 
 ---
 
@@ -289,7 +289,7 @@ npm run atc -- atcs/upload/single-product.atc.yml --source_product_id=235442266
 
 ## (m) 백엔드 / 외부 의존성 일시 오류 retry + 버그 리포트 정책
 
-ATC step 핸들러 안에서 **백엔드 응답이 retry 가능한 형태로 실패** (e.g. 윈들리 `WS1014` "다시 클릭해주세요" 토스트, 일시 race condition 등) 하면 **최대 3회 retry**. 3회 모두 실패하면 즉시 fail 로 종료하고 **버그 리포트 MD** 를 프로젝트 루트에 작성한다.
+ATC step 핸들러 안에서 **백엔드 응답이 retry 가능한 형태로 실패** (e.g. 윈들리 `WS1014` "다시 클릭해주세요" 토스트, 일시 race condition 등) 하면 **최대 3회 retry**. 3회 모두 실패하면 즉시 fail 로 종료하고 **버그 리포트 MD** 를 `docs/bug-reports/` 에 작성한다.
 
 ### Retry 적용 / 비적용
 
@@ -321,7 +321,7 @@ return {
 
 ### 3회 실패 시 버그 리포트
 
-- 파일: `bug-report-<area>-<short-id>.md` (프로젝트 루트). 예: `bug-report-delivery-agency-WS1014.md`.
+- 파일: `docs/bug-reports/<area>-<short-id>.md`. 예: `docs/bug-reports/delivery-agency-WS1014.md`.
 - 톤: **개발자 (백엔드 + 프론트) 가 디버깅 시작할 수 있게** — 자동화 framing 최소화.
 - 포함:
   1. 1줄 요약 + 영향 API/화면 + 우선순위
@@ -332,7 +332,7 @@ return {
   6. 요청 (단기 fix / 장기 정책)
   7. 마지막 줄에 ATC 자동 재현 경로 1줄
 
-레퍼런스 예시: `bug-report-delivery-agency-WS1014.md`.
+레퍼런스 예시: `docs/bug-reports/delivery-agency-WS1014.md`.
 
 ---
 

@@ -363,7 +363,7 @@ hub의 `/home` 진입 후 워크스페이스 선택이 추가로 필요할 수 �
    → data-testid 거의 없음을 인지
 
 4. 인증
-   → §3에 따라 storageState 적용 (REFACTOR-PLAN.md §1)
+   → §3에 따라 storageState 적용 (refactor-plan.md §1)
    → ATC에 login step 직접 적지 않음
 
 5. API 응답 대기
@@ -422,9 +422,9 @@ WINDLY_EXTENSION_PATH=...     # ProductImport 등 확장 의존 ATC
 ### 본 코드 맵 갱신
 - frontend 코드 변경 시 stale 가능 — 큰 라우트 리네이밍·디렉토리 이동 후 갱신 권장
 - 갱신 명령(새 Claude 세션):
-  > "CODE-MAP.md를 windly_repo/ 4개 앱 다시 조사해서 갱신해줘"
+  > "code-map.md를 windly_repo/ 4개 앱 다시 조사해서 갱신해줘"
 
 ### 연관 문서
-- `REFACTOR-PLAN.md` — 본 맵 §3 (인증) 정보가 §1 작업 A (storageState)에 직접 사용됨
+- `refactor-plan.md` — 본 맵 §3 (인증) 정보가 §1 작업 A (storageState)에 직접 사용됨
 - `CLAUDE.md` — 이 프로젝트의 공통 컨벤션·도메인 컨텍스트
 - `.hoyeon/specs/atc-framework/requirements.md` — 프레임워크 결정 D1~D12, D_H1~D_H5 원본

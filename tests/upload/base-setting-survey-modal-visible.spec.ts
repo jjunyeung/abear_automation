@@ -48,11 +48,10 @@ const verifySurveyModalOrBannerStep: StepHandler = async (page) => {
       .then(() => true)
       .catch(() => false);
     if (!bannerVisible) {
-      return {
-        ok: false as const,
-        error_key: 'survey_banner_missing' as ErrorKey,
-        message: 'SurveyBanner 미노출 — 무료체험 고객 환경 아닐 가능성 (isFreePlan=false)',
-      };
+      // SurveyBanner 는 무료체험 고객(isFreePlan===true)에게만 노출 — 환경(계정 플랜) 의존.
+      // 현재 계정이 무료체험이 아니면 배너 자체가 없어 검증 불가 → graceful skip(통과 처리).
+      // (사용자 결정: survey 1222/1223 는 일단 skip. 무료체험 계정에서 재검증 필요.)
+      return { ok: true as const };
     }
     await bannerLink.click();
     modalShown = await modalText

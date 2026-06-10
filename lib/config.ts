@@ -44,7 +44,7 @@ const envSchema = z.object({
   SLACK_BOT_TOKEN: z.string().startsWith('xoxb-').optional(),
   SLACK_TARGET_CHANNEL: z.string().optional(),
   SLACK_WEBHOOK_URL: z.string().url().optional(),
-  // ─── 마켓 연결 TC 용 자격증명 (atc-decisions-form.md → .env 로 이관) ───
+  // ─── 마켓 연결 TC 용 자격증명 (atc-decisions.md → .env 로 이관) ───
   // 연결설정/오픈마켓 연결 TC (TC 994~1012) 가 폼에 입력. 미설정 시 해당 마켓 연결 TC skip.
   // 스마트스토어 (네이버 커머스 — 폼은 "API 연동용 판매자 ID" 1개만 요구)
   SMARTSTORE_SELLER_ID: z.string().optional(),

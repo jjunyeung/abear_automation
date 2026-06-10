@@ -21,9 +21,10 @@ import {
 
 const ATC_PATH = join(__dirname, '..', '..', 'atcs', 'delivery-agency', 'da-image-upload.atc.yml');
 
-// 1x1 transparent png (base64).
-const TINY_PNG_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=';
+// 실제 내용/크기가 있는 PNG fixture (128x128 RGBA).
+// 1x1 투명 PNG 는 윈들리 이미지 서버 처리(uploadAndGetImageUrl)가 실패해 productImageUrl 이
+// 채워지지 않으므로, 정상 업로드를 위해 실 이미지를 쓴다.
+const SAMPLE_IMAGE_PATH = join(__dirname, '..', 'fixtures', 'da-image-upload-sample.png');
 
 const uploadImageStep: StepHandler = async (page) => {
   // UploadImage Container: onClick={() => inputRef.click()}. "이미지 업로드" 텍스트 클릭 →
@@ -42,22 +43,20 @@ const uploadImageStep: StepHandler = async (page) => {
     page.waitForEvent('filechooser', { timeout: 5_000 }),
     uploadTrigger.click(),
   ]);
-  await chooser.setFiles({
-    name: 'tiny.png',
-    mimeType: 'image/png',
-    buffer: Buffer.from(TINY_PNG_BASE64, 'base64'),
-  });
-  // 업로드 응답 후 UploadImage 가 <Image src={productImageUrl}> 로 swap. selector: img[alt="" 또는 src*=upload-image-server].
-  // 정확한 src host 모르므로 일단 img[src^="http"] 매칭.
-  const img = page.locator('img[src^="http"]').first();
+  await chooser.setFiles(SAMPLE_IMAGE_PATH);
+  // 업로드 성공 시 UploadImage 가 <Image src={productImageUrl}> 로 swap.
+  // src = 윈들리 media 호스트 (예: https://global.windly.cc/media/d-...).
+  // 주의: 페이지에 Facebook 트래킹 픽셀 등 다른 img[src^="http"] 가 섞여 있어
+  //       src^="http" .first() 로 잡으면 hidden 픽셀에 걸려 실패한다 → /media/ 로 한정.
+  const uploadedImg = page.locator('img[src*="/media/"]').first();
   try {
-    await img.waitFor({ state: 'visible', timeout: 20_000 });
+    await uploadedImg.waitFor({ state: 'visible', timeout: 20_000 });
     return { ok: true as const };
   } catch {
     return {
       ok: false as const,
       error_key: 'image_not_rendered' as ErrorKey,
-      message: '업로드 후 img[src^="http"] 미노출 — 업로드 API 실패 가능',
+      message: '업로드 후 media 이미지(img[src*="/media/"]) 미노출 — 업로드 API 실패 가능',
     };
   }
 };

@@ -84,7 +84,7 @@ coverage:
 | **headed 창 = 사용자 화면 점유** | 위 + 솔로 프로젝트 | "관전" 의도 = Chromium 창과 GUI 창이 동시에 떠 있을 가능성. 멀티모니터/창 배치 고려 |
 | **`composes` 펼침** | lib/atc-loader.ts, CLAUDE.md §l | 조각 ATC (`_<name>.atc.yml`) 가 카탈로그에 보일지 숨길지 정책 결정 필요 |
 | **재시도 정책** | D12, C7, C8 | GUI 의 "재실행" 버튼은 ATC 전체 재시작이지 복구 재진입 X. unhandled 에 자동 재시도 노출 금지 |
-| **레거시 login step** | REFACTOR-PLAN.md, CLAUDE.md §j | 일부 옛 ATC 에 login step 남아있을 수 있음. GUI 카탈로그가 그런 ATC 를 실행하면 FAIL — 사전 stale 감지 필요 |
+| **레거시 login step** | refactor-plan.md, CLAUDE.md §j | 일부 옛 ATC 에 login step 남아있을 수 있음. GUI 카탈로그가 그런 ATC 를 실행하면 FAIL — 사전 stale 감지 필요 |
 
 ## Axis: Business
 

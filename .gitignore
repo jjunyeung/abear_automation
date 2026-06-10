@@ -35,9 +35,7 @@ tmp/
 # windly_repo: 윈들리 회사 frontend (hub/sesame/windly/koco)
 # automation:  레거시 자동화 폴더 (CLAUDE.md D1 — 패턴만 차용)
 # blueprint/shadcn-admin-kit: 별도 git 프로젝트
-# cloudflare:  빈 디렉토리
 windly_repo/
 automation/
 blueprint/
 shadcn-admin-kit/
-cloudflare/

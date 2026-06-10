@@ -80,6 +80,53 @@ async function searchAndPickTop(page: Page, keyword: string): Promise<boolean> {
 }
 
 /**
+ * 기본 정보 탭의 빨간(error) 마켓 카테고리 드롭다운 수를 센다 (수정 X, 마킹 X).
+ *
+ * 라벨 "...카테고리"(스마트스토어/쿠팡/...) 행의 트리거 <button>(SelectedBox)이
+ * 빨간 테두리인 것만 카운트. `fixRedCategoriesBySearch` 의 탐지 로직과 동일 기준.
+ *
+ * @returns 빨간 카테고리 드롭다운 트리거 수. 0 이면 카테고리 정상.
+ */
+export async function countRedCategoryDropdowns(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const norm = (s: string | null): string => (s ?? '').trim();
+    const isRed = (rgb: string): boolean => {
+      const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (m === null) return false;
+      return Number(m[1]) >= 180 && Number(m[2]) <= 110 && Number(m[3]) <= 110;
+    };
+    const isRedBorder = (el: Element): boolean => {
+      const cs = window.getComputedStyle(el);
+      return (
+        isRed(cs.borderTopColor) ||
+        isRed(cs.borderRightColor) ||
+        isRed(cs.borderBottomColor) ||
+        isRed(cs.borderLeftColor)
+      );
+    };
+    const MARKET = /(스마트스토어|쿠팡|11번가|ESM|옥션|지마켓|롯데온|톡스토어|인터파크|위메프).*카테고리$/;
+    const labels = Array.from(document.querySelectorAll('*')).filter(
+      (el) => el.children.length === 0 && MARKET.test(norm(el.textContent)) && norm(el.textContent).length < 24,
+    );
+    let count = 0;
+    for (const label of labels) {
+      let row: Element | null = label.parentElement;
+      for (let d = 0; d < 6 && row; d += 1) {
+        const btn = row.querySelector('button');
+        if (btn) {
+          const redHere =
+            isRedBorder(btn) || Array.from(btn.querySelectorAll('*')).some((c) => isRedBorder(c));
+          if (redHere) count += 1;
+          break;
+        }
+        row = row.parentElement;
+      }
+    }
+    return count;
+  });
+}
+
+/**
  * 기본 정보 탭의 빨간(error) 카테고리 드롭다운을 하나씩 열어 keyword 검색 →
  * 맨 위 결과 선택으로 채운다.
  * @returns 채운 카테고리 드롭다운 수.

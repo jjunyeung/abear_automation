@@ -15,7 +15,8 @@
     "build:gui:main": "tsc -p gui/main/tsconfig.json",
     "build:gui:renderer": "vite build --config gui/vite.config.mts",
     "build:gui": "npm run build:gui:main && npm run build:gui:renderer",
-    "package:gui": "npm run build:gui && electron-builder --config gui/electron-builder.yml"
+    "package:gui": "npm run build:gui && electron-builder --config gui/electron-builder.yml",
+    "coverage": "node scripts/coverage-report.mjs"
   },
   "keywords": [],
   "author": "",

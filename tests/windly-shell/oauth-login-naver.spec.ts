@@ -3,7 +3,7 @@
  *
  * 결정 10 — "그냥 로그인만 되는지 확인". 자격증명 입력 → 콜백 URL 도달이면 success.
  *
- * .env 필요: NAVER_TEST_EMAIL / NAVER_TEST_PASSWORD (값은 atc-decisions-form.md 참고).
+ * .env 필요: NAVER_TEST_EMAIL / NAVER_TEST_PASSWORD (값은 atc-decisions.md 참고).
  * Fresh project (setup 의존 X) — windly-oauth-check-fresh 에 포함.
  */
 

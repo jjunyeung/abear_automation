@@ -11,7 +11,7 @@ description: |
 
   주의: 설정 초기화는 finite quota 를 소모(소진 시 채널톡 문의 필요). 1 사이클 = 1 소모.
 
-  키는 .env 에서 주입 (atc-decisions-form.md → .env). 미설정 시 가드에서 fail.
+  키는 .env 에서 주입 (atc-decisions.md → .env). 미설정 시 가드에서 fail.
 
 inputs: {}
 

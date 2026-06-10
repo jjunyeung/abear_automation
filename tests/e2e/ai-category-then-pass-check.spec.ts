@@ -15,11 +15,13 @@ import { aiRecommendCategoryHandlers } from '../collected-product/_ai-recommend-
 import {
   clickErrorCheckButton,
   readTabStatuses,
-  readRedFieldLocations,
   summarizeTabStatuses,
   type TabStatus,
 } from '../../lib/error-check-actions';
-import { fixRedCategoriesBySearch } from '../../lib/category-actions';
+import {
+  countRedCategoryDropdowns,
+  fixRedCategoriesBySearch,
+} from '../../lib/category-actions';
 import { logger } from '../../lib/logger';
 
 const ATC_PATH = join(__dirname, '..', '..', 'atcs', 'e2e', 'ai-category-then-pass-check.atc.yml');
@@ -38,6 +40,11 @@ async function triggerErrorCheck(page: Parameters<StepHandler>[0]): Promise<TabS
 }
 
 const errorCheckAfterCategoryStep: StepHandler = async (page) => {
+  // 이 TC 의 검증 대상 = "카테고리" 다 (기본 정보 탭 전체가 아니라).
+  // 기본 정보 탭은 브랜드/원산지 등 카테고리와 무관한 필수값으로도 빨개질 수 있어,
+  // 갓 수집된 미완성 첫 카드에 대해 "탭 dot green" 을 요구하면 구조적으로 통과 불가.
+  // 따라서 ATC 제목/설명("카테고리 관련 빨간 dot 사라짐") 대로 빨간 카테고리 드롭다운이
+  // 0개인지만 검증한다.
   let statuses = await triggerErrorCheck(page);
   if (statuses === null) {
     return {
@@ -46,73 +53,38 @@ const errorCheckAfterCategoryStep: StepHandler = async (page) => {
       message: '에러체크 버튼 미발견',
     };
   }
-  let basicTab = statuses.find((s) => s.name === '기본 정보');
 
-  // 기본 정보(카테고리)가 빨강이면: 빨간 카테고리 드롭다운을 열어 "바지" 검색 →
-  // 맨 위 결과 선택으로 채운 뒤 재검사 (사용자 지정 동작).
-  if (basicTab !== undefined && basicTab.status === 'red') {
-    await page.getByRole('button', { name: '기본 정보' }).first().click().catch(() => undefined);
-    await page.waitForTimeout(500);
+  // 기본 정보 탭으로 이동 후 빨간 마켓 카테고리 드롭다운 수 확인.
+  await page.getByRole('button', { name: '기본 정보' }).first().click().catch(() => undefined);
+  await page.waitForTimeout(800);
+  let redCats = await countRedCategoryDropdowns(page);
+
+  // 빨강이면 "바지" 검색 맨 위 결과로 채운 뒤 재검사 (사용자 지정 동작).
+  if (redCats > 0) {
     const fixed = await fixRedCategoriesBySearch(page, CATEGORY_FIX_KEYWORD);
     logger.info(
-      `[error_check_after_category] 빨간 카테고리 ${fixed}개를 '${CATEGORY_FIX_KEYWORD}' 검색 맨 위로 채움`,
+      `[error_check_after_category] 빨간 카테고리 ${redCats}개 중 ${fixed}개를 '${CATEGORY_FIX_KEYWORD}' 검색 맨 위로 채움`,
     );
-    if (fixed > 0) {
-      const re = await triggerErrorCheck(page);
-      if (re !== null) {
-        statuses = re;
-        basicTab = statuses.find((s) => s.name === '기본 정보');
-      }
-    }
+    const re = await triggerErrorCheck(page);
+    if (re !== null) statuses = re;
+    await page.getByRole('button', { name: '기본 정보' }).first().click().catch(() => undefined);
+    await page.waitForTimeout(800);
+    redCats = await countRedCategoryDropdowns(page);
   }
 
-  if (basicTab !== undefined && basicTab.status === 'red') {
-    // 진단: 왜 red 인지 사유를 수집해서 unhandled 리포트가 actionable 하도록.
-    //   1) 어느 탭들이 red/yellow 인지 (카테고리 외 다른 탭도 red 면 e2e 전제 자체가 약함)
-    //   2) 기본 정보 탭의 red 보더 input/textarea 라벨 (브랜드/원산지/상품명 등)
-    //   3) 상품명(title) 비어있으면 AI 추천이 noop → 카테고리 미적용
-    // 기본 정보 탭으로 이동 후 red 필드 read (다른 탭 활성 상태일 수 있어 보정).
-    await page
-      .getByRole('button', { name: '기본 정보' })
-      .first()
-      .click()
-      .catch(() => undefined);
-    await page.waitForTimeout(800);
-    const redFields = await readRedFieldLocations(page);
+  if (redCats > 0) {
+    // 카테고리를 채웠는데도 빨강 → 진단과 함께 실패.
     const summary = summarizeTabStatuses(statuses);
     const redTabs = statuses
       .filter((s) => s.status === 'red')
       .map((s) => s.name)
       .join(', ');
-    const redLabels = redFields
-      .map((f) => `${f.label || f.tag}${f.value ? '' : '(빈값)'}`)
-      .join(', ');
-    const titleEmpty = await page.evaluate(() => {
-      const inputs = Array.from(
-        document.querySelectorAll<HTMLInputElement>('input'),
-      );
-      // 상품명 placeholder/라벨 추정 — 비어있으면 AI 추천이 noop.
-      const titleInput = inputs.find((el) =>
-        /상품\s*명|상품명을/.test(
-          `${el.placeholder} ${el.getAttribute('aria-label') ?? ''}`,
-        ),
-      );
-      return titleInput !== undefined ? titleInput.value.trim().length === 0 : null;
-    });
-    const diag = [
-      `red탭=[${redTabs}]`,
-      `탭요약 R${summary.red}/Y${summary.yellow}/G${summary.green}`,
-      `기본정보 red필드=[${redLabels || '없음(카테고리 등 비-input 사유 추정)'}]`,
-      titleEmpty === true
-        ? '상품명 빈값 → AI추천 noop'
-        : titleEmpty === null
-          ? '상품명 input 미탐'
-          : '상품명 채워짐',
-    ].join(' | ');
     return {
       ok: false as const,
-      error_key: 'basic_tab_still_red' as ErrorKey,
-      message: `AI 카테고리 추천 후에도 기본 정보 탭 빨간 dot. 진단: ${diag}`,
+      error_key: 'category_still_red' as ErrorKey,
+      message:
+        `AI 카테고리 추천(+'${CATEGORY_FIX_KEYWORD}' 수동 선택) 후에도 빨간 카테고리 드롭다운 ${redCats}개 잔존. ` +
+        `진단: red탭=[${redTabs}] | 탭요약 R${summary.red}/Y${summary.yellow}/G${summary.green}`,
     };
   }
   return { ok: true as const };

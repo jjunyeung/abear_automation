@@ -333,6 +333,6 @@ TEST_CREDIT_CARD_CVC=""
 ## 🚀 채운 후 진행 방법
 
 1. 이 파일 다 채우고 저장
-2. Claude 에게 "atc-decisions-form.md 채웠어. R8 시작" 하면 → 결정 기준으로 R8 실행 (가장 ROI 큰 작업부터)
+2. Claude 에게 "atc-decisions.md 채웠어. R8 시작" 하면 → 결정 기준으로 R8 실행 (가장 ROI 큰 작업부터)
 3. API 키 / OAuth 는 자동으로 `.env` 에 추가 + `.gitignore` 확인
 

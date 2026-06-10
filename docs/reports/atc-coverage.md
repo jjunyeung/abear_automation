@@ -1086,6 +1086,6 @@ _실 마켓 업로드 = destructive + 외부 호출._
 
 - `p0-backlog.md` — P0 미작성 280건 영역별 백로그 (2026-05-22 기준)
 - `p0-progress.md` — P0 작성 진행 상태 + 다음 세션 trigger (2026-05-27 기준)
-- `tc-uncovered-with-reasons.md` — 이전 분석 보고서 (2026-05-22 기준, 1661건 미작성)
+- `tc-uncovered.md` — 이전 분석 보고서 (2026-05-22 기준, 1661건 미작성)
 - `atc-consolidation-log.md` — ATC 묶기 결정 로그
 - `CLAUDE.md (d)` — 새 ATC 추가 절차

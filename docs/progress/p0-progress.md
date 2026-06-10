@@ -6,9 +6,9 @@
 
 P0 280건 중 **126건 verified pass**. 잔여 **154건**. 영역 순서 = A 수집상품 잔여 → B 배송대행지 → C 등록상품 → D 기타.
 
-> 2026-06-04 (R16): 엑셀↔ATC 전수 재대조 (spec.ts `tcNo`/`CASES` 배열까지 스캔). **완전 미존재 TC = 0** (1차 "41건 미존재"는 ATC YAML만 스캔한 오진 — da-input/da-cascade spec 에 이미 구현됨). 정확 현황: 실구현 662 / 순수 placeholder 865(P0 147) / noop-skip 261. 리포트 = `tc-gap-report-2026-06-04.md`. 동기화: `p0-배송대행지-신청서-확인.spec.ts` stale 헤더 주석 정정(실제 검증인데 stub로 오분류되던 것) → P0 impl +17. 신규 실구현: 수집상품 상세 업로드탭 **업로드 대상 마켓 토글 + 관부가세 영역** TC 3499/3500/3515/3516 verified pass (2 passed). `tests/collected-product/upload-tab-market-customs-visible.spec.ts`. 3501/3517(변경)은 서버 호출 destructive skip. 순수 placeholder P0 147→142.
+> 2026-06-04 (R16): 엑셀↔ATC 전수 재대조 (spec.ts `tcNo`/`CASES` 배열까지 스캔). **완전 미존재 TC = 0** (1차 "41건 미존재"는 ATC YAML만 스캔한 오진 — da-input/da-cascade spec 에 이미 구현됨). 정확 현황: 실구현 662 / 순수 placeholder 865(P0 147) / noop-skip 261. 리포트 = `tc-gap-2026-06-04.md`. 동기화: `p0-배송대행지-신청서-확인.spec.ts` stale 헤더 주석 정정(실제 검증인데 stub로 오분류되던 것) → P0 impl +17. 신규 실구현: 수집상품 상세 업로드탭 **업로드 대상 마켓 토글 + 관부가세 영역** TC 3499/3500/3515/3516 verified pass (2 passed). `tests/collected-product/upload-tab-market-customs-visible.spec.ts`. 3501/3517(변경)은 서버 호출 destructive skip. 순수 placeholder P0 147→142.
 > 2026-06-04 (R13): 수집상품 상세 ESM 2.0 옵션 모드 모달 TC 867/868/869 strict verified (+3). `tests/collected-product/p0-수집상품-상품상세.spec.ts`. 잔여 오픈마켓 P0 는 별도 connect-* spec 으로 이미 커버됨 + destructive 라 패스.
-> 2026-06-04 (R15): 연결설정/오픈마켓 5개 마켓(스스/쿠팡/11번가국내/ESM2/톡스토어) 해제→동일계정 재연결 destructive 사이클 strict verified — TC 996/998/999/1000/1005/1006/1010. 공통 헬퍼 `tests/base-setting/_market-reconnect-cycle.ts` + 마켓별 spec 5개. 키는 .env(atc-decisions-form.md 이관). 안전 가드(동일계정 확인)로 데이터 무손상. 마켓당 초기화 quota 1 소모.
+> 2026-06-04 (R15): 연결설정/오픈마켓 5개 마켓(스스/쿠팡/11번가국내/ESM2/톡스토어) 해제→동일계정 재연결 destructive 사이클 strict verified — TC 996/998/999/1000/1005/1006/1010. 공통 헬퍼 `tests/base-setting/_market-reconnect-cycle.ts` + 마켓별 spec 5개. 키는 .env(atc-decisions.md 이관). 안전 가드(동일계정 확인)로 데이터 무손상. 마켓당 초기화 quota 1 소모.
 > 2026-06-04 (R14): 배송대행지 신청서 확인 상태 탭 9 TC loose verified (1503/1507/1508/1509/1510/1516/1517/1518/1519, 토스토스 상태 탭 노출). `tests/delivery-agency/p0-배송대행지-신청서-확인.spec.ts`. **요청했던 수정 화면(1511~1515)은 테스트 계정에 배대지 신청서 0건이라 진입점 부재 → honest skip** (데이터 있으면 spec 이 자동 strict 승격). 트래킹/송장복사/...메뉴(1504~1506)도 데이터 의존 skip.
 
 ## ATC 전체 분포 (Excel 1804 TC 대비, 2026-05-27)

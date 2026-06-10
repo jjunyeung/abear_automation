@@ -1,7 +1,7 @@
 # ATC 2차 작업 — 해야할 것 / 결정 필요 / 필요 데이터
 
 > 마라톤 R1-R7 종료 후 (2026-06-01) 다음 단계 정리
-> 참조: `atc-marathon-progress.md` (진행 로그), `atc-coverage-report.md` (커버리지)
+> 참조: `atc-marathon.md` (진행 로그), `atc-coverage.md` (커버리지)
 
 ---
 

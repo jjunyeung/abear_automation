@@ -534,7 +534,7 @@ const agreeCautionStep: StepHandler = async (page, _inputs) => {
  *
  * Note (2026-05-14): 백엔드가 간헐적으로 WS1014 응답으로 "다시 클릭해 주세요" 토스트만
  *   띄우고 신청서가 등록 안 되는 이슈가 ATC 자동화에서 발견됨 (자세한 내용은
- *   bug-report-delivery-agency-WS1014.md). 자동 retry 는 진짜 백엔드 정상화 여부를 가리므로
+ *   delivery-agency-WS1014.md). 자동 retry 는 진짜 백엔드 정상화 여부를 가리므로
  *   하지 않고, WS1014 토스트가 뜨면 즉시 fail 로 백엔드 이슈를 신호한다.
  */
 const clickSubmitAndLandStep: StepHandler = async (page, _inputs) => {
@@ -572,13 +572,13 @@ const clickSubmitAndLandStep: StepHandler = async (page, _inputs) => {
     }
     if (await retryToast.isVisible().catch(() => false)) {
       logger.error(
-        '[delivery-agency] WS1014 — 백엔드가 "신청 완료 버튼을 다시 클릭해주세요" 응답. bug-report-delivery-agency-WS1014.md 참조.',
+        '[delivery-agency] WS1014 — 백엔드가 "신청 완료 버튼을 다시 클릭해주세요" 응답. delivery-agency-WS1014.md 참조.',
       );
       return {
         ok: false as const,
         error_key: 'submit_ws1014_retry_required' as ErrorKey,
         message:
-          '백엔드 WS1014 — 신청 완료 토스트만 노출되고 신청서가 등록 안 됨. 자세한 분석은 bug-report-delivery-agency-WS1014.md.',
+          '백엔드 WS1014 — 신청 완료 토스트만 노출되고 신청서가 등록 안 됨. 자세한 분석은 delivery-agency-WS1014.md.',
       };
     }
     if (await validationToast.isVisible().catch(() => false)) {
