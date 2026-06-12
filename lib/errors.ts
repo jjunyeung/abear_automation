@@ -32,7 +32,8 @@ export type KnownErrorKey =
   | 'tab_image_error'
   | 'tab_option_error'
   | 'tab_attribute_error'
-  | 'tab_detail_error';
+  | 'tab_detail_error'
+  | 'esm_recommend_option_unmatched';
 
 /**
  * Effective error key type. Accepts any known key and any future string while

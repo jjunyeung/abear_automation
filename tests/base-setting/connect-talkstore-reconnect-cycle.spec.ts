@@ -19,8 +19,10 @@ const handlers = buildReconnectHandlers({
   connectUrl: 'https://app.windly.cc/view3/connect?setting=MARKET&openMarket=TALKSTORE',
   intermediateConfirm: '확인했어요',
   fields: [
-    { label: 'Open API 인증키', value: process.env.TALKSTORE_OPENAPI_KEY ?? '', guard: false, fillOnReconnect: true },
-    { label: '스토어 URL', value: process.env.TALKSTORE_CHANNEL_ID ?? '', guard: true, fillOnReconnect: false },
+    // guard 식별필드 = Open API 인증키. (연결 상태에서 채워져 있는 실제 계정 식별값.
+    //  '스토어 URL' 은 connected state 에서 비어있는 '스토어 바로가기' 헬퍼 input 이라 guard 부적합 — 항상 mismatch abort 됐음.)
+    { label: 'Open API 인증키', value: process.env.TALKSTORE_OPENAPI_KEY ?? '', guard: true, fillOnReconnect: true },
+    { label: '스토어 URL', value: process.env.TALKSTORE_CHANNEL_ID ?? '', guard: false, fillOnReconnect: false },
   ],
 });
 

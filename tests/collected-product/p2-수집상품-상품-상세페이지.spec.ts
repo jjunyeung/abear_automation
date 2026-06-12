@@ -8,6 +8,10 @@ import { loadATC } from '../../lib/atc-loader';
 import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
 import type { ErrorKey } from '../../lib/errors';
 import { logger } from '../../lib/logger';
+import {
+  openFirstCollectedProductStep,
+  clickTabByLabelStep,
+} from './_talkstore-handlers';
 
 const ATC_PATH = join(__dirname, '..', '..', "atcs", "collected-product", "p2-수집상품-상품-상세페이지.atc.yml");
 const URL = "https://app.windly.cc/view2/interested-product";
@@ -42,6 +46,20 @@ const verifyPageReachable: StepHandler = async (page) => {
     return { ok: false as const, error_key: 'page_blank' as ErrorKey, message: `page body length ${length}` };
   }
   return { ok: true as const };
+};
+
+// 상세 1회 진입 후 탭 전환 (talkstore 패턴 재사용). ProductDetail 최상위 탭은 항상 렌더.
+let detailOpen = false;
+const ensureDetailStep: StepHandler = async (page, inputs) => {
+  if (detailOpen) return { ok: true as const };
+  const r = await openFirstCollectedProductStep(page, inputs);
+  if (r.ok) detailOpen = true;
+  return r;
+};
+const tabStep = (labelRe: RegExp): StepHandler => async (page, inputs) => {
+  const e = await ensureDetailStep(page, inputs);
+  if (!e.ok) return e;
+  return clickTabByLabelStep(labelRe)(page, inputs);
 };
 
 const handlers: StepHandlers = {
@@ -90,15 +108,15 @@ const handlers: StepHandlers = {
   "tc429": noopAfter("tc429", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc430": noopAfter("tc430", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc431": noopAfter("tc431", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc432": noopAfter("tc432", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc433": noopAfter("tc433", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc432": tabStep(/^이미지$/),
+  "tc433": tabStep(/^이미지$/),
   "tc434": noopAfter("tc434", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc435": noopAfter("tc435", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc436": noopAfter("tc436", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc437": noopAfter("tc437", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc438": noopAfter("tc438", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc439": noopAfter("tc439", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc440": noopAfter("tc440", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc440": tabStep(/^옵션$/),
   "tc441": noopAfter("tc441", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc442": noopAfter("tc442", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc443": noopAfter("tc443", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -126,8 +144,8 @@ const handlers: StepHandlers = {
   "tc465": noopAfter("tc465", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc466": noopAfter("tc466", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc467": noopAfter("tc467", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc468": noopAfter("tc468", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc469": noopAfter("tc469", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc468": tabStep(/^옵션$/),
+  "tc469": tabStep(/^판매가$/),
   "tc470": noopAfter("tc470", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc471": noopAfter("tc471", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc472": noopAfter("tc472", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -171,7 +189,7 @@ const handlers: StepHandlers = {
   "tc510": noopAfter("tc510", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc511": noopAfter("tc511", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc512": noopAfter("tc512", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc513_상품-속성": noopAfter("tc513_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc513_상품-속성": tabStep(/^상품 속성$/),
   "tc514_상품-속성": noopAfter("tc514_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc515_상품-속성": noopAfter("tc515_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc516_상품-속성": noopAfter("tc516_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -233,6 +251,7 @@ const handlers: StepHandlers = {
 test("수집상품 / 상품 상세페이지 영역 P2 TC 묶음 (183건) — 진입 + destructive/AI noop skip", async ({ page }) => {
   test.setTimeout(3 * 60_000);
   entered = false;
+  detailOpen = false;
   const atc = loadATC(ATC_PATH);
   const result = await runATC({ atc, page, inputs: {}, handlers });
   await test.info().attach('atc-result', {

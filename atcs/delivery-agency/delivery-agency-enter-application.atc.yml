@@ -86,6 +86,22 @@ steps:
     do: 검색 결과의 첫 번째 옵션 label 을 클릭. label semantics 로 BaseOption(radio) 토글 + onChange 에서 setShow(false) 호출되어 드롭다운 자동 닫힘. 검색 input hidden 으로 검증.
     expect: 옵션 선택됨 + 드롭다운 닫힘.
 
+  - id: select_region
+    do: 배송 정보의 지점 드롭다운(지점을 선택해 주세요) 을 열고 칭다오 옵션 선택. 주문 불러오기는 배송폼을 안 채우므로 제출 전 필수.
+    expect: 지점 칭다오 선택됨.
+
+  - id: select_shipping
+    do: 운송방법 드롭다운(운송방법을 선택해 주세요, 지점 선택 후 활성) 을 열고 해운(허브넷해상/해운) 옵션 선택.
+    expect: 운송방법 선택됨.
+
+  - id: select_customs
+    do: 통관방법 드롭다운(통관방법을 선택해 주세요, 운송 선택 후 활성) 을 열고 사업자통관 옵션 선택. (사업자통관 = 개인통관고유부호 필수 면제 — 주문 receiver 에 PCC 가 폼으로 안 채워지므로.)
+    expect: 통관방법 사업자통관 선택됨.
+
+  - id: select_additional_service
+    do: 부가 서비스 요청 섹션에서 첫 번째 활성 부가서비스 체크박스(보험/어댑터 제외) 선택. 부가서비스 1개 이상 필수.
+    expect: 부가서비스 1개 이상 선택됨.
+
   - id: agree_caution
     do: 신청서 페이지 스크롤을 맨 밑으로 내려서 주의사항 확인 섹션 visible. 동의 체크박스의 부모 label (CheckBoxContainer, label 텍스트 = 모든 내용을 확인했으며, 주의사항에 동의합니다.) 클릭. 신청 완료 버튼이 disabled 에서 enabled 로 전환되는 것까지 검증 (최대 5초).
     expect: 동의 체크박스 선택됨 + 신청 완료 버튼 enabled.
@@ -97,4 +113,4 @@ steps:
       상세: delivery-agency-WS1014.md
     expect: 신청 완료 클릭 + 배송대행지 메인 화면으로 랜딩.
 
-expected: 12개 step 모두 success, unhandled 0건. 배송대행지 → 신청서 작성 → 카테고리 선택 → 동의 → 신청 완료 → 배송대행지 메인 화면 랜딩까지.
+expected: 16개 step 모두 success, unhandled 0건. 배송대행지 → 신청서 작성 → 주문 불러오기 → 카테고리 선택 → 배송폼(지점/운송/통관) 선택 → 부가서비스 선택 → 동의 → 신청 완료 → 배송대행지 메인 화면 랜딩까지.

@@ -1,60 +1,61 @@
 /**
- * 수집상품 / 톡스토어 영역 P1 TC 묶음 (5건) — skeleton ATC, destructive/외부/AI/환경 의존 → 진입 + noop log.
+ * 수집상품 / 톡스토어 영역 P1 — ProductDetail 탭 노출 검증 (5건).
+ *
+ * 대응 ATC : atcs/collected-product/p1-수집상품-톡스토어.atc.yml
+ * TC 원본  : Case No 1073~1077 / P1 — 이미지/옵션/판매가/상품 속성/상세페이지 탭
+ *
+ * 탭 라벨 출처: windly_repo/sesame/src/features/ProductDetail/ProductDetail.const.ts
+ *   image=이미지 / option=옵션 / sales=판매가 / attribute=상품 속성 / detail-page=상세페이지
+ *
+ * non-destructive: 수집상품 첫 카드 상세 진입 후 각 탭을 클릭하여 라벨 노출(=탭 존재)을 검증.
+ * 탭은 마켓 활성 여부와 무관하게 항상 렌더링되는 ProductDetail 최상위 탭이다.
  */
 
 import { join } from 'path';
 import { expect, test } from '../../lib/test-fixture';
 import { loadATC } from '../../lib/atc-loader';
 import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
-import type { ErrorKey } from '../../lib/errors';
-import { logger } from '../../lib/logger';
+import {
+  openFirstCollectedProductStep,
+  clickTabByLabelStep,
+} from './_talkstore-handlers';
 
-const ATC_PATH = join(__dirname, '..', '..', "atcs", "collected-product", "p1-수집상품-톡스토어.atc.yml");
-const URL = "https://app.windly.cc/view2/interested-product";
+const ATC_PATH = join(
+  __dirname,
+  '..',
+  '..',
+  'atcs',
+  'collected-product',
+  'p1-수집상품-톡스토어.atc.yml',
+);
 
-let entered = false;
-
-const enterPage: StepHandler = async (page) => {
-  if (entered) return { ok: true as const };
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
-  await page.waitForTimeout(1_000);
-  const body = await page.evaluate(() => document.body.innerText);
-  if (!body.includes("\uc218\uc9d1\uc0c1\ud488")) {
-    logger.warn(`[collected] 페이지 라벨 '수집상품' 미감지 — host/URL 변경 가능. 일단 통과.`);
-  }
-  entered = true;
-  return { ok: true as const };
+// 상세 진입은 1회만 — 탭 5개가 동일 상세 페이지에서 전환된다.
+let detailOpen = false;
+const ensureDetailStep: StepHandler = async (page, inputs) => {
+  if (detailOpen) return { ok: true as const };
+  const r = await openFirstCollectedProductStep(page, inputs);
+  if (r.ok) detailOpen = true;
+  return r;
 };
 
-const noopAfter = (label: string, reason: string): StepHandler => async (page) => {
-  const e = await enterPage(page, {});
+/** 상세 진입(idempotent) 후 해당 탭 라벨 클릭 → 노출 검증 (라벨 미노출 시 fail). */
+const tabStep = (labelRe: RegExp): StepHandler => async (page, inputs) => {
+  const e = await ensureDetailStep(page, inputs);
   if (!e.ok) return e;
-  logger.info(`[${label}] ${reason} — skip`);
-  return { ok: true as const };
-};
-
-const verifyPageReachable: StepHandler = async (page) => {
-  const e = await enterPage(page, {});
-  if (!e.ok) return e;
-  const length = await page.evaluate(() => document.body.innerText.length);
-  if (length < 10) {
-    return { ok: false as const, error_key: 'page_blank' as ErrorKey, message: `page body length ${length}` };
-  }
-  return { ok: true as const };
+  return clickTabByLabelStep(labelRe)(page, inputs);
 };
 
 const handlers: StepHandlers = {
-  "tc1073": verifyPageReachable,
-  "tc1074": noopAfter("tc1074", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc1075": noopAfter("tc1075", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc1076_상품-속성": noopAfter("tc1076_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc1077": noopAfter("tc1077", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  tc1073: tabStep(/^이미지$/),
+  tc1074: tabStep(/^옵션$/),
+  tc1075: tabStep(/^판매가$/),
+  'tc1076_상품-속성': tabStep(/^상품 속성$/),
+  tc1077: tabStep(/^상세페이지$/),
 };
 
-test("수집상품 / 톡스토어 영역 P1 TC 묶음 (5건) — 진입 + destructive/AI noop skip", async ({ page }) => {
+test('수집상품 상세 → 이미지/옵션/판매가/상품 속성/상세페이지 탭 노출 (TC 1073~1077)', async ({ page }) => {
   test.setTimeout(3 * 60_000);
-  entered = false;
+  detailOpen = false;
   const atc = loadATC(ATC_PATH);
   const result = await runATC({ atc, page, inputs: {}, handlers });
   await test.info().attach('atc-result', {

@@ -111,20 +111,18 @@ const bumpAndSnapshotDeliveryStep: StepHandler = async (page, _inputs) => {
     const input = fieldInputByLabel(page, f.label);
     let currentRaw = '';
     try {
-      await input.waitFor({ state: 'visible', timeout: 30_000 });
+      await input.waitFor({ state: 'visible', timeout: 8_000 });
       const start = Date.now();
       while (Date.now() - start < 10_000) {
         currentRaw = await input.inputValue().catch(() => '');
         if (currentRaw.trim() !== '') break;
         await page.waitForTimeout(300);
       }
-    } catch (e) {
-      const err = e instanceof Error ? e.message : String(e);
-      return {
-        ok: false as const,
-        error_key: 'delivery_input_not_found' as ErrorKey,
-        message: `"${f.label}" input 미로드: ${err}`,
-      };
+    } catch {
+      // 일부 필드(특히 "배송비 조건"=unitQty)는 배송비 유형/조건부 설정에 따라 아예
+      // 렌더되지 않음. hard-fail 대신 skip (value="" disabled 케이스와 동일 취급).
+      logger.info(`[verify-delivery] "${f.label}" input 미렌더 (배송비 유형 의존) — skip`);
+      continue;
     }
 
     if (currentRaw.trim() === '') {

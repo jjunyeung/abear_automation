@@ -129,9 +129,10 @@ const verifyFirstCardRemovedStep: StepHandler = async (page) => {
     };
   }
   // 백엔드 삭제 처리에 지연이 있을 수 있어 reload + polling.
+  // 전체 마켓 cascade 해제(각 마켓 un-upload)는 async 라 30s 보다 오래 걸릴 수 있어 90s 로.
   const start = Date.now();
   let lastCnt = -1;
-  while (Date.now() - start < 30_000) {
+  while (Date.now() - start < 90_000) {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2_000);
     const cnt = await page
@@ -152,7 +153,7 @@ const verifyFirstCardRemovedStep: StepHandler = async (page) => {
   return {
     ok: false as const,
     error_key: 'product_still_present' as ErrorKey,
-    message: `삭제 후 30초 polling 했지만 productId=${snapshotProductId} 가 ${lastCnt}개 잔존`,
+    message: `삭제 후 90초 polling 했지만 productId=${snapshotProductId} 가 ${lastCnt}개 잔존`,
   };
 };
 

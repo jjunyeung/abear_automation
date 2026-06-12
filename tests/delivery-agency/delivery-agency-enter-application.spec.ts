@@ -35,6 +35,7 @@ import { loadATC } from '../../lib/atc-loader';
 import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
 import type { ErrorKey } from '../../lib/errors';
 import { logger } from '../../lib/logger';
+import { selectDropdownOption } from './_da-application-handlers';
 
 const ATC_PATH = join(
   __dirname,
@@ -476,7 +477,10 @@ const selectFirstCategoryResultStep: StepHandler = async (page, _inputs) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CAUTION_LABEL_TEXT = '주의사항에 동의';
-const SUBMIT_BUTTON_NAME = /신청\s*완료/;
+// Tosstoss 신청서 header 의 제출 버튼 실제 라벨 = "저장" (CheckIcon + "저장").
+// (과거 /신청\s*완료/ 는 매칭 0건 → isDisabled(timeout:0) 무한 대기 → 180s test timeout 유발.
+//  components/Header.tsx 의 <Button ...><CheckIcon/>저장</Button> 참조.)
+const SUBMIT_BUTTON_NAME = /저장/;
 // 성공 후 navigate 는 /view3/delivery-agency?deliveryStatus=AWAITING_ARRIVAL 이지만,
 // useControlDeliveryAgencyTab 가 즉시 ?deliveryAgency=QUICKSTAR 로 URL 을 덮어씀.
 // → /view3/delivery-agency 자체가 매칭되되 /application 은 제외.
@@ -510,13 +514,25 @@ const agreeCautionStep: StepHandler = async (page, _inputs) => {
   await cautionLabel.scrollIntoViewIfNeeded();
   await cautionLabel.click();
 
-  // 검증 = 신청 완료 버튼이 enabled 로 전환. (체크박스 input.checked 는 display:none 으로 검증 어려움.)
+  // 검증 = 제출(저장) 버튼이 enabled 로 전환. (체크박스 input.checked 는 display:none 으로 검증 어려움.)
   const submitBtn = page.getByRole('button', { name: SUBMIT_BUTTON_NAME }).first();
+  // 버튼 자체가 없으면 isDisabled(timeout:0) 가 무한 대기하므로 먼저 존재를 bounded 로 확인.
+  const submitVisible = await submitBtn
+    .waitFor({ state: 'visible', timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!submitVisible) {
+    return {
+      ok: false as const,
+      error_key: 'submit_button_not_visible' as ErrorKey,
+      message: '주의사항 동의 후 제출(저장) 버튼이 5초 내 visible 안 됨',
+    };
+  }
   const start = Date.now();
   while (Date.now() - start < 5_000) {
-    const isDisabled = await submitBtn.isDisabled().catch(() => true);
+    const isDisabled = await submitBtn.isDisabled({ timeout: 1_000 }).catch(() => true);
     if (!isDisabled) {
-      logger.info('[delivery-agency] 주의사항 동의 → 신청 완료 버튼 enabled');
+      logger.info('[delivery-agency] 주의사항 동의 → 제출(저장) 버튼 enabled');
       return { ok: true as const };
     }
     await page.waitForTimeout(200);
@@ -555,9 +571,14 @@ const clickSubmitAndLandStep: StepHandler = async (page, _inputs) => {
   await submitBtn.scrollIntoViewIfNeeded();
   await submitBtn.click();
 
-  // 토스트 selectors (백엔드 응답 시그널). 토스트 duration 기본 3초 — 빨리 캡처.
+  // 토스트 selectors (백엔드/클라이언트 응답 시그널). 토스트 duration 기본 3초 — 빨리 캡처.
   const retryToast = page.getByText('신청 완료 버튼을 다시 클릭해주세요', { exact: false }).first();
-  const validationToast = page.getByText('신청서를 확인해주세요.', { exact: false }).first();
+  // 클라이언트 validation: Tosstoss/index.tsx handleSubmit 은 필수 필드 누락 시
+  //  '필수 입력 항목이 누락되었어요.' 토스트만 띄우고 submit API 를 호출하지 않는다.
+  //  (구버전 '신청서를 확인해주세요.' 도 호환 유지.)
+  const validationToast = page
+    .getByText(/필수 입력 항목이 누락되었어요\.|신청서를 확인해주세요\.|약관에 동의해주세요\./)
+    .first();
   const apiFailToast = page.getByText('배대지 그룹 신청에 실패', { exact: false }).first();
 
   // 30초 polling: URL 전환 (= 성공) OR 알려진 에러 토스트 (= fail with 신호).
@@ -583,7 +604,9 @@ const clickSubmitAndLandStep: StepHandler = async (page, _inputs) => {
     }
     if (await validationToast.isVisible().catch(() => false)) {
       const fieldErrors = await page
-        .getByText(/필수 입력 항목이에요\.|제대로 입력했는지/)
+        .getByText(
+          /필수 입력 항목이에요\.|제대로 입력했는지|URL 형식이 올바르지|단가는 0 이상|수량은 1개 이상|개인통관고유부호|우편번호를|보험 가입/,
+        )
         .allInnerTexts()
         .catch(() => []);
       return {
@@ -609,6 +632,77 @@ const clickSubmitAndLandStep: StepHandler = async (page, _inputs) => {
   };
 };
 
+// 주문 불러오기는 상품+받는분만 채우고 배송폼(지점/운송/통관)은 비운다 →
+// 제출 전 Tosstoss Delivery form 의 3개 캐스케이드 드롭다운을 채워야 submit 이 통과한다.
+// (Delivery/index.tsx: 지점→운송방법(지점 선택 후 활성)→통관방법(운송 선택 후 활성). 셋 다 필수.)
+// 값은 da-cascade #1412 의 검증된 조합 (칭다오 / 허브넷해상|해운 / 목록통관).
+const selectRegionStep: StepHandler = async (page) => {
+  const r = await selectDropdownOption(page, /지점을\s*선택해\s*주세요/, /^(칭다오)$/);
+  if (!r.ok) return { ok: false as const, error_key: 'region_select_failed' as ErrorKey, message: r.reason };
+  await page.waitForTimeout(600);
+  return { ok: true as const };
+};
+
+const selectShippingStep: StepHandler = async (page) => {
+  const r = await selectDropdownOption(page, /운송방법을\s*선택해\s*주세요/, /^(허브넷해상|해운)$/);
+  if (!r.ok) return { ok: false as const, error_key: 'shipping_select_failed' as ErrorKey, message: r.reason };
+  await page.waitForTimeout(600);
+  return { ok: true as const };
+};
+
+const selectCustomsStep: StepHandler = async (page) => {
+  // 사업자통관 선택 → checkValidationReceiverForm 이 unipass(개인통관고유부호) 필수를 skip
+  //  (useValidateForm.ts: customs.includes('사업자') 면 unipass 면제). 주문 receiver 에 PCC 가
+  //  폼으로 안 채워져서 목록/일반통관은 제출 불가 → 사업자통관으로 우회.
+  const r = await selectDropdownOption(page, /통관방법을\s*선택해\s*주세요/, /^(사업자통관)$/);
+  if (!r.ok) return { ok: false as const, error_key: 'customs_select_failed' as ErrorKey, message: r.reason };
+  await page.waitForTimeout(600);
+  return { ok: true as const };
+};
+
+// Tosstoss 신청서는 "부가서비스 1개 이상 필수 선택" (AddtionalService/index.tsx + useValidateForm
+//  checkValidationAdditionalServicesForm: additionalServicesValue.length === 0 → invalid).
+//  부가 서비스 요청 Collapse 안 첫 enabled 체크박스(보험/어댑터 제외 — 추가 입력 유발) 의 label 클릭.
+const selectAdditionalServiceStep: StepHandler = async (page) => {
+  const result = await page.evaluate(() => {
+    const notice = Array.from(document.querySelectorAll('*')).find(
+      (el) => el.childElementCount === 0 && /부가서비스는\s*1개\s*이상/.test(el.textContent || ''),
+    );
+    if (!notice) return 'no_section';
+    // notice 의 조상 중 enabled 체크박스를 가진 첫 컨테이너 = 부가 서비스 Collapse.
+    let node: HTMLElement | null = notice.parentElement;
+    let label: HTMLLabelElement | null = null;
+    while (node) {
+      const boxes = Array.from(node.querySelectorAll('input[type="checkbox"]')).filter((b) => {
+        const input = b as HTMLInputElement;
+        if (input.disabled) return false;
+        const lb = input.closest('label');
+        if (/보험|어댑터/.test(lb?.textContent || '')) return false;
+        return true;
+      }) as HTMLInputElement[];
+      if (boxes.length > 0) {
+        label = boxes[0].closest('label');
+        break;
+      }
+      node = node.parentElement;
+    }
+    if (!label) return 'no_enabled_option';
+    label.scrollIntoView({ block: 'center' });
+    label.click();
+    return `clicked:${(label.textContent || '').slice(0, 24)}`;
+  });
+  if (result === 'no_section' || result === 'no_enabled_option') {
+    return {
+      ok: false as const,
+      error_key: 'additional_service_select_failed' as ErrorKey,
+      message: `부가 서비스 옵션 선택 실패: ${result}`,
+    };
+  }
+  logger.info(`[delivery-agency] 부가 서비스 선택 → ${result}`);
+  await page.waitForTimeout(500);
+  return { ok: true as const };
+};
+
 const handlers: StepHandlers = {
   open_delivery_agency: openDeliveryAgencyStep,
   click_apply_form: clickApplyFormStep,
@@ -620,6 +714,10 @@ const handlers: StepHandlers = {
   open_category_dropdown: openCategoryDropdownStep,
   search_chair_in_category: searchChairInCategoryStep,
   select_first_category_result: selectFirstCategoryResultStep,
+  select_region: selectRegionStep,
+  select_shipping: selectShippingStep,
+  select_customs: selectCustomsStep,
+  select_additional_service: selectAdditionalServiceStep,
   agree_caution: agreeCautionStep,
   click_submit_and_land: clickSubmitAndLandStep,
 };

@@ -104,13 +104,18 @@ export async function selectDropdownOption(
     return { ok: false, reason: `placeholder ${placeholderRe.source} 매칭 0건` };
   }
   await placeholderText.click();
-  await page.waitForTimeout(400);
 
   // Option 의 Label 매칭. 옵션 텍스트가 OptionLabelText 안에 있음.
   // label[for^="checkbox_"] 가 아닌 dropdown option 의 label[for*="..."] 매칭.
   // 가장 안전: 펼친 직후 visible 한 OptionLabelText 텍스트 click.
+  // 캐스케이드 옵션(지역→운송→통관)은 상위 선택에 따라 async 로 로드됨 →
+  // 고정 대기(400ms) 대신 옵션 등장까지 poll. (#1430 timing race fix)
   const option = page.getByText(optionTextRe).filter({ visible: true }).first();
-  if ((await option.count().catch(() => 0)) === 0) {
+  const appeared = await option
+    .waitFor({ state: 'visible', timeout: 6_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) {
     return { ok: false, reason: `펼친 dropdown 안 옵션 텍스트 ${optionTextRe.source} 매칭 0건` };
   }
   await option.click({ force: true });

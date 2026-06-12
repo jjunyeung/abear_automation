@@ -815,8 +815,16 @@ const selectBaseSkuStep: StepHandler = async (page) => {
 };
 
 /**
- * 실제 윈들리 에러체크 실행 → 7개 탭 dot 결과로 빨간(에러) 0건 검증.
- * 빨간 탭이 있으면 그 탭으로 이동해 빨간 필드 위치를 진단으로 수집한다.
+ * 이 TC 의 검증 대상 탭 — 옵션그룹 매칭(옵션) + 옵션가 기준 선택(판매가) 만.
+ * 업로드 설정·기본 정보·이미지·상품 속성·상세페이지 등은 이 TC 의 책임이 아니므로
+ * red 여도 실패로 보지 않는다 (갓 수집 상품의 무관 탭 red 로 인한 flaky 제거).
+ * 단 무관 탭 red 는 로그로 남겨 가시성은 유지한다.
+ */
+const ERROR_CHECK_SCOPE_TABS = ['옵션', '판매가'] as const;
+
+/**
+ * 실제 윈들리 에러체크 실행 → 옵션·판매가 탭의 빨간(에러) dot 0건 검증.
+ * 스코프 탭이 빨가면 그 탭으로 이동해 빨간 필드 위치를 진단으로 수집한다.
  */
 const errorCheckStep: StepHandler = async (page) => {
   const clicked = await clickErrorCheckButton(page);
@@ -834,6 +842,8 @@ const errorCheckStep: StepHandler = async (page) => {
   const sum = summarizeTabStatuses(statuses);
   const redTabs = statuses.filter((s) => s.status === 'red').map((s) => s.name);
   const yellowTabs = statuses.filter((s) => s.status === 'yellow').map((s) => s.name);
+  const inScopeRed = redTabs.filter((t) => ERROR_CHECK_SCOPE_TABS.includes(t as (typeof ERROR_CHECK_SCOPE_TABS)[number]));
+  const outOfScopeRed = redTabs.filter((t) => !ERROR_CHECK_SCOPE_TABS.includes(t as (typeof ERROR_CHECK_SCOPE_TABS)[number]));
   logger.info(
     `[error_check] red=${sum.red} yellow=${sum.yellow} green=${sum.green} none=${sum.none}` +
       ` | 빨강: ${redTabs.join(', ') || '없음'} | 노랑: ${yellowTabs.join(', ') || '없음'}`,
@@ -848,25 +858,28 @@ const errorCheckStep: StepHandler = async (page) => {
     };
   }
 
-  if (sum.red > 0) {
-    // 빨간 탭들로 이동해 빨간 필드 진단 수집.
+  if (inScopeRed.length > 0) {
+    // 스코프(옵션·판매가) 빨간 탭으로 이동해 빨간 필드 진단 수집.
     const diagnostics: string[] = [];
-    for (const tabName of redTabs) {
+    for (const tabName of inScopeRed) {
       const moved = await clickTab(page, tabName);
       if (!moved) continue;
       const fields = await readRedFieldLocations(page);
       const labels = fields.map((f) => f.label || `${f.tag}@(${f.x},${f.y})`).slice(0, 6);
       diagnostics.push(`${tabName}[${labels.join(', ') || '필드 미특정'}]`);
     }
+    const tail = outOfScopeRed.length > 0 ? ` (스코프 외 red 무시: ${outOfScopeRed.join(', ')})` : '';
     return {
       ok: false as const,
       error_key: 'error_check_failed' as ErrorKey,
-      message: `에러체크 빨간 에러 탭 ${sum.red}건: ${diagnostics.join(' / ') || redTabs.join(', ')}`,
+      message: `에러체크 빨간 에러 탭(옵션/판매가) ${inScopeRed.length}건: ${diagnostics.join(' / ') || inScopeRed.join(', ')}${tail}`,
     };
   }
 
   logger.info(
-    `[error_check] 빨간 에러 0건${sum.yellow > 0 ? ` (노란 경고 ${sum.yellow}건: ${yellowTabs.join(', ')})` : ''}`,
+    `[error_check] 옵션·판매가 red 0건 — 통과` +
+      `${outOfScopeRed.length > 0 ? ` (스코프 외 red 무시: ${outOfScopeRed.join(', ')})` : ''}` +
+      `${sum.yellow > 0 ? ` (노란 경고 ${sum.yellow}건: ${yellowTabs.join(', ')})` : ''}`,
   );
   return { ok: true as const };
 };

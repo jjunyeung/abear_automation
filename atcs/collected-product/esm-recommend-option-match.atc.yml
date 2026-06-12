@@ -1,0 +1,46 @@
+title: ESM 2.0 추천옵션 모드 옵션 매칭 (업로드 설정)
+priority: P1
+description: |
+  ESM 2.0(옥션+지마켓) "추천옵션 모드" 상품은 업로드 설정 탭의 "ESM 2.0 옵션설정"에서
+  ESM 필수옵션(예: 색상*)을 윈들리 옵션그룹에 1:1 매칭하고 생성하기 → 저장 해야 업로드 가능.
+  미매칭이면 업로드 설정 탭이 빨강(에러: "ESM 2.0 필수옵션과 윈들리에서 설정한 옵션을
+  매칭하고 생성하기를 클릭해 주세요.").
+  쿠팡 추천옵션그룹명 매칭과는 위치/구조가 완전히 다름 — 쿠팡은 옵션 탭 그룹명 매칭,
+  ESM 은 업로드 설정 탭의 옵션설정 모달에서 Tag 칩 매칭.
+  전제: ESM 이 업로드 대상 마켓이고 추천옵션 모드가 켜진 상품.
+inputs:
+  source_product_id:
+    type: string
+    description: 매칭 대상 수집상품의 윈들리 내부 코드. 비우면 목록 첫 카드 사용.
+    example: '235730327'
+    from: previous
+outputs:
+  source_product_id:
+    type: string
+    description: 매칭한 상품 코드 — 이어지는 업로드 TC 가 받아감
+steps:
+  - id: open_collected_list
+    do: 수집상품 목록으로 이동
+  - id: open_target_product
+    do: source_product_id 가 있으면 상품 코드 검색으로 진입, 없으면 첫 카드 진입. 진입한 상품 코드를 output 으로 발급
+  - id: open_upload_settings_tab
+    do: 상품 상세에서 업로드 설정 탭으로 이동
+  - id: open_esm_option_modal
+    do: ESM 2.0 옵션설정 섹션의 옵션설정 버튼을 눌러 모달을 연다. 매칭 섹션 헤더가 보이면 성공
+    expect: ESM 2.0 옵션과 윈들리에서 설정한 옵션 매칭 섹션이 노출됨
+  - id: match_esm_options
+    do: 윈들리 옵션 Tag 칩을 전부 선택(info)한다. ESM 추천옵션 모드는 윈들리 옵션그룹을 묶어 하나의 추천옵션 상품으로 등록하므로, 칩이 모두 선택돼야 생성하기가 활성화됨. 미선택 칩이 없을 때까지 반복
+    expect: 모든 윈들리 옵션 칩이 선택(info)되어 생성하기가 활성화됨
+  - id: generate
+    do: 매칭이 끝나 활성화된 생성하기 버튼을 클릭한다. 비활성이면 매칭 미완료로 실패
+    expect: 생성하기 클릭으로 추천옵션 상품이 생성됨
+  - id: save_esm_option
+    do: 저장 버튼을 눌러 옵션설정을 저장하고 모달이 닫힐 때까지 대기
+    expect: 모달이 닫히며 저장됨
+  - id: error_check
+    do: 상단 에러체크 버튼을 눌러 에러체크를 실행하고, 업로드 설정 탭의 빨간 dot 이 사라졌는지 확인. 업로드 설정이 ESM 추천옵션 미설정으로 빨가면 복구가 모달 플로우를 재실행 후 재개. 다른 탭의 무관 red 는 스코프 외(로그만)
+    on_error: [esm_recommend_option_unmatched]
+    expect: 업로드 설정 탭 빨간 에러 dot 0건
+expected: |
+  ESM 2.0 추천옵션 모드 필수옵션이 윈들리 옵션과 매칭 + 생성하기 + 저장 후
+  에러체크 결과 업로드 설정 탭 빨강 0건. unhandled 0건.
