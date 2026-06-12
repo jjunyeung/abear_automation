@@ -88,6 +88,18 @@
     "atcs/collected-product/option-tab-display.atc.yml": [850, 855],
     "atcs/collected-product/upload-tab-esm-option-mode-area.atc.yml": [867, 868, 869],
     "atcs/collected-product/upload-tab-esm-section-visible.atc.yml": [826, 827],
-    "atcs/collected-product/upload-tab-market-customs-visible.atc.yml": [3499, 3500, 3515, 3516]
+    "atcs/collected-product/upload-tab-market-customs-visible.atc.yml": [3499, 3500, 3515, 3516],
+    "atcs/base-setting/common-base-ai-translation.atc.yml": [1180, 1196],
+    "atcs/base-setting/common-base-customs-tax.atc.yml": [3482, 3483, 3484],
+    "atcs/base-setting/connect-delivery-agency.atc.yml": [1321, 1323, 1325, 1327, 1328],
+    "atcs/base-setting/connect-kakao-app.atc.yml": [3408, 3410, 3419, 3423, 3424, 3428],
+    "atcs/base-setting/connect-markets-smoke.atc.yml": [1007, 1011, 1012],
+    "atcs/base-setting/connect-smartstore-market-page.atc.yml": [993, 995, 996, 1003],
+    "atcs/base-setting/smartstore-base-delivery-and-as.atc.yml": [3467, 3471, 3476, 3482, 3488],
+    "atcs/product-collect/excel-url-import-modals.atc.yml": [1156, 1161],
+    "atcs/product-collect/global-sourcing-page-smoke.atc.yml": [967, 971, 982],
+    "atcs/collected-product/ai-product-description-modal.atc.yml": [831, 832, 833, 835, 836, 838],
+    "atcs/delivery-agency/list-page-features.atc.yml": [1520, 1525],
+    "atcs/registered-product/list-screen-smoke.atc.yml": [3566, 3569, 3570, 3572, 3573]
   }
 }
