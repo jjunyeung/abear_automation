@@ -81,6 +81,9 @@ const tabHasText = (labelRe: RegExp, re: RegExp, key: string): StepHandler => as
 const infoText = (re: RegExp): StepHandler => tabHasText(/^기본 정보$/, re, 'info_text_missing');
 const salesText = (re: RegExp): StepHandler => tabHasText(/^판매가$/, re, 'sales_text_missing');
 const attrText = (re: RegExp): StepHandler => tabHasText(/^상품 속성$/, re, 'attr_text_missing');
+const imageText = (re: RegExp): StepHandler => tabHasText(/^이미지$/, re, 'image_text_missing');
+const detailPageText = (re: RegExp): StepHandler => tabHasText(/^상세페이지$/, re, 'detailpage_text_missing');
+const uploadText = (re: RegExp): StepHandler => tabHasText(/^업로드 설정$/, re, 'upload_text_missing');
 
 const handlers: StepHandlers = {
   "tc387_기본-설정값-적용": verifyPageReachable,
@@ -130,8 +133,8 @@ const handlers: StepHandlers = {
   "tc431": noopAfter("tc431", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc432": tabStep(/^이미지$/),
   "tc433": tabStep(/^이미지$/),
-  "tc434": noopAfter("tc434", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc435": noopAfter("tc435", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc434": imageText(/대표이미지/),
+  "tc435": imageText(/동영상 파일 업로드/),
   "tc436": noopAfter("tc436", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc437": noopAfter("tc437", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc438": noopAfter("tc438", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -221,8 +224,8 @@ const handlers: StepHandlers = {
   "tc522_업로드-마켓": noopAfter("tc522_업로드-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc523_업로드-마켓": noopAfter("tc523_업로드-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc524_업로드-마켓": noopAfter("tc524_업로드-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc525": noopAfter("tc525", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc526": noopAfter("tc526", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc525": detailPageText(/상세페이지 이미지/),
+  "tc526": detailPageText(/상세페이지 이미지/),
   "tc527": noopAfter("tc527", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc528": noopAfter("tc528", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc529": noopAfter("tc529", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -236,8 +239,8 @@ const handlers: StepHandlers = {
   "tc537": noopAfter("tc537", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc538": noopAfter("tc538", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc539": noopAfter("tc539", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc540_업로드-설정": noopAfter("tc540_업로드-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc541_업로드-설정": noopAfter("tc541_업로드-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc540_업로드-설정": uploadText(/공통 업로드 설정/),
+  "tc541_업로드-설정": uploadText(/업로드 대상 마켓/),
   "tc542_업로드-설정": noopAfter("tc542_업로드-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc543_업로드-설정": noopAfter("tc543_업로드-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc544_업로드-설정": noopAfter("tc544_업로드-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
