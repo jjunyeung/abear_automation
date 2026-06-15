@@ -3,6 +3,7 @@
  */
 
 import { join } from 'path';
+import type { Page } from '@playwright/test';
 import { expect, test } from '../../lib/test-fixture';
 import { loadATC } from '../../lib/atc-loader';
 import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
@@ -62,6 +63,25 @@ const tabStep = (labelRe: RegExp): StepHandler => async (page, inputs) => {
   return clickTabByLabelStep(labelRe)(page, inputs);
 };
 
+// 한글 텍스트는 getByText 매칭이 불안정 → body innerText 정규식.
+const bodyHas = (page: Page, src: string): Promise<boolean> =>
+  page.evaluate((s) => new RegExp(s).test(document.body.innerText), src).catch(() => false);
+
+// 특정 탭으로 전환 후 그 탭 안에 텍스트(버튼/라벨) 가 노출되는지 검증.
+const tabHasText = (labelRe: RegExp, re: RegExp, key: string): StepHandler => async (page, inputs) => {
+  const e = await tabStep(labelRe)(page, inputs);
+  if (!e.ok) return e;
+  for (let i = 0; i < 5; i += 1) {
+    if (await bodyHas(page, re.source)) return { ok: true as const };
+    await page.waitForTimeout(500);
+  }
+  return { ok: false as const, error_key: key as ErrorKey, message: `탭 내 미노출: ${re.source}` };
+};
+// 기본 정보 탭 내 텍스트 검증 단축.
+const infoText = (re: RegExp): StepHandler => tabHasText(/^기본 정보$/, re, 'info_text_missing');
+const salesText = (re: RegExp): StepHandler => tabHasText(/^판매가$/, re, 'sales_text_missing');
+const attrText = (re: RegExp): StepHandler => tabHasText(/^상품 속성$/, re, 'attr_text_missing');
+
 const handlers: StepHandlers = {
   "tc387_기본-설정값-적용": verifyPageReachable,
   "tc388_gnb": noopAfter("tc388_gnb", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -88,23 +108,23 @@ const handlers: StepHandlers = {
   "tc409_gnb": noopAfter("tc409_gnb", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc410_gnb": noopAfter("tc410_gnb", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc411_gnb": noopAfter("tc411_gnb", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc412": noopAfter("tc412", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc413": noopAfter("tc413", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc414": noopAfter("tc414", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc415": noopAfter("tc415", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc412": infoText(/상품명/),
+  "tc413": infoText(/AI 상품명 추천/),
+  "tc414": infoText(/원본 상품명으로 초기화/),
+  "tc415": infoText(/상품명 키워드 추천/),
   "tc416": noopAfter("tc416", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc417": noopAfter("tc417", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc418": noopAfter("tc418", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc419": noopAfter("tc419", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc420": noopAfter("tc420", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc421": noopAfter("tc421", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc422": noopAfter("tc422", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc423": noopAfter("tc423", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc421": infoText(/카테고리\/태그 검색/),
+  "tc422": infoText(/카테고리 복사/),
+  "tc423": infoText(/카테고리 붙여넣기/),
   "tc424": noopAfter("tc424", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc425": noopAfter("tc425", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc426": noopAfter("tc426", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc427": noopAfter("tc427", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc428": noopAfter("tc428", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc427": infoText(/AI 태그 추천/),
+  "tc428": infoText(/상품 태그/),
   "tc429": noopAfter("tc429", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc430": noopAfter("tc430", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc431": noopAfter("tc431", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -146,11 +166,11 @@ const handlers: StepHandlers = {
   "tc467": noopAfter("tc467", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc468": tabStep(/^옵션$/),
   "tc469": tabStep(/^판매가$/),
-  "tc470": noopAfter("tc470", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc471": noopAfter("tc471", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc472": noopAfter("tc472", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc473": noopAfter("tc473", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc474": noopAfter("tc474", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc470": salesText(/소싱몰 배송비/),
+  "tc471": salesText(/배송비 유형/),
+  "tc472": salesText(/기본 배송비/),
+  "tc473": salesText(/반품 배송비/),
+  "tc474": salesText(/교환 배송비/),
   "tc475": noopAfter("tc475", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc476": noopAfter("tc476", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc477": noopAfter("tc477", 'destructive / 환경 의존 / AI 비결정 — skip'),
@@ -190,7 +210,7 @@ const handlers: StepHandlers = {
   "tc511": noopAfter("tc511", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc512": noopAfter("tc512", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc513_상품-속성": tabStep(/^상품 속성$/),
-  "tc514_상품-속성": noopAfter("tc514_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc514_상품-속성": attrText(/정보고시|직접 추가/),
   "tc515_상품-속성": noopAfter("tc515_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc516_상품-속성": noopAfter("tc516_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc517_상품-속성": noopAfter("tc517_상품-속성", 'destructive / 환경 의존 / AI 비결정 — skip'),
