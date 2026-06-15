@@ -84,6 +84,7 @@ const attrText = (re: RegExp): StepHandler => tabHasText(/^상품 속성$/, re, 
 const imageText = (re: RegExp): StepHandler => tabHasText(/^이미지$/, re, 'image_text_missing');
 const detailPageText = (re: RegExp): StepHandler => tabHasText(/^상세페이지$/, re, 'detailpage_text_missing');
 const uploadText = (re: RegExp): StepHandler => tabHasText(/^업로드 설정$/, re, 'upload_text_missing');
+const optionText = (re: RegExp): StepHandler => tabHasText(/^옵션$/, re, 'option_text_missing');
 
 const handlers: StepHandlers = {
   "tc387_기본-설정값-적용": verifyPageReachable,
@@ -140,9 +141,9 @@ const handlers: StepHandlers = {
   "tc438": noopAfter("tc438", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc439": noopAfter("tc439", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc440": tabStep(/^옵션$/),
-  "tc441": noopAfter("tc441", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc442": noopAfter("tc442", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc443": noopAfter("tc443", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc441": optionText(/옵션 전체 보기/),
+  "tc442": optionText(/옵션이미지를 대표이미지로 사용/),
+  "tc443": optionText(/임시 그룹명 사용/),
   "tc444": noopAfter("tc444", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc445": noopAfter("tc445", 'destructive / 환경 의존 / AI 비결정 — skip'),
   "tc446": noopAfter("tc446", 'destructive / 환경 의존 / AI 비결정 — skip'),
