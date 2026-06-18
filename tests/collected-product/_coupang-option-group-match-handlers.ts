@@ -5,7 +5,13 @@
  *
  * 배경(2026-06): 쿠팡이 추천 옵션그룹명 사용을 필수화. 수집상품 옵션그룹을
  * 쿠팡 카테고리의 mandatory attributes(추천 옵션그룹) 개수에 맞추고 이름을
- * 1:1 매칭한 뒤, 옵션가 기준(base SKU)을 선택한다. 업로드는 다음 TC 가 진행.
+ * 매칭한 뒤, 옵션가 기준(base SKU)을 선택한다. 업로드는 다음 TC 가 진행.
+ *
+ * 매칭 전략(2026-06 개정): 의미 추론(색상/수량 자동 판별) 대신 결정적 순서 매칭.
+ *   1) 그룹 수를 추천 수에 맞춤 (부족 → 추가 / 초과 → 미매칭 삭제)
+ *   2) 추천 태그를 순서대로 클릭 — 첫 추천 → 그룹1, 둘째 추천 → 그룹2 (assignByOrder)
+ *   3) 그룹명을 "그룹 N" 중립 라벨로 변경 (renameGroupsSequential) — 라벨기반 오검사 차단
+ *   4) 옵션값을 단위형식·고유성 기준 자동보정 (fixOptionValues)
  *
  * sesame UI 출처:
  *   - OptionTab.tsx: "옵션그룹 추가" 버튼, deleteOptionGroups(모달 "옵션 그룹 삭제")
@@ -35,11 +41,6 @@ const RECOMMEND_TOGGLE_LABEL = '쿠팡의 추천 옵션그룹명 사용';
 const RECOMMEND_SECTION_TEXT = '쿠팡의 추천 옵션그룹명';
 const ADD_GROUP_BUTTON = '옵션그룹 추가';
 const DELETE_GROUP_CONFIRM = '옵션 그룹 삭제';
-
-/** "(택N) 이름" 추천명에서 앞 "(택N) " 표시를 제거. 매칭은 ID 로 저장되므로 그룹명은 clean 으로. */
-function stripChoosePrefix(name: string): string {
-  return name.replace(/^\(택\d+\)\s*/, '').trim();
-}
 
 /**
  * 추천 옵션그룹명 중 "(택N)" 묶음은 택일 — 같은 N 은 첫 항목만 채택, prefix 없는 건 전부 유지.
@@ -155,8 +156,22 @@ async function isRecommendSectionVisible(page: Page): Promise<boolean> {
 }
 
 const ensureRecommendToggleOnStep: StepHandler = async (page) => {
+  // 추천 섹션/토글은 쿠팡 카테고리·마켓 데이터 fetch 후 렌더되므로 즉시 체크하면
+  // race 로 "미노출" 오판한다 (특히 세션 만료 배너 등으로 fetch 가 느릴 때).
+  // 섹션 ON 또는 토글 라벨이 뜰 때까지 최대 ~12초 폴링.
+  let sectionVisible = false;
+  for (let i = 0; i < 12; i += 1) {
+    sectionVisible = await isRecommendSectionVisible(page);
+    if (sectionVisible) break;
+    const toggleSeen = await page
+      .locator('label', { hasText: RECOMMEND_TOGGLE_LABEL })
+      .count();
+    if (toggleSeen > 0) break;
+    await page.waitForTimeout(1_000);
+  }
+
   // 이미 켜져 있으면 통과.
-  if (await isRecommendSectionVisible(page)) {
+  if (sectionVisible) {
     logger.info('[ensure_recommend_toggle_on] 이미 ON');
     return { ok: true as const };
   }
@@ -363,43 +378,41 @@ async function clickTagInRow(page: Page, rowIndex: number, name: string): Promis
 }
 
 /**
- * 내용 기반 매칭: 아직 안 덮인 추천명을 미매칭 그룹에 하나씩 할당.
- * 그룹명===추천명인 그룹은 이미 매칭(info)되어 자동으로 덮이므로 클릭 불필요 —
- * 결과적으로 "자연 매칭 그룹은 유지, 매칭 안 되는 그룹만 미매칭으로 남음".
- * @returns 덮인 추천명 수.
+ * 순서 기반 매칭: i 번째 옵션그룹의 추천 행에서 i 번째 추천명(effectiveNames[i]) 태그를 클릭.
+ * 의미(색상/수량 추론) 무관하게 "첫 추천 → 그룹1, 둘째 추천 → 그룹2" 1:1 결정적 매칭.
+ * 이미 i 번째가 effectiveNames[i] 로 매칭된 그룹은 건너뛴다. 어긋난 그룹만 재클릭.
+ * @returns 0..target-1 그룹이 effectiveNames[i] 로 순서대로 매칭된 그룹 수.
  */
-async function assignMatchableNames(page: Page, recommendedNames: string[]): Promise<number> {
-  for (let guard = 0; guard < 12; guard += 1) {
+async function assignByOrder(page: Page, effectiveNames: string[]): Promise<number> {
+  const target = effectiveNames.length;
+  for (let guard = 0; guard < target * 3 + 2; guard += 1) {
     const matches = await readGroupMatches(page);
-    // covered = recommendedNames(effective) 기준만 — 비-effective 매칭(개당중량 등)은 미커버로 본다.
-    const covered = matches.filter((m) => recommendedNames.includes(m));
-    const uncovered = recommendedNames.filter((n) => !covered.includes(n));
-    if (uncovered.length === 0) break;
-    // 빈 그룹 또는 비-effective 추천명에 매칭된 그룹을 재매칭 대상으로 (잔여 상태 robust).
-    const targetRow = matches.findIndex((m) => m.length === 0 || !recommendedNames.includes(m));
-    if (targetRow < 0) break; // 재매칭 가능한 그룹 없음
-    const name = uncovered[0];
-    const ok = await clickTagInRow(page, targetRow, name);
+    // i 번째 그룹이 i 번째 추천명으로 매칭 안 된 첫 위치를 찾아 그 행의 태그를 클릭.
+    const wrongRow = effectiveNames.findIndex((want, i) => matches[i] !== want);
+    if (wrongRow < 0) break; // 0..target-1 전부 순서대로 매칭됨
+    const ok = await clickTagInRow(page, wrongRow, effectiveNames[wrongRow]);
     if (!ok) {
-      logger.info(`[match] 그룹 ${targetRow + 1} 에 "${name}" Tag 할당 실패 (비활성/미발견)`);
+      logger.info(
+        `[match-order] 그룹 ${wrongRow + 1} 에 "${effectiveNames[wrongRow]}" 순서 매칭 실패 (비활성/미발견)`,
+      );
       break;
     }
-    logger.info(`[match] 그룹 ${targetRow + 1} → ${name} 매칭`);
+    logger.info(`[match-order] 그룹 ${wrongRow + 1} → ${effectiveNames[wrongRow]} 매칭`);
   }
   const final = await readGroupMatches(page);
-  return recommendedNames.filter((n) => final.includes(n)).length;
+  return effectiveNames.filter((want, i) => final[i] === want).length;
 }
 
 /**
- * 그룹 라벨 정렬: 각 그룹 라벨을 자신의 ID-매칭 추천명(clean)으로 맞춘다.
- *  - 잔여/오염 라벨이 *다른* 추천속성명과 일치하면 validateOption 이 그 속성 기준으로 옵션값을
- *    오검사한다(예: 라벨 "개당 중량" → 수량 그룹의 "1개"에 g/kg 검사 적용 → red). 비어있지 않아도
- *    매칭명과 다르면 덮어쓴다. 매칭 없는 빈 라벨만 "옵션N" fallback. 라벨은 그룹 헤더라 가상화 영향 적음.
+ * 그룹명 순차 변경: 모든 옵션그룹 라벨을 DOM 순서대로 "그룹 1", "그룹 2", ... 로 직접 입력.
+ *  - "그룹 N" 은 어떤 추천속성명과도 겹치지 않는 중립 라벨이라, 잔여/오염 라벨이 다른 속성으로
+ *    오검사되는 문제(예: 라벨 "개당 중량" → 수량 그룹 "1개"에 g/kg 검사 → red)를 원천 차단한다.
+ *  - 실제 쿠팡 업로드 속성은 추천 태그 매칭(assignByOrder)이 정하므로 라벨은 그룹 식별용으로만.
+ *  - 라벨은 그룹 헤더라 가상화 영향이 적다. 재렌더 robust 하게 한 번에 하나씩 변경.
  */
-async function fixGroupLabels(page: Page): Promise<void> {
+async function renameGroupsSequential(page: Page): Promise<void> {
   for (let guard = 0; guard < 12; guard += 1) {
-    const cleanMatched = (await readGroupMatches(page)).map(stripChoosePrefix);
-    const target = await page.evaluate((names: string[]) => {
+    const target = await page.evaluate(() => {
       const norm = (s: string | null): string => (s ?? '').trim();
       const nameInputs = (
         Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
@@ -408,19 +421,14 @@ async function fixGroupLabels(page: Page): Promise<void> {
         return /(^|\s)option-group-[0-9a-f]/.test(cls) && !cls.includes('option-group-active');
       });
       for (let gi = 0; gi < nameInputs.length; gi += 1) {
-        const cur = norm(nameInputs[gi].value);
-        const matched = names[gi] ?? '';
-        if (matched.length > 0 && cur !== matched) {
+        const want = `그룹 ${gi + 1}`;
+        if (norm(nameInputs[gi].value) !== want) {
           nameInputs[gi].setAttribute('data-atc-fill', '1');
-          return { gi, value: matched };
-        }
-        if (matched.length === 0 && cur.length === 0) {
-          nameInputs[gi].setAttribute('data-atc-fill', '1');
-          return { gi, value: `옵션${gi + 1}` };
+          return { gi, value: want };
         }
       }
       return null;
-    }, cleanMatched);
+    });
     if (target === null) break;
     const loc = page.locator('[data-atc-fill]').first();
     await loc.click();
@@ -430,7 +438,7 @@ async function fixGroupLabels(page: Page): Promise<void> {
     await page.evaluate(() =>
       document.querySelector('[data-atc-fill]')?.removeAttribute('data-atc-fill'),
     );
-    logger.info(`[fill] 그룹 ${target.gi + 1} name → ${target.value}`);
+    logger.info(`[rename] 그룹 ${target.gi + 1} name → ${target.value}`);
   }
 }
 
@@ -636,8 +644,8 @@ function stepScrollOptionContainersFn(): boolean {
 }
 
 async function fillGroups(page: Page): Promise<void> {
-  // 1) 그룹 라벨 정렬 — 오염 라벨이 타 속성 검사를 유발하지 않도록 (가상화 영향 적은 헤더).
-  await fixGroupLabels(page);
+  // 1) 그룹명을 "그룹 N" 중립 라벨로 — 오염 라벨이 타 속성 검사를 유발하지 않도록 (가상화 영향 적은 헤더).
+  await renameGroupsSequential(page);
   // 2) 옵션값 전역 수정 — 가상화로 숨은 옵션까지 전수 수집해 그룹 전역 고유성 보장.
   //    race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
   for (let round = 0; round < 5; round += 1) {
@@ -688,9 +696,9 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
     logger.info(`[match_option_groups] 옵션그룹 추가 (${cur} → ${cur + 1})`);
   }
 
-  // 2) 매칭 먼저 — 추천명을 매칭 가능한 그룹에 할당. 자연 매칭(그룹명===추천명) 그룹은 유지되고,
-  //    매칭 안 되는 그룹만 미매칭으로 남는다. (택N) 택일이 적용된 effectiveNames 만 매칭.
-  const covered = await assignMatchableNames(page, effectiveNames);
+  // 2) 순서 매칭 — i 번째 추천명을 i 번째 그룹에 1:1 결정적 매칭 (첫 추천→그룹1, 둘째→그룹2).
+  //    (택N) 택일이 적용된 effectiveNames 순서가 곧 그룹 순서.
+  const covered = await assignByOrder(page, effectiveNames);
   if (covered < target) {
     return {
       ok: false as const,
