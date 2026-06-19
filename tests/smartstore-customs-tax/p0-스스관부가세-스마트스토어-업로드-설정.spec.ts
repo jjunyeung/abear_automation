@@ -1,62 +1,34 @@
 /**
- * 스스관부가세 / 스마트스토어 업로드 설정 영역 P0 TC 묶음 (7건) — skeleton ATC, destructive/외부/AI/환경 의존 → 진입 + noop log.
+ * 스스관부가세 / 스마트스토어 업로드 설정 영역 P0 TC 묶음 (7건)
+ * — 등록상품 상세 → [업로드 설정] 탭에서 관부가세/업로드 대상 마켓 섹션 real 검증.
+ * 공유 핸들러: ./_customs-handlers
  */
 
 import { join } from 'path';
 import { expect, test } from '../../lib/test-fixture';
 import { loadATC } from '../../lib/atc-loader';
-import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
-import type { ErrorKey } from '../../lib/errors';
-import { logger } from '../../lib/logger';
+import { runATC, type StepHandlers } from '../../lib/runner';
+import {
+  ensureRegisteredUploadTab,
+  verifyUploadText,
+  resetCustomsState,
+} from './_customs-handlers';
 
 const ATC_PATH = join(__dirname, '..', '..', "atcs", "smartstore-customs-tax", "p0-스스관부가세-스마트스토어-업로드-설정.atc.yml");
-const URL = "https://app.windly.cc/view2/registered-product";
-
-let entered = false;
-
-const enterPage: StepHandler = async (page) => {
-  if (entered) return { ok: true as const };
-  await page.goto(URL, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
-  await page.waitForTimeout(1_000);
-  const body = await page.evaluate(() => document.body.innerText);
-  if (!body.includes("\ub4f1\ub85d\uc0c1\ud488")) {
-    logger.warn(`[customs] 페이지 라벨 '등록상품' 미감지 — host/URL 변경 가능. 일단 통과.`);
-  }
-  entered = true;
-  return { ok: true as const };
-};
-
-const noopAfter = (label: string, reason: string): StepHandler => async (page) => {
-  const e = await enterPage(page, {});
-  if (!e.ok) return e;
-  logger.info(`[${label}] ${reason} — skip`);
-  return { ok: true as const };
-};
-
-const verifyPageReachable: StepHandler = async (page) => {
-  const e = await enterPage(page, {});
-  if (!e.ok) return e;
-  const length = await page.evaluate(() => document.body.innerText.length);
-  if (length < 10) {
-    return { ok: false as const, error_key: 'page_blank' as ErrorKey, message: `page body length ${length}` };
-  }
-  return { ok: true as const };
-};
 
 const handlers: StepHandlers = {
-  "tc3494_화면-진입": verifyPageReachable,
-  "tc3499_업로드-대상-마켓": noopAfter("tc3499_업로드-대상-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc3500_업로드-대상-마켓": noopAfter("tc3500_업로드-대상-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc3501_업로드-대상-마켓": noopAfter("tc3501_업로드-대상-마켓", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc3515_관부가세-설정": noopAfter("tc3515_관부가세-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc3516_관부가세-설정": noopAfter("tc3516_관부가세-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
-  "tc3517_관부가세-설정": noopAfter("tc3517_관부가세-설정", 'destructive / 환경 의존 / AI 비결정 — skip'),
+  "tc3494_화면-진입": ensureRegisteredUploadTab,
+  "tc3499_업로드-대상-마켓": verifyUploadText(/업로드 대상 마켓/, 'upload_target_missing'),
+  "tc3500_업로드-대상-마켓": verifyUploadText(/스마트스토어/, 'upload_target_smartstore_missing'),
+  "tc3501_업로드-대상-마켓": verifyUploadText(/쿠팡/, 'upload_target_coupang_missing'),
+  "tc3515_관부가세-설정": verifyUploadText(/관부가세 설정/, 'customs_section_missing'),
+  "tc3516_관부가세-설정": verifyUploadText(/관부가세 포함/, 'customs_options_missing'),
+  "tc3517_관부가세-설정": verifyUploadText(/관부가세 미포함/, 'customs_option_exclude_missing'),
 };
 
-test("스스관부가세 / 스마트스토어 업로드 설정 영역 P0 TC 묶음 (7건) — 진입 + destructive/AI noop skip", async ({ page }) => {
+test("스스관부가세 / 스마트스토어 업로드 설정 영역 P0 TC 묶음 (7건) — 등록상품 업로드설정 탭 real 검증", async ({ page }) => {
   test.setTimeout(3 * 60_000);
-  entered = false;
+  resetCustomsState();
   const atc = loadATC(ATC_PATH);
   const result = await runATC({ atc, page, inputs: {}, handlers });
   await test.info().attach('atc-result', {
