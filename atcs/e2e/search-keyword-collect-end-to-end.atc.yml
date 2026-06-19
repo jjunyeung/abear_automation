@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 1688 상품 검색 → 키워드 순위 → 검색결과 → 수집 (e2e)
+priority: P2
+description: |
+  1688 상품 검색 진입 → 카테고리/키워드 순위 → 키워드 선택 → 검색결과 → 상품 수집.
+inputs: {}
+steps:
+  - id: open_search_product
+    do: 1688 상품 검색(/view3/search-product) 진입.
+  - id: pick_keyword
+    do: 일간/주간 키워드 순위에서 키워드 선택.
+  - id: run_search
+    do: 선택 키워드로 검색 실행.
+  - id: verify_results
+    do: 검색결과 리스트 노출 확인.
+  - id: collect_from_results
+    do: 검색결과에서 상품 수집 트리거.
+expected: 1688 키워드 검색→수집 플로우 정상. unhandled 0건.

@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 재고업데이트 → 동기화 → 목록 → 상세 (e2e)
+priority: P2
+description: |
+  재고업데이트 진입 → 동기화 실행 → 목록 갱신 → 상품 재고 상세 확인.
+inputs: {}
+steps:
+  - id: open_stock_update
+    do: 재고 업데이트 페이지 진입.
+  - id: trigger_sync
+    do: 재고 동기화 실행.
+  - id: verify_list
+    do: 재고 목록 갱신 확인.
+  - id: open_stock_detail
+    do: 상품 재고 상세 진입.
+  - id: verify_stock_detail
+    do: 상품별 재고 값 확인.
+expected: 재고업데이트 플로우 정상. unhandled 0건.

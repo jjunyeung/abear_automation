@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 연결 설정 → 카카오톡 채널 연결 (e2e)
+priority: P2
+description: |
+  연결 설정 → 카카오톡 연결 → 채널 인증 → 연결 완료 확인.
+inputs: {}
+steps:
+  - id: open_connect_settings
+    do: 연결 설정 진입.
+  - id: open_kakao_tab
+    do: 카카오톡 연결 항목 선택.
+  - id: start_kakao_auth
+    do: 카카오톡 채널 연결하기 → 인증 플로우 시작.
+  - id: complete_kakao_auth
+    do: 채널 인증 완료.
+  - id: verify_kakao_connected
+    do: 카카오톡 연결됨 상태 확인.
+expected: 카카오톡 연결 플로우 정상. unhandled 0건.

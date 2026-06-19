@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 상품 순위 분석 → 필터 → 순위 목록 → 상세 (e2e)
+priority: P2
+description: |
+  상품 순위 분석 진입 → 필터 적용 → 순위 목록 → 상품 상세 진입.
+inputs: {}
+steps:
+  - id: open_product_ranking
+    do: 상품 순위 분석 페이지 진입.
+  - id: apply_ranking_filter
+    do: 기간/카테고리 필터 적용.
+  - id: verify_ranking_list
+    do: 순위 목록 노출 확인.
+  - id: open_ranking_detail
+    do: 순위 상품 선택 → 상세 진입.
+  - id: verify_ranking_detail
+    do: 상세 지표 확인.
+expected: 상품 순위 분석 플로우 정상. unhandled 0건.

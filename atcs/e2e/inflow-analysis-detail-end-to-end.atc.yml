@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 유입수 분석 → 기간/마켓 필터 → 차트 → 상품별 유입수 (e2e)
+priority: P2
+description: |
+  유입수 분석 진입 → 기간/마켓 필터 적용 → 차트 갱신 → 상품별 유입수 표 → 상품 상세 유입수 확인.
+inputs: {}
+steps:
+  - id: open_inflow_analysis
+    do: 유입수 분석 페이지 진입.
+  - id: apply_period_filter
+    do: 기간(일/주/월) 프리셋 적용.
+  - id: apply_market_filter
+    do: 마켓 필터 적용.
+  - id: verify_chart
+    do: 유입수 차트 갱신 확인.
+  - id: open_product_inflow
+    do: 상품별 유입수 표에서 상품 선택 → 상세 유입수 확인.
+expected: 유입수 분석 플로우 정상. unhandled 0건.

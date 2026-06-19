@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 연결 설정 → 배송대행지 연결 → 정보 입력 → 연결 (e2e)
+priority: P1
+description: |
+  연결 설정 → 배송대행지 연결 → 토스토스/퀵스타 선택 → 정보 입력 → 연결 완료 확인.
+inputs: {}
+steps:
+  - id: open_connect_settings
+    do: 연결 설정 진입.
+  - id: open_da_tab
+    do: 배송대행지 연결 탭 선택.
+  - id: select_da_provider
+    do: 배송대행지(토스토스/퀵스타) 선택 → 연결하기.
+  - id: submit_da_info
+    do: 필요 정보 입력 후 연결 제출.
+  - id: verify_da_connected
+    do: 배송대행지 연결됨 상태 확인.
+expected: 배대지 연결 플로우 정상. unhandled 0건.

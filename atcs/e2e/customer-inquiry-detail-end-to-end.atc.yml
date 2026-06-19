@@ -1,0 +1,19 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: 문의관리 → 미답변 목록 → 상세 → 답변 (e2e)
+priority: P2
+description: |
+  문의관리 진입 → 미답변 탭 → 문의 상세 → 답변 작성 → 답변 완료 확인.
+inputs: {}
+steps:
+  - id: open_customer_inquiry
+    do: 문의관리 페이지 진입.
+  - id: open_unanswered_tab
+    do: 미답변 리스트 탭 선택.
+  - id: open_inquiry_detail
+    do: 문의 상세 진입.
+  - id: write_answer
+    do: 답변 입력 후 등록.
+  - id: verify_answered
+    do: 답변 완료 탭으로 이동 확인.
+expected: 문의관리 답변 플로우 정상. unhandled 0건.

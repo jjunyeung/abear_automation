@@ -1,0 +1,17 @@
+# e2e gap-fill ATC (spec 미구현 — 사용자가 별도 작성 예정).
+
+title: AI 챗봇(윈비) 열기 → 질의 → 응답 (e2e)
+priority: P2
+description: |
+  AI 비서 윈비 챗봇 열기 → 질문 입력 → 응답 수신 → 액션/워터마크 확인.
+inputs: {}
+steps:
+  - id: open_chatbot
+    do: AI 비서 윈비 챗봇 열기.
+  - id: send_query
+    do: 질문 입력 후 전송.
+  - id: verify_response
+    do: 응답 메시지 수신 확인.
+  - id: verify_chatbot_actions
+    do: 챗봇 액션/안내(워터마크 등) 확인.
+expected: AI 챗봇 플로우 정상. unhandled 0건.
