@@ -49,9 +49,19 @@ const noopAfter = (label: string, reason: string): StepHandler => async (page) =
 
 const handlers: StepHandlers = {
   'tc1199_상하단-이미지': verifyTopBottomImageArea,
-  'tc1200_상하단-이미지': noopAfter('TC1200', '마켓별 선택 → dropdown destructive trigger'),
+  'tc1200_상하단-이미지': async (page) => {
+    const e = await enter(page, {});
+    if (!e.ok) return e;
+    const ok = await page.evaluate(() => /마켓별/.test(document.body.innerText));
+    return ok ? { ok: true as const } : { ok: false as const, error_key: 'market_toggle_missing' as ErrorKey, message: '마켓별 토글 미노출' };
+  },
   'tc1201_상하단-이미지': noopAfter('TC1201', '드롭다운 선택 → destructive'),
-  'tc1205_상하단-이미지': noopAfter('TC1205', '스마트스토어 선택 — destructive'),
+  'tc1205_상하단-이미지': async (page) => {
+    const e = await enter(page, {});
+    if (!e.ok) return e;
+    const ok = await page.evaluate(() => /스마트스토어 상단이미지/.test(document.body.innerText));
+    return ok ? { ok: true as const } : { ok: false as const, error_key: 'ss_topimage_missing' as ErrorKey, message: '스마트스토어 상단이미지 섹션 미노출' };
+  },
   'tc1206_상하단-이미지': noopAfter('TC1206', '쿠팡 선택 — destructive'),
   'tc1207_상하단-이미지': noopAfter('TC1207', '11번가 글로벌 — destructive'),
   'tc1208_상하단-이미지': noopAfter('TC1208', '11번가 국내 — destructive'),
