@@ -29,16 +29,21 @@ description: |
 
   흐름: 수집상품 메뉴 → 첫 카드 진입 → 에러체크 트리거 → 빨간 탭 식별 → multi-pass 자동 수정 (탭 walk + fixTabErrors → 에러체크 재트리거) → 최종 빨간 0건 검증.
 
-  입력값 없음 — 첫 카드 그대로 사용. 특정 상품 fix 가 필요하면 product-error-fix.atc.yml 사용.
+  입력 source_product_id 를 주면 그 상품을 검색해 진입 (직접 입력 또는 배치에서 앞 TC outputs 자동 주입). 비우면 목록 첫 카드 사용.
   사전조건: 수집상품에 카드 ≥1 개.
-inputs: {}
+inputs:
+  source_product_id:
+    type: string
+    description: 에러체크/수정할 수집상품의 윈들리 내부 코드. 비우면 목록 첫 카드 사용.
+    example: '235778156'
+    from: previous
 
 steps:
   - id: open_collected_list
     do: 좌측 사이드바 수집상품 메뉴 클릭하여 view2/interested-product 진입
 
   - id: open_first_product
-    do: 첫 .product-card 의 detail 링크 클릭하여 view2/interested-product/<digits> URL 도달
+    do: source_product_id 가 있으면 상품 코드 검색으로 그 상품 진입, 없으면 첫 .product-card 의 detail 링크 클릭하여 view2/interested-product/<digits> URL 도달
 
   - id: trigger_error_check
     do: 페이지 상단 체크마크 svg 아이콘 버튼 클릭 (에러체크 트리거)
@@ -50,6 +55,9 @@ steps:
     do: 빨간 탭 0개면 skip. 1개 이상이면 multi-pass (max 3) 로 각 빨간 탭 walkAndFixTab 호출 + 에러체크 재트리거. 빨간 탭 수가 줄어들지 않거나 0이 되면 종료.
 
   - id: verify_all_clean
-    do: 최종 7개 탭 dot 상태에 빨간 탭이 0개인지 확인. 1개라도 남아있으면 fail (어느 탭 + 메시지).
+    do: 최종 7개 탭 dot 상태에 빨간 탭이 0개인지 확인. 1개라도 남아있으면 fail (어느 탭 + 메시지). 업로드 설정 탭 빨강이 ESM 추천옵션 미설정 때문이면 esm_recommend_option_unmatched 복구로 분기.
+    on_error: [esm_recommend_option_unmatched]
+    on_recovery:
+      restart_from: trigger_error_check
 
 expected: 6개 step 모두 success, unhandled 0건. 자동수정 가능한 에러는 모두 fix 되어 최종 빨간 탭 0개.

@@ -10,7 +10,11 @@ import type {
   StepHandlers,
 } from '../../lib/runner';
 import type { ErrorKey } from '../../lib/errors';
-import { goToCollectedProducts } from '../../lib/windly-actions';
+import {
+  goToCollectedProducts,
+  searchByProductCode,
+  openFirstSearchResult,
+} from '../../lib/windly-actions';
 import {
   clickErrorCheckButton,
   readTabStatuses,
@@ -21,6 +25,10 @@ import {
   isAutoFixablePattern,
   walkAndFixTab,
 } from '../../lib/tab-error-fix';
+import {
+  goToUploadSettingsTab,
+  isEsmRecommendOptionError,
+} from '../../lib/esm-option-actions';
 import { logger } from '../../lib/logger';
 
 const MAX_FIX_PASSES = 3;
@@ -40,7 +48,40 @@ const openCollectedListStep: StepHandler = async (page, _inputs) => {
   return { ok: true as const };
 };
 
-const openFirstProductStep: StepHandler = async (page, _inputs) => {
+const openFirstProductStep: StepHandler = async (page, inputs) => {
+  // source_product_id 가 주어지면 (직접 입력 또는 from: previous) 그 상품을 검색해 진입.
+  // 비어 있으면 기존 동작대로 목록 첫 카드 사용.
+  const id =
+    typeof inputs['source_product_id'] === 'string'
+      ? (inputs['source_product_id'] as string).trim()
+      : '';
+  if (id.length > 0) {
+    const count = await searchByProductCode(page, id);
+    if (count === 0) {
+      return {
+        ok: false as const,
+        error_key: 'product_not_found' as ErrorKey,
+        message: `상품 코드 ${id} 검색 결과 0개`,
+      };
+    }
+    try {
+      await openFirstSearchResult(page);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return {
+        ok: false as const,
+        error_key: 'detail_open_failed' as ErrorKey,
+        message: `상세 진입 실패: ${msg}`,
+      };
+    }
+    await page
+      .waitForURL(/\/view2\/interested-product\/\d+/, { timeout: 30_000 })
+      .catch(() => undefined);
+    await page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => undefined);
+    await page.waitForTimeout(2_000);
+    return { ok: true as const };
+  }
+
   const firstCard = page.locator('.product-card').first();
   await firstCard.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => undefined);
   if ((await firstCard.count()) === 0) {
@@ -146,6 +187,23 @@ const verifyAllCleanStep: StepHandler = async (page, _inputs) => {
   const statuses = await readTabStatuses(page);
   const reds = statuses.filter((s) => s.status === 'red');
   if (reds.length === 0) return { ok: true as const };
+
+  // 업로드 설정 탭이 빨강이고 그게 ESM 추천옵션 미설정 때문이면 ESM 복구로 분기.
+  // (일반 walkAndFixTab 으로는 못 고치는 케이스 — recoveries/esm_recommend_option_unmatched.ts 가 처리.)
+  const uploadRed = reds.find((r) => r.name === '업로드 설정');
+  if (uploadRed !== undefined) {
+    await goToUploadSettingsTab(page);
+    if (await isEsmRecommendOptionError(page)) {
+      return {
+        ok: false as const,
+        error_key: 'esm_recommend_option_unmatched' as ErrorKey,
+        message:
+          `자동수정 후에도 빨간 탭 ${reds.length}개: ${reds.map((r) => r.name).join(', ')}. ` +
+          `업로드 설정 탭 빨강 = ESM 추천옵션 미설정 (복구 대상).`,
+      };
+    }
+  }
+
   const firstRed = reds[0];
   const tabBtn = page.getByRole('button', { name: firstRed.name }).first();
   await tabBtn.click().catch(() => undefined);

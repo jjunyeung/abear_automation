@@ -22,7 +22,10 @@ const ATC_PATH = join(
 test('에러체크 → 진단 → (조건부) 자동 수정 → verify clean', async ({ page }) => {
   test.setTimeout(15 * 60_000);
   const atc = loadATC(ATC_PATH);
-  const result = await runATC({ atc, page, inputs: {}, handlers: checkAndFixHandlers });
+  const inputs: Record<string, unknown> = {
+    source_product_id: process.env['ATC_INPUT_SOURCE_PRODUCT_ID'] ?? '',
+  };
+  const result = await runATC({ atc, page, inputs, handlers: checkAndFixHandlers });
   await test.info().attach('atc-result', {
     body: JSON.stringify(result),
     contentType: 'application/json',
