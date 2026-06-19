@@ -48,6 +48,10 @@ export interface CatalogItem {
   status: CatalogStatus;
   queuePosition: number | null;
   staleMismatches: string[];
+  // 엑셀 TC export 의 카테고리 트리 (tc-categories.json). 번들이 여러 TC 를 묶으면 최빈값.
+  categoryTop: string | null; // Category (일반/스스관부가세/…)
+  category: string | null; // Main Category (수집상품/기본설정/…) — GUI 그룹/필터 키
+  categorySub: string | null; // Sub-category (균일할 때만, 아니면 null)
 }
 
 export type RunQueueStatus = 'pending' | 'running' | 'done' | 'skipped';

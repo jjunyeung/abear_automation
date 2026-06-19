@@ -44,6 +44,7 @@ import {
 
 const ATCS_DIR_REL = 'atcs';
 const TESTS_DIR_REL = 'tests';
+const CATEGORY_MAP_REL = 'tc-categories.json';
 const ATC_EXT = '.atc.yml';
 const HANDLER_KEYS_EXT = '.handlerKeys.json';
 const SPEC_EXT = '.spec.ts';
@@ -82,6 +83,58 @@ function testsRoot(): string {
 
 function isKnownDomain(value: string): value is Domain {
   return (KNOWN_DOMAINS as readonly string[]).includes(value);
+}
+
+// 엑셀 TC export 카테고리 맵 (tc-categories.json: { "<caseNo>": { category, main, sub, fn } }).
+interface TcCategory {
+  category: string;
+  main: string;
+  sub: string;
+  fn: string;
+}
+let categoryMapCache: Record<string, TcCategory> | null = null;
+function categoryMap(): Record<string, TcCategory> {
+  if (categoryMapCache === null) {
+    try {
+      const raw = readFileSync(path.join(projectRoot(), CATEGORY_MAP_REL), 'utf8');
+      const parsed: unknown = JSON.parse(raw);
+      categoryMapCache = parsed && typeof parsed === 'object' ? (parsed as Record<string, TcCategory>) : {};
+    } catch {
+      categoryMapCache = {};
+    }
+  }
+  return categoryMapCache;
+}
+
+function mostFrequent(values: string[]): string | null {
+  const counts = new Map<string, number>();
+  for (const v of values) if (v) counts.set(v, (counts.get(v) ?? 0) + 1);
+  let best: string | null = null;
+  let bestN = 0;
+  for (const [v, n] of counts) if (n > bestN) { best = v; bestN = n; }
+  return best;
+}
+
+/**
+ * ATC 의 step.id (tc<N>) 들을 엑셀 카테고리 맵에 매핑해 대표 카테고리 산출.
+ * 단일 TC 면 정확, 번들이면 최빈 Main/Category. Sub-category 는 균일할 때만.
+ */
+function categoryOf(atc: ATC): { categoryTop: string | null; category: string | null; categorySub: string | null } {
+  const map = categoryMap();
+  const recs: TcCategory[] = [];
+  for (const s of atc.steps) {
+    const m = s.id.match(/^tc(\d+)/);
+    if (!m) continue;
+    const rec = map[m[1]];
+    if (rec) recs.push(rec);
+  }
+  if (recs.length === 0) return { categoryTop: null, category: null, categorySub: null };
+  const subs = new Set(recs.map((r) => r.sub).filter(Boolean));
+  return {
+    categoryTop: mostFrequent(recs.map((r) => r.category)),
+    category: mostFrequent(recs.map((r) => r.main)),
+    categorySub: subs.size === 1 ? [...subs][0] : null,
+  };
 }
 
 /**
@@ -167,6 +220,8 @@ function buildItem(atcPath: string, domain: Domain): CatalogItem | null {
     !specExists || handlerKeys === null || mismatches.length > 0 || legacyHits.length > 0;
   const status: CatalogStatus = isStale ? 'stale' : 'normal';
 
+  const cat = categoryOf(atc);
+
   return {
     atcPath,
     specPath,
@@ -177,6 +232,9 @@ function buildItem(atcPath: string, domain: Domain): CatalogItem | null {
     status,
     queuePosition: null,
     staleMismatches,
+    categoryTop: cat.categoryTop,
+    category: cat.category,
+    categorySub: cat.categorySub,
   };
 }
 

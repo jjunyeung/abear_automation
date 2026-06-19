@@ -33,29 +33,18 @@ import './CatalogPanel.css';
 type FilterMode = 'priority' | 'category';
 
 /**
- * 카테고리 추출 — 개별 분리 ATC 는 description 에 "Category / Main / Sub / Sub-function"
- * breadcrumb 을 갖는다. 없으면(구 skeleton 번들) 파일명 prefix 에서 유추.
- *   group = 필터/그룹 키 (Sub-category 우선, 없으면 Main, 없으면 파일명 세그먼트)
- *   display = 행에 표시할 전체 breadcrumb (없으면 null)
+ * 카테고리 — 엑셀 TC export 에서 박제된 catalog 필드(tc-categories.json 경유) 사용.
+ *   group = Main Category (item.category), 없으면 도메인.
+ *   breadcrumb = "Category / Main / Sub" 표시용 (있는 것만).
  */
-function breadcrumbOf(item: CatalogItem): string | null {
-  if (typeof item.atc === 'object' && item.atc !== null) {
-    const desc = (item.atc as { description?: unknown }).description;
-    if (typeof desc === 'string' && desc.includes('/')) return desc.trim();
-  }
-  return null;
-}
 function categoryGroupOf(item: CatalogItem): string {
-  const bc = breadcrumbOf(item);
-  if (bc) {
-    const parts = bc.split('/').map((s) => s.trim()).filter(Boolean);
-    // [Category, Main, Sub, Sub-function] — Sub 우선, 없으면 Main.
-    return parts[2] ?? parts[1] ?? parts[0] ?? '기타';
-  }
-  // 파일명 fallback: p0-<area>-... → <area>
-  const base = item.atcPath.split('/').pop()?.replace(/\.atc\.yml$/, '') ?? '';
-  const seg = base.replace(/^_?p[012]-/, '').replace(/^_/, '').split('-')[0];
-  return seg || '기타';
+  return item.category ?? item.domain;
+}
+function breadcrumbOf(item: CatalogItem): string | null {
+  const parts = [item.categoryTop, item.category, item.categorySub].filter(
+    (x): x is string => typeof x === 'string' && x.length > 0,
+  );
+  return parts.length > 0 ? parts.join(' / ') : null;
 }
 
 type Priority = 'P0' | 'P1' | 'P2';
