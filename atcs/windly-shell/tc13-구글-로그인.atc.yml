@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-로그인-area.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 구글 로그인
+priority: P2
+inputs: {}
+steps:
+  - id: tc13
+    do: 구글 로그인

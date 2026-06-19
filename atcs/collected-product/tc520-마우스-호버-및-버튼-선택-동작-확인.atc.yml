@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-상품-상세페이지.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 마우스 호버 및 버튼 선택 동작 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc520_상품-속성
+    do: 마우스 호버 및 버튼 선택 동작 확인

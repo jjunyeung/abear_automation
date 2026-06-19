@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/base-setting/p1-설정-ai-번역.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 사용가이드 선택
+priority: P1
+inputs: {}
+steps:
+  - id: tc1181_이미지-선번역-화이트리스트
+    do: 사용가이드 선택

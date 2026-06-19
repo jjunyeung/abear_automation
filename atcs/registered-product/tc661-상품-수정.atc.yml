@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/registered-product/p2-등록상품-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 수정
+priority: P2
+inputs: {}
+steps:
+  - id: tc661_업로드-설정
+    do: 상품 수정

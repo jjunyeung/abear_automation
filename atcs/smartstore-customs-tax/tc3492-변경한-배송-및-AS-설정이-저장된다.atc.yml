@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p0-스스관부가세-스마트스토어-배송-및-as.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 변경한 배송 및 A/S 설정이 저장된다
+priority: P0
+inputs: {}
+steps:
+  - id: tc3492_설정-저장
+    do: 변경한 배송 및 A/S 설정이 저장된다

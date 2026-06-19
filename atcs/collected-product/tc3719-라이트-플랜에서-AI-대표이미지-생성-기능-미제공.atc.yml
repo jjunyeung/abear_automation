@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-ai-대표이미지-생성-플랜별사용량.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 라이트 플랜에서 AI 대표이미지 생성 기능 미제공 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc3719_라이트-미제공
+    do: 라이트 플랜에서 AI 대표이미지 생성 기능 미제공 확인

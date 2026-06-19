@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-회원가입-area.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 윈들리 소셜(구글) 회원가입
+priority: P2
+inputs: {}
+steps:
+  - id: tc5
+    do: 윈들리 소셜(구글) 회원가입

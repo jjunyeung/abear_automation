@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p0-스스관부가세-기본-설정값-적용.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 적용된 값이 상품 설정에 실제 반영된다
+priority: P0
+inputs: {}
+steps:
+  - id: tc3563_적용-후-데이터-반영
+    do: 적용된 값이 상품 설정에 실제 반영된다

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/registered-product/p2-등록상품-추가-업로드.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 마켓에 마우스 오버
+priority: P2
+inputs: {}
+steps:
+  - id: tc583_업로드-설정
+    do: 마켓에 마우스 오버

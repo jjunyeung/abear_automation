@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-로그인-area.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 네이버 회원가입 시도
+priority: P2
+inputs: {}
+steps:
+  - id: tc15
+    do: 네이버 회원가입 시도

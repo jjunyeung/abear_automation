@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-아마존-멕시코.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 수집 실패
+priority: P2
+inputs: {}
+steps:
+  - id: tc327_⑥
+    do: 수집 실패

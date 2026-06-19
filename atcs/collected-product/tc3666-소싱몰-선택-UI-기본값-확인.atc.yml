@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-소싱몰선택.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 소싱몰 선택 UI 기본값 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc3666_기본-선택-상태
+    do: 소싱몰 선택 UI 기본값 확인

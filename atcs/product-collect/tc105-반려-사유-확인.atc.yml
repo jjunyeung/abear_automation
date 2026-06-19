@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-ai-전세계-상품-수집.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 반려 사유 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc105_⑥
+    do: 반려 사유 확인

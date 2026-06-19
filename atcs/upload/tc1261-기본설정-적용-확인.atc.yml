@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/upload/p0-업로드-업로드-스토어.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 기본설정 적용 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc1261_상하단-이미지
+    do: 기본설정 적용 확인

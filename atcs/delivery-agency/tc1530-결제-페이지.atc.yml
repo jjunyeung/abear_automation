@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/delivery-agency/p0-배송대행지-신청서.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 결제 페이지
+priority: P0
+inputs: {}
+steps:
+  - id: tc1530
+    do: 결제 페이지

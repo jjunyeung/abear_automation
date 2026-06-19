@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-상품목록.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 클릭 수 0회 상품 - 관심 문구 미노출 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc3664_관심-고객-수-미노출
+    do: 클릭 수 0회 상품 - 관심 문구 미노출 확인

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-재고업데이트-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 최근 업로드 상품 제외
+priority: P2
+inputs: {}
+steps:
+  - id: tc686_업로드-설정
+    do: 최근 업로드 상품 제외

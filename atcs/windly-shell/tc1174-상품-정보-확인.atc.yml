@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p0-플랜결제-결제모달.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 정보 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc1174_html
+    do: 상품 정보 확인

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-수집상품-옵션탭.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 삭제 재시도
+priority: P0
+inputs: {}
+steps:
+  - id: tc852
+    do: 삭제 재시도

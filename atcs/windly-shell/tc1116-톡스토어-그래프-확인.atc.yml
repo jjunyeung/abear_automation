@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p0-유입수-분석-등록상품-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 톡스토어 그래프 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc1116_수정-업로드
+    do: 톡스토어 그래프 확인

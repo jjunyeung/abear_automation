@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-ai-전세계-상품수집-모달.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품수집 요청 목록 채우기
+priority: P2
+inputs: {}
+steps:
+  - id: tc980
+    do: 상품수집 요청 목록 채우기

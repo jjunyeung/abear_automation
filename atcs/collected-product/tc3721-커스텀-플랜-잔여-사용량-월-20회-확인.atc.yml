@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-ai-대표이미지-생성-플랜별사용량.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 커스텀 플랜 잔여 사용량 월 20회 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc3721_커스텀-월-20회
+    do: 커스텀 플랜 잔여 사용량 월 20회 확인

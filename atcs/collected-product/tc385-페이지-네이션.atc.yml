@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-목록뷰.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 페이지 네이션
+priority: P2
+inputs: {}
+steps:
+  - id: tc385_기본-설정값-적용
+    do: 페이지 네이션

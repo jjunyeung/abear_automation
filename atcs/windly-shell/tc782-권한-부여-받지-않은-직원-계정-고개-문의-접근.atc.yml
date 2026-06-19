@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-문의관리-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 권한 부여 받지 않은 직원 계정 고개 문의 접근
+priority: P2
+inputs: {}
+steps:
+  - id: tc782_업로드-설정
+    do: 권한 부여 받지 않은 직원 계정 고개 문의 접근

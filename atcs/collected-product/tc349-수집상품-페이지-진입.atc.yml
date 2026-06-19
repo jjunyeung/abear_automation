@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-아마존.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 수집상품 페이지 진입
+priority: P2
+inputs: {}
+steps:
+  - id: tc349
+    do: 수집상품 페이지 진입

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-재고업데이트-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 옵션 그룹 삭제한 상품 재고 업데이트
+priority: P2
+inputs: {}
+steps:
+  - id: tc700_업로드-설정
+    do: 옵션 그룹 삭제한 상품 재고 업데이트

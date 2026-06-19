@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-상품-상세페이지.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 알림받기 동의 고객 리뷰 작성 인풋박스 입력
+priority: P2
+inputs: {}
+steps:
+  - id: tc553_업로드-설정
+    do: 알림받기 동의 고객 리뷰 작성 인풋박스 입력

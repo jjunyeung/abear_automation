@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/delivery-agency/p0-배송대행지-기능.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 업데이트선택
+priority: P0
+inputs: {}
+steps:
+  - id: tc1522
+    do: 업데이트선택

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-유입수-분석-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 마켓 아이콘 열에 숫자 선택
+priority: P2
+inputs: {}
+steps:
+  - id: tc750_업로드-설정
+    do: 마켓 아이콘 열에 숫자 선택

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p1-수집상품-상세페이지.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 기본설정 후 상품수집
+priority: P1
+inputs: {}
+steps:
+  - id: tc839_ai-상품-설명
+    do: 기본설정 후 상품수집

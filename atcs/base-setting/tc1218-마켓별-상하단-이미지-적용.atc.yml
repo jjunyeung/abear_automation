@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/base-setting/p0-설정-기본설정.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 마켓별 상하단 이미지 적용
+priority: P0
+inputs: {}
+steps:
+  - id: tc1218_상하단-이미지
+    do: 마켓별 상하단 이미지 적용

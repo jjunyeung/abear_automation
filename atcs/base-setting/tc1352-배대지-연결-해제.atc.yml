@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/base-setting/p2-연결설정-배송대행지.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 배대지 연결 해제
+priority: P2
+inputs: {}
+steps:
+  - id: tc1352_카카오톡-주문알림
+    do: 배대지 연결 해제

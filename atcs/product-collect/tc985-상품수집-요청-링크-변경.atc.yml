@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p0-ai-전세계-상품수집-모달.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품수집 요청 링크 변경
+priority: P0
+inputs: {}
+steps:
+  - id: tc985
+    do: 상품수집 요청 링크 변경

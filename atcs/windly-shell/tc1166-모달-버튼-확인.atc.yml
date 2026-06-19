@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p0-플랜결제-결제모달.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 모달 버튼 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc1166_옵션이미지-배경지우기
+    do: 모달 버튼 확인

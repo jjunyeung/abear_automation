@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/upload/p2-업로드-위탁.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 연결 성공
+priority: P2
+inputs: {}
+steps:
+  - id: tc1307_카카오톡-주문알림
+    do: 연결 성공

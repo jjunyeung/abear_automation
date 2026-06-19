@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-유입수-분석-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 분석 조건 초기화 버튼 선택
+priority: P2
+inputs: {}
+steps:
+  - id: tc742_업로드-설정
+    do: 분석 조건 초기화 버튼 선택

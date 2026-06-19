@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-오류화면.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: API 오류 시 오류 UI 노출 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc3670_api-오류
+    do: API 오류 시 오류 UI 노출 확인

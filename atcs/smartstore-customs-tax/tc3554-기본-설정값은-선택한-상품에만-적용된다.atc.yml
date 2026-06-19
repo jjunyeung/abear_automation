@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p0-스스관부가세-기본-설정값-적용.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 기본 설정값은 선택한 상품에만 적용된다
+priority: P0
+inputs: {}
+steps:
+  - id: tc3554_적용-대상-범위
+    do: 기본 설정값은 선택한 상품에만 적용된다

@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-유입수-분석-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 주별 날짜 선택 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc732_업로드-설정
+    do: 주별 날짜 선택 확인

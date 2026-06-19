@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p1-수집상품-업로드설정.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 옵션 그룹 수정 후 업로드 설정 확인
+priority: P1
+inputs: {}
+steps:
+  - id: tc829_esm
+    do: 옵션 그룹 수정 후 업로드 설정 확인

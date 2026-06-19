@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p1-스스관부가세-공통.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 실시간 상품 에러체크 토글을 변경할 수 있다
+priority: P1
+inputs: {}
+steps:
+  - id: tc3531_실시간-상품-에러체크
+    do: 실시간 상품 에러체크 토글을 변경할 수 있다

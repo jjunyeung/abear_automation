@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/registered-product/p0-등록상품-상품삭제.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 페이지 확인
+priority: P0
+inputs: {}
+steps:
+  - id: tc897_esm-20
+    do: 상품 페이지 확인

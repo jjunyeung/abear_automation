@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/registered-product/p1-등록상품-상품삭제.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 아이콘 선택
+priority: P1
+inputs: {}
+steps:
+  - id: tc893_esm-20
+    do: 아이콘 선택

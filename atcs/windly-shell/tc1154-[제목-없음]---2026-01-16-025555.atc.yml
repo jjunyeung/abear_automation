@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-ai-챗봇-view2.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: '''[제목 없음] - 2026-01-16 02:55:55'''
+priority: P2
+inputs: {}
+steps:
+  - id: tc1154_수정-업로드
+    do: '''[제목 없음] - 2026-01-16 02:55:55'''

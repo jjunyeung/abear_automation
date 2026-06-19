@@ -1,0 +1,9 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-유입수-분석-상세.atc.yml
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 유입수가 0일 때 차트 확인
+priority: P2
+inputs: {}
+steps:
+  - id: tc753_업로드-설정
+    do: 상품 유입수가 0일 때 차트 확인
