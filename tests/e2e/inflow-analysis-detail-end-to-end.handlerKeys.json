@@ -1,0 +1,7 @@
+[
+  "open_inflow_analysis",
+  "apply_period_filter",
+  "apply_market_filter",
+  "verify_chart",
+  "open_product_inflow"
+]

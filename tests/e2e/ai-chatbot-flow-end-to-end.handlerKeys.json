@@ -1,0 +1,6 @@
+[
+  "open_chatbot",
+  "send_query",
+  "verify_response",
+  "verify_chatbot_actions"
+]
