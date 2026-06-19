@@ -15,6 +15,7 @@ import {
   Button,
   ButtonGroup,
   Checkbox,
+  HTMLSelect,
   HTMLTable,
   Icon,
   InputGroup,
@@ -27,6 +28,35 @@ import {
 import { forwardRef, useMemo, useState, type JSX } from 'react';
 import type { CatalogItem, Domain } from '../../../shared/ipc';
 import './CatalogPanel.css';
+
+// 필터/그룹 기준 — 우선순위(기존) vs 카테고리(엑셀 Category 트리).
+type FilterMode = 'priority' | 'category';
+
+/**
+ * 카테고리 추출 — 개별 분리 ATC 는 description 에 "Category / Main / Sub / Sub-function"
+ * breadcrumb 을 갖는다. 없으면(구 skeleton 번들) 파일명 prefix 에서 유추.
+ *   group = 필터/그룹 키 (Sub-category 우선, 없으면 Main, 없으면 파일명 세그먼트)
+ *   display = 행에 표시할 전체 breadcrumb (없으면 null)
+ */
+function breadcrumbOf(item: CatalogItem): string | null {
+  if (typeof item.atc === 'object' && item.atc !== null) {
+    const desc = (item.atc as { description?: unknown }).description;
+    if (typeof desc === 'string' && desc.includes('/')) return desc.trim();
+  }
+  return null;
+}
+function categoryGroupOf(item: CatalogItem): string {
+  const bc = breadcrumbOf(item);
+  if (bc) {
+    const parts = bc.split('/').map((s) => s.trim()).filter(Boolean);
+    // [Category, Main, Sub, Sub-function] — Sub 우선, 없으면 Main.
+    return parts[2] ?? parts[1] ?? parts[0] ?? '기타';
+  }
+  // 파일명 fallback: p0-<area>-... → <area>
+  const base = item.atcPath.split('/').pop()?.replace(/\.atc\.yml$/, '') ?? '';
+  const seg = base.replace(/^_?p[012]-/, '').replace(/^_/, '').split('-')[0];
+  return seg || '기타';
+}
 
 type Priority = 'P0' | 'P1' | 'P2';
 type PriorityFilter = 'all' | Priority | 'none';
@@ -185,24 +215,38 @@ function StatusIndicator({ item }: { item: CatalogItem }): JSX.Element | null {
   }
 }
 
-interface DomainGroup {
-  domain: Domain;
+interface CatalogGroup {
+  key: string;
+  label: string;
   items: CatalogItem[];
 }
 
-function groupByDomain(items: CatalogItem[]): DomainGroup[] {
+function groupByDomain(items: CatalogItem[]): CatalogGroup[] {
   const groups = new Map<Domain, CatalogItem[]>();
   for (const item of items) {
     const arr = groups.get(item.domain);
     if (arr) arr.push(item);
     else groups.set(item.domain, [item]);
   }
-  const out: DomainGroup[] = [];
+  const out: CatalogGroup[] = [];
   for (const d of DOMAIN_ORDER) {
     const arr = groups.get(d);
-    if (arr && arr.length > 0) out.push({ domain: d, items: arr });
+    if (arr && arr.length > 0) out.push({ key: d, label: d.toUpperCase(), items: arr });
   }
   return out;
+}
+
+function groupByCategory(items: CatalogItem[]): CatalogGroup[] {
+  const groups = new Map<string, CatalogItem[]>();
+  for (const item of items) {
+    const k = categoryGroupOf(item);
+    const arr = groups.get(k);
+    if (arr) arr.push(item);
+    else groups.set(k, [item]);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([k, arr]) => ({ key: k, label: k, items: arr }));
 }
 
 export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
@@ -221,17 +265,32 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
     }: CatalogPanelProps,
     searchInputRef,
   ): JSX.Element {
+    const [filterMode, setFilterMode] = useState<FilterMode>('priority');
     const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+    // 카테고리 모드용 — 현재 검색어 적용된 항목들의 distinct 카테고리 목록.
+    const categoryOptions = useMemo(() => {
+      const set = new Set<string>();
+      for (const item of items) {
+        if (matchesQuery(item, query.trim())) set.add(categoryGroupOf(item));
+      }
+      return [...set].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    }, [items, query]);
+
     const filtered = useMemo(
       () =>
-        items.filter(
-          (item) =>
-            matchesQuery(item, query.trim()) &&
-            matchesPriority(item, priorityFilter),
-        ),
-      [items, query, priorityFilter],
+        items.filter((item) => {
+          if (!matchesQuery(item, query.trim())) return false;
+          if (filterMode === 'priority') return matchesPriority(item, priorityFilter);
+          return categoryFilter === 'all' || categoryGroupOf(item) === categoryFilter;
+        }),
+      [items, query, filterMode, priorityFilter, categoryFilter],
     );
-    const grouped = useMemo(() => groupByDomain(filtered), [filtered]);
+    const grouped = useMemo(
+      () => (filterMode === 'category' ? groupByCategory(filtered) : groupByDomain(filtered)),
+      [filtered, filterMode],
+    );
     const totalCount = filtered.length;
     const selectedCount = batchSelected.size;
 
@@ -271,30 +330,69 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
           <Tag minimal>{totalCount}</Tag>
         </div>
 
-        {/* Priority filter — 전체 / P0 / P1 / P2 / 미지정 */}
-        <div className="catalog-panel__priority-filter">
+        {/* 필터 기준 토글 — 우선순위 vs 카테고리 */}
+        <div className="catalog-panel__filter-mode">
           <ButtonGroup>
-            {PRIORITY_FILTER_ORDER.map((p) => {
-              const active = priorityFilter === p;
-              return (
-                <Button
-                  key={p}
-                  small
-                  active={active}
-                  intent={
-                    active && p !== 'all' && p !== 'none'
-                      ? priorityIntent(p)
-                      : undefined
-                  }
-                  onClick={(): void => setPriorityFilter(p)}
-                  title={`${PRIORITY_FILTER_LABEL[p]} (${priorityCounts[p]})`}
-                >
-                  {PRIORITY_FILTER_LABEL[p]} {priorityCounts[p]}
-                </Button>
-              );
-            })}
+            <Button
+              small
+              active={filterMode === 'priority'}
+              icon="sort"
+              onClick={(): void => setFilterMode('priority')}
+            >
+              우선순위
+            </Button>
+            <Button
+              small
+              active={filterMode === 'category'}
+              icon="folder-close"
+              onClick={(): void => setFilterMode('category')}
+            >
+              카테고리
+            </Button>
           </ButtonGroup>
         </div>
+
+        {/* 필터 본체 — 모드에 따라 우선순위 칩 또는 카테고리 셀렉트 */}
+        {filterMode === 'priority' ? (
+          <div className="catalog-panel__priority-filter">
+            <ButtonGroup>
+              {PRIORITY_FILTER_ORDER.map((p) => {
+                const active = priorityFilter === p;
+                return (
+                  <Button
+                    key={p}
+                    small
+                    active={active}
+                    intent={
+                      active && p !== 'all' && p !== 'none'
+                        ? priorityIntent(p)
+                        : undefined
+                    }
+                    onClick={(): void => setPriorityFilter(p)}
+                    title={`${PRIORITY_FILTER_LABEL[p]} (${priorityCounts[p]})`}
+                  >
+                    {PRIORITY_FILTER_LABEL[p]} {priorityCounts[p]}
+                  </Button>
+                );
+              })}
+            </ButtonGroup>
+          </div>
+        ) : (
+          <div className="catalog-panel__category-filter">
+            <HTMLSelect
+              fill
+              value={categoryFilter}
+              onChange={(e): void => setCategoryFilter(e.currentTarget.value)}
+            >
+              <option value="all">전체 카테고리 ({categoryOptions.length})</option>
+              {categoryOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </HTMLSelect>
+          </div>
+        )}
 
         {/* Bulk actions floating bar — ≥1 선택 시 표시 */}
         <div
@@ -346,12 +444,12 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
         ) : (
           /* 도메인 그룹 (스크롤 영역) — Blueprint Section + HTMLTable */
           <div className="catalog-panel__scroll">
-            {grouped.map(({ domain, items: domainItems }) => (
+            {grouped.map(({ key: groupKey, label: groupLabel, items: domainItems }) => (
               <Section
-                key={domain}
+                key={groupKey}
                 collapsible
                 compact
-                title={domain.toUpperCase()}
+                title={groupLabel}
                 rightElement={<Tag minimal>{domainItems.length}</Tag>}
                 className="catalog-panel__section"
               >
@@ -420,6 +518,18 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
                                   {titleOf(item)}
                                 </span>
                               </div>
+                              {(() => {
+                                const bc = breadcrumbOf(item);
+                                if (!bc) return null;
+                                return (
+                                  <div
+                                    className="catalog-panel__category"
+                                    title={bc}
+                                  >
+                                    {bc}
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="catalog-panel__cell-status">
                               <StatusIndicator item={item} />

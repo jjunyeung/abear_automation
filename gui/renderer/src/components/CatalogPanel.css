@@ -126,6 +126,28 @@
   border-bottom: 1px solid var(--border);
 }
 
+.catalog-panel__filter-mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 0;
+}
+
+.catalog-panel__category-filter {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 행 하단 카테고리 breadcrumb */
+.catalog-panel__category {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
 .catalog-panel__priority-tag {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10px;
