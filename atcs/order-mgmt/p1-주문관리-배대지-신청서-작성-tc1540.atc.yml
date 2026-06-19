@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/order-mgmt/p1-주문관리-배대지-신청서-작성.atc.yml
+# 카테고리: 일반 / 주문관리 / 배대지 신청서 작성 / 결제
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 3개 트래킹 번호 3개
+priority: P1
+description: 일반 / 주문관리 / 배대지 신청서 작성 / 결제
+inputs: {}
+steps:
+  - id: tc1540
+    do: 상품 3개 트래킹 번호 3개

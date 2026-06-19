@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-문의관리-상세.atc.yml
+# 카테고리: 일반 / 문의관리 / 상세 / 업로드 설정
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 문의 상세 확인
+priority: P2
+description: 일반 / 문의관리 / 상세 / 업로드 설정
+inputs: {}
+steps:
+  - id: tc789_업로드-설정
+    do: 문의 상세 확인

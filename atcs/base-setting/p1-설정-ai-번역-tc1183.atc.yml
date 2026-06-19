@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/base-setting/p1-설정-ai-번역.atc.yml
+# 카테고리: 일반 / 설정 / AI 번역 / AI 이미지 선번역
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 확인했어요 선택
+priority: P1
+description: 일반 / 설정 / AI 번역 / AI 이미지 선번역
+inputs: {}
+steps:
+  - id: tc1183_ai-이미지-선번역
+    do: 확인했어요 선택

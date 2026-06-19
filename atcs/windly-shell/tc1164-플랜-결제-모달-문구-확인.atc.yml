@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-플랜결제-결제모달.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 플랜 결제 모달 문구 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc1164_수정-업로드
-    do: 플랜 결제 모달 문구 확인

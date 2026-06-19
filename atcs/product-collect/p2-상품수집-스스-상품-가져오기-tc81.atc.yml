@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-스스-상품-가져오기.atc.yml
+# 카테고리: 일반 / 상품수집 / 스스 상품 가져오기 / ⑥
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 가져올 상품 선택
+priority: P2
+description: 일반 / 상품수집 / 스스 상품 가져오기 / ⑥
+inputs: {}
+steps:
+  - id: tc81_⑥
+    do: 가져올 상품 선택

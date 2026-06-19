@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-인기-상품-추천-개선-소싱몰선택.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 소싱몰 타오바오→1688 전환 시 목록 갱신
-priority: P0
-inputs: {}
-steps:
-  - id: tc3682_소싱몰-전환-타오바오1688
-    do: 소싱몰 타오바오→1688 전환 시 목록 갱신

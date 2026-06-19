@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-ai-전세계-상품-수집.atc.yml
+# 카테고리: 일반 / 상품수집 / AI 전세계 상품 수집 / ⑥
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 윈들리에서 수집 지원하는 링크 입력
+priority: P2
+description: 일반 / 상품수집 / AI 전세계 상품 수집 / ⑥
+inputs: {}
+steps:
+  - id: tc102_⑥
+    do: 윈들리에서 수집 지원하는 링크 입력

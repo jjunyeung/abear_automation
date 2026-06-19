@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-로딩화면.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 유사 상품 조회 시 로딩 UI 노출 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc3668_유사-상품-조회-로딩
-    do: 유사 상품 조회 시 로딩 UI 노출 확인

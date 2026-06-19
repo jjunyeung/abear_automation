@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p0-스스관부가세-스마트스토어-배송-및-as.atc.yml
+# 카테고리: 스스관부가세 / 기본설정 / 스마트스토어 배송 및 A/S / 출고지 설정
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 출고지 목록을 선택할 수 있다
+priority: P0
+description: 스스관부가세 / 기본설정 / 스마트스토어 배송 및 A/S / 출고지 설정
+inputs: {}
+steps:
+  - id: tc3472_출고지-설정
+    do: 출고지 목록을 선택할 수 있다

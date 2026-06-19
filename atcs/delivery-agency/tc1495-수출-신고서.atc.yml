@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/delivery-agency/p2-배송대행지-신청서-작성.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 수출 신고서
-priority: P2
-inputs: {}
-steps:
-  - id: tc1495
-    do: 수출 신고서

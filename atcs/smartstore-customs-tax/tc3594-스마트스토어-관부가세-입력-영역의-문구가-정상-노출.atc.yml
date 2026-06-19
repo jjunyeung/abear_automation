@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p1-스스관부가세-수정-업로드.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 스마트스토어 관부가세 입력 영역의 문구가 정상 노출된다
-priority: P1
-inputs: {}
-steps:
-  - id: tc3594_스마트스토어-관부가세-문구
-    do: 스마트스토어 관부가세 입력 영역의 문구가 정상 노출된다

@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-아마존-독일.atc.yml
+# 카테고리: 일반 / 상품수집 / 아마존 독일 / ⑥
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 리스트에 등록된 상품 있을 때
+priority: P2
+description: 일반 / 상품수집 / 아마존 독일 / ⑥
+inputs: {}
+steps:
+  - id: tc255_⑥
+    do: 리스트에 등록된 상품 있을 때

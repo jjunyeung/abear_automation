@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-상품-상세페이지.atc.yml
+# 카테고리: 일반 / 수집상품 / 상품 상세페이지 / 옵션
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 옵션 개수 제한 확인 (200개 초과 시 비활성화)
+priority: P2
+description: 일반 / 수집상품 / 상품 상세페이지 / 옵션
+inputs: {}
+steps:
+  - id: tc454
+    do: 옵션 개수 제한 확인 (200개 초과 시 비활성화)

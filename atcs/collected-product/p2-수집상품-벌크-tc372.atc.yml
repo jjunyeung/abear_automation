@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-벌크.atc.yml
+# 카테고리: 일반 / 수집상품 / 벌크 / 상품명
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 키워드 입력 후 적용
+priority: P2
+description: 일반 / 수집상품 / 벌크 / 상품명
+inputs: {}
+steps:
+  - id: tc372
+    do: 키워드 입력 후 적용

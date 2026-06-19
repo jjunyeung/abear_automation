@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-수집상품-엑셀-수집.atc.yml
+# 카테고리: 일반 / 수집상품 / 엑셀 수집 / URL 수집
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: URL 수집
+priority: P0
+description: 일반 / 수집상품 / 엑셀 수집 / URL 수집
+inputs: {}
+steps:
+  - id: tc933_url-수집
+    do: URL 수집

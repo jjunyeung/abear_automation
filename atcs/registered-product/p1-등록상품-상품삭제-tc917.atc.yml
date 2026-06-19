@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/registered-product/p1-등록상품-상품삭제.atc.yml
+# 카테고리: 일반 / 등록상품 / 상품삭제 / esm 2.0
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 삭제 완료
+priority: P1
+description: 일반 / 등록상품 / 상품삭제 / esm 2.0
+inputs: {}
+steps:
+  - id: tc917_esm-20
+    do: 삭제 완료

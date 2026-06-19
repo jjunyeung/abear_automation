@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-타오바오.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 썸네일 수집
-priority: P2
-inputs: {}
-steps:
-  - id: tc140_⑥
-    do: 썸네일 수집

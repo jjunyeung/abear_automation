@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-상품목록.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 관심 고객 수 문구 영역 노출 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc3663_관심-고객-수-영역
-    do: 관심 고객 수 문구 영역 노출 확인

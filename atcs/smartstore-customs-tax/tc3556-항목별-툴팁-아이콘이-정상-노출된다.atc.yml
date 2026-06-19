@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p1-스스관부가세-기본-설정값-적용.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 항목별 툴팁 아이콘이 정상 노출된다
-priority: P1
-inputs: {}
-steps:
-  - id: tc3556_모달-툴팁-아이콘
-    do: 항목별 툴팁 아이콘이 정상 노출된다

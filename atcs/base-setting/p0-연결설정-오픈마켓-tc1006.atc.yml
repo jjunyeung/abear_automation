@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/base-setting/p0-연결설정-오픈마켓.atc.yml
+# 카테고리: 일반 / 연결설정 / 오픈마켓 / 설정
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 초기화 이유 입력 후 초기화
+priority: P0
+description: 일반 / 연결설정 / 오픈마켓 / 설정
+inputs: {}
+steps:
+  - id: tc1006
+    do: 초기화 이유 입력 후 초기화

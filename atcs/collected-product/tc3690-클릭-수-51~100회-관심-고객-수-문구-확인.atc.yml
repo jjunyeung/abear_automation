@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p1-인기-상품-추천-개선-상품목록.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 클릭 수 51~100회 관심 고객 수 문구 확인
-priority: P1
-inputs: {}
-steps:
-  - id: tc3690_관심-고객-수-51100회
-    do: 클릭 수 51~100회 관심 고객 수 문구 확인

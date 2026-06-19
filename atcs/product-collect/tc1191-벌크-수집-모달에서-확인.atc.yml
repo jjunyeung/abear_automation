@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/product-collect/p0-수집-벌크수집.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 벌크 수집 모달에서 확인
-priority: P0
-inputs: {}
-steps:
-  - id: tc1191_ai-이미지-선번역
-    do: 벌크 수집 모달에서 확인

@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-알리.atc.yml
+# 카테고리: 일반 / 상품수집 / 알리 / ⑥
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 검색결과 리스트 수집
+priority: P2
+description: 일반 / 상품수집 / 알리 / ⑥
+inputs: {}
+steps:
+  - id: tc173_⑥
+    do: 검색결과 리스트 수집

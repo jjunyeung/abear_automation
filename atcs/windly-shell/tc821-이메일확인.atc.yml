@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p1-윈들리-회원가입.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 이메일확인
-priority: P1
-inputs: {}
-steps:
-  - id: tc821_업로드-설정
-    do: 이메일확인

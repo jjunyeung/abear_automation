@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-상품-상세페이지.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 상하단이미지수정
-priority: P2
-inputs: {}
-steps:
-  - id: tc534
-    do: 상하단이미지수정

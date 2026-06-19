@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-상품-상세페이지.atc.yml
+# 카테고리: 일반 / 수집상품 / 상품 상세페이지 / 기본정보
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 카테고리 검색결과 없음
+priority: P2
+description: 일반 / 수집상품 / 상품 상세페이지 / 기본정보
+inputs: {}
+steps:
+  - id: tc426
+    do: 카테고리 검색결과 없음

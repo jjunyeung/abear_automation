@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/registered-product/p2-등록상품-수정-업로드.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 다음 선택
-priority: P2
-inputs: {}
-steps:
-  - id: tc590_업로드-설정
-    do: 다음 선택

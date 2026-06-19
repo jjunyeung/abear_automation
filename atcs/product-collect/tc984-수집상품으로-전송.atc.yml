@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/product-collect/p0-ai-전세계-상품수집-모달.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 수집상품으로 전송
-priority: P0
-inputs: {}
-steps:
-  - id: tc984
-    do: 수집상품으로 전송

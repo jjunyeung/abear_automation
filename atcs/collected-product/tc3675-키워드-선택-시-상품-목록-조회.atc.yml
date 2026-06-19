@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-인기-상품-추천-개선-키워드목록.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 키워드 선택 시 상품 목록 조회
-priority: P0
-inputs: {}
-steps:
-  - id: tc3675_키워드-선택-후-상품-조회
-    do: 키워드 선택 시 상품 목록 조회

@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p0-스스관부가세-공통.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 저장한 업로드 설정이 재진입 후 유지된다
-priority: P0
-inputs: {}
-steps:
-  - id: tc3533_저장-관련-액션
-    do: 저장한 업로드 설정이 재진입 후 유지된다

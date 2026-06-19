@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-인기-상품-추천-개선-키워드목록.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: A/B 테스트 그룹별 키워드 개수 분기 확인
-priority: P0
-inputs: {}
-steps:
-  - id: tc3677_ab-테스트-분기
-    do: A/B 테스트 그룹별 키워드 개수 분기 확인

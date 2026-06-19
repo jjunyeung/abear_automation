@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/delivery-agency/p2-배송대행지-신청서-작성.atc.yml
+# 카테고리: 일반 / 배송대행지 / 신청서 작성 / 툴팁
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 스티커
+priority: P2
+description: 일반 / 배송대행지 / 신청서 작성 / 툴팁
+inputs: {}
+steps:
+  - id: tc1496
+    do: 스티커

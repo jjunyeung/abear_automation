@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/delivery-agency/p0-배송대행지-신청서-작성.atc.yml
+# 카테고리: 일반 / 배송대행지 / 신청서 작성 / 센터 주소 확인
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 상품 이미지 URL
+priority: P0
+description: 일반 / 배송대행지 / 신청서 작성 / 센터 주소 확인
+inputs: {}
+steps:
+  - id: tc1383_센터-주소-확인
+    do: 상품 이미지 URL

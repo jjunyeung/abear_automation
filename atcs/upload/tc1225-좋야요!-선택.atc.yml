@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/upload/p0-업로드-업로드-스토어.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 좋야요! 선택
-priority: P0
-inputs: {}
-steps:
-  - id: tc1225_상하단-이미지
-    do: 좋야요! 선택

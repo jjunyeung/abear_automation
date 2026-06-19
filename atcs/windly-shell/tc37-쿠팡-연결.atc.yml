@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-온보딩-가이드-시작-버튼-선택.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 쿠팡 연결
-priority: P2
-inputs: {}
-steps:
-  - id: tc37_⑥
-    do: 쿠팡 연결

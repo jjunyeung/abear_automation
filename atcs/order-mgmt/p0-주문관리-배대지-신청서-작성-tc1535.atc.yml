@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/order-mgmt/p0-주문관리-배대지-신청서-작성.atc.yml
+# 카테고리: 일반 / 주문관리 / 배대지 신청서 작성 / 결제
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 토스토스 신청서 작성
+priority: P0
+description: 일반 / 주문관리 / 배대지 신청서 작성 / 결제
+inputs: {}
+steps:
+  - id: tc1535
+    do: 토스토스 신청서 작성

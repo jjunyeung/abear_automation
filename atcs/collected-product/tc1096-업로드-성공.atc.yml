@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-수집상품-톡스토어.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 업로드 성공
-priority: P0
-inputs: {}
-steps:
-  - id: tc1096
-    do: 업로드 성공

@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/product-collect/p0-상품수집-엑셀수집.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 중국몰 수집
-priority: P0
-inputs: {}
-steps:
-  - id: tc1157_수정-업로드
-    do: 중국몰 수집

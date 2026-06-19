@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-카드뷰.atc.yml
+# 카테고리: 일반 / 수집상품 / 카드뷰 / 기본 설정값 적용
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 카드뷰 동작
+priority: P2
+description: 일반 / 수집상품 / 카드뷰 / 기본 설정값 적용
+inputs: {}
+steps:
+  - id: tc382_기본-설정값-적용
+    do: 카드뷰 동작

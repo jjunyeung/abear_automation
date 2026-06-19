@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-인기-상품-추천-개선-페이지.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 1920 해상도 레이아웃 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc3673_1920-레이아웃
-    do: 1920 해상도 레이아웃 확인

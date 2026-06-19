@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/order-mgmt/p2-주문관리-상세.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 취소된 주문 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc779_업로드-설정
-    do: 취소된 주문 확인

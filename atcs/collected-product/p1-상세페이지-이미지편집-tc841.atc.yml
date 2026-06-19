@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p1-상세페이지-이미지편집.atc.yml
+# 카테고리: 일반 / 상세페이지 / 이미지편집 / 이미지에디터
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 모자이크 버튼 호버
+priority: P1
+description: 일반 / 상세페이지 / 이미지편집 / 이미지에디터
+inputs: {}
+steps:
+  - id: tc841
+    do: 모자이크 버튼 호버

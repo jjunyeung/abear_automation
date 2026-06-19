@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p1-윈들리-회원가입.atc.yml
+# 카테고리: 일반 / 윈들리 / 회원가입 / 업로드 설정
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 홈으로 이동 선택
+priority: P1
+description: 일반 / 윈들리 / 회원가입 / 업로드 설정
+inputs: {}
+steps:
+  - id: tc823_업로드-설정
+    do: 홈으로 이동 선택

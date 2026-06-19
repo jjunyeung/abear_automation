@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-상품-순위-분석-상세.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 상품 순위 분석 확인 페이지
-priority: P2
-inputs: {}
-steps:
-  - id: tc717_업로드-설정
-    do: 상품 순위 분석 확인 페이지

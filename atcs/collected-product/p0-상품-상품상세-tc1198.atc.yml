@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-상품-상품상세.atc.yml
+# 카테고리: 일반 / 상품 / 상품상세 / 이미지
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 사용 가능한 번역 횟수 소진 후 수집
+priority: P0
+description: 일반 / 상품 / 상품상세 / 이미지
+inputs: {}
+steps:
+  - id: tc1198
+    do: 사용 가능한 번역 횟수 소진 후 수집

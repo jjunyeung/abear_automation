@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-중국몰-상품-검색.atc.yml
+# 카테고리: 일반 / 상품수집 / 중국몰 상품 검색 / ⑥
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 정렬 버튼 선택
+priority: P2
+description: 일반 / 상품수집 / 중국몰 상품 검색 / ⑥
+inputs: {}
+steps:
+  - id: tc124_⑥
+    do: 정렬 버튼 선택

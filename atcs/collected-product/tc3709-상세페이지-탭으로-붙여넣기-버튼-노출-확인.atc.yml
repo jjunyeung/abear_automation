@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-ai-대표이미지-생성-이미지탭.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 상세페이지 탭으로 붙여넣기 버튼 노출 확인
-priority: P2
-inputs: {}
-steps:
-  - id: tc3709_상세페이지-탭으로-붙여넣기-버튼
-    do: 상세페이지 탭으로 붙여넣기 버튼 노출 확인

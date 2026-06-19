@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/upload/p1-업로드-워터마크.atc.yml
+# 카테고리: 일반 / 업로드 / 워터마크 / 수정 업로드
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 업로드 실패 케이스
+priority: P1
+description: 일반 / 업로드 / 워터마크 / 수정 업로드
+inputs: {}
+steps:
+  - id: tc1126_수정-업로드
+    do: 업로드 실패 케이스

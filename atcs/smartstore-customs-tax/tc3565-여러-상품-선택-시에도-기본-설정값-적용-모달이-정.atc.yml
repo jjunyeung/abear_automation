@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p2-스스관부가세-기본-설정값-적용.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 여러 상품 선택 시에도 기본 설정값 적용 모달이 정상 동작한다
-priority: P2
-inputs: {}
-steps:
-  - id: tc3565_다건-적용-성능
-    do: 여러 상품 선택 시에도 기본 설정값 적용 모달이 정상 동작한다

@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/smartstore-customs-tax/p2-스스관부가세-목록-화면.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 정렬 및 페이지 수 설정 영역이 정상 노출된다
-priority: P2
-inputs: {}
-steps:
-  - id: tc3539_정렬페이지-수
-    do: 정렬 및 페이지 수 설정 영역이 정상 노출된다

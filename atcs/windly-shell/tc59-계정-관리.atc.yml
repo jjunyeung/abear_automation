@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-게정관리-홈화면시작.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 계정 관리
-priority: P2
-inputs: {}
-steps:
-  - id: tc59_⑥
-    do: 계정 관리

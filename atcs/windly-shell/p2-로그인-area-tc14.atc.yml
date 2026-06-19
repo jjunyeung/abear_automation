@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-로그인-area.atc.yml
+# 카테고리: 일반 / 로그인 / 이메일
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 회원가입 실패
+priority: P2
+description: 일반 / 로그인 / 이메일
+inputs: {}
+steps:
+  - id: tc14
+    do: 회원가입 실패

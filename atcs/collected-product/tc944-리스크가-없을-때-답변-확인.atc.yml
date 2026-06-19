@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-수집상품-상품상세.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 리스크가 없을 때 답변 확인
-priority: P0
-inputs: {}
-steps:
-  - id: tc944
-    do: 리스크가 없을 때 답변 확인

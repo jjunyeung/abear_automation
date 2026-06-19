@@ -12,8 +12,8 @@
  *   node scripts/split-skeleton-atc.mjs                  # 전체 실제 생성
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { readFileSync, writeFileSync, readdirSync, existsSync, statSync, rmSync } from 'node:fs';
+import { join, relative, basename } from 'node:path';
 import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
@@ -40,6 +40,15 @@ if (existsSync('/tmp/sheet1.xml')) excelXml = readFileSync('/tmp/sheet1.xml', 'u
 else for (const x of xlsxCandidates) if (existsSync(x)) { excelXml = execSync(`unzip -p "${x}" xl/worksheets/sheet1.xml`).toString(); break; }
 const excel = new Set();
 for (const m of excelXml.matchAll(/<c r="A\d+"[^>]*><v>(\d+)<\/v>/g)) excel.add(Number(m[1]));
+
+// 엑셀 카테고리 맵: Case No → {cat(B), main(C), sub(D), fn(E), prio(F)}
+const catMap = new Map();
+for (const r of excelXml.split('<row ').slice(1)) {
+  const cells = {};
+  for (const m of r.matchAll(/<c r="([A-J])\d+"[^>]*>(?:<v>([\s\S]*?)<\/v>)?<\/c>/g)) cells[m[1]] = m[2] !== undefined ? m[2] : '';
+  if (!cells.A || cells.A === 'Case No') continue;
+  catMap.set(Number(cells.A), { cat: cells.B || '', main: cells.C || '', sub: cells.D || '', fn: cells.E || '', prio: cells.F || '' });
+}
 
 // 2) covers.json credited
 const covers = new Set();
@@ -107,8 +116,9 @@ for (const f of atcFiles) {
     const cn = Number(nm[1]);
     if (!excel.has(cn)) continue;
     if (realTc.has(cn) || covers.has(cn)) continue; // 이미 검증/크레딧
-    // 개별 파일 경로
-    const name = `tc${cn}-${slug(s.doText || s.id)}`;
+    // 개별 파일명 = 소스 skeleton 카테고리명 + tc번호 (카테고리별 그룹핑 유지)
+    const skelBase = basename(rel, '.atc.yml');
+    const name = `${skelBase}-tc${cn}`;
     const outRel = `atcs/${domain}/${name}.atc.yml`;
     if (existsSync(join(ROOT, outRel))) continue;
     toCreate.push({ outRel, cn, id: s.id, doText: s.doText, expectText: s.expectText, priority, srcRel: rel });
@@ -135,11 +145,16 @@ for (const t of toCreate) {
   if (seen.has(t.outRel)) continue; // 같은 do→같은 슬러그 중복 방지(번호 prefix 로 보통 unique)
   seen.add(t.outRel);
   const doRaw = (t.doText || t.id);
+  const c = catMap.get(t.cn) || {};
+  const breadcrumb = [c.cat, c.main, c.sub, c.fn].filter((x) => x && x.trim()).join(' / ');
+  const prio = t.priority || (c.prio || '');
   let y = '';
   y += `# 개별 분리 ATC — 원본 번들: ${t.srcRel}\n`;
+  y += `# 카테고리: ${breadcrumb}\n`;
   y += `# spec(실행) 미구현. 사용자가 별도 작성 예정.\n\n`;
   y += `title: ${yk(doRaw)}\n`;
-  if (t.priority) y += `priority: ${t.priority}\n`;
+  if (prio) y += `priority: ${prio}\n`;
+  if (breadcrumb) y += `description: ${yk(breadcrumb)}\n`;
   y += `inputs: {}\n`;
   y += `steps:\n`;
   y += `  - id: ${t.id}\n`;

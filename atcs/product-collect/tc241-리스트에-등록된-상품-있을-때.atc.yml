@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/product-collect/p2-상품수집-아마존-재팬.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 리스트에 등록된 상품 있을 때
-priority: P2
-inputs: {}
-steps:
-  - id: tc241_⑥
-    do: 리스트에 등록된 상품 있을 때

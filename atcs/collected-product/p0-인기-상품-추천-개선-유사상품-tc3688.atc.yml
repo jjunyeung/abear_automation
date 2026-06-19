@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/collected-product/p0-인기-상품-추천-개선-유사상품.atc.yml
+# 카테고리: 인기 상품 추천 개선 / 트래킹 / 유사상품 / sourcingMall 프로퍼티 (1688)
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: Similar Product Search Button Clicked 이벤트 sourcingMall 1688 값 확인
+priority: P0
+description: 인기 상품 추천 개선 / 트래킹 / 유사상품 / sourcingMall 프로퍼티 (1688)
+inputs: {}
+steps:
+  - id: tc3688_sourcingmall-프로퍼티-1688
+    do: Similar Product Search Button Clicked 이벤트 sourcingMall 1688 값 확인

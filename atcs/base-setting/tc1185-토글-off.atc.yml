@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/base-setting/p1-설정-ai-번역.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 토글 off
-priority: P1
-inputs: {}
-steps:
-  - id: tc1185_ai-이미지-선번역
-    do: 토글 off

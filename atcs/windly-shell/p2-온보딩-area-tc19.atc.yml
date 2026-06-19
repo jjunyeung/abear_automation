@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/windly-shell/p2-온보딩-area.atc.yml
+# 카테고리: 일반 / 온보딩 / 구글
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: 2 설문 화면
+priority: P2
+description: 일반 / 온보딩 / 구글
+inputs: {}
+steps:
+  - id: tc19
+    do: 2 설문 화면

@@ -1,9 +1,0 @@
-# 개별 분리 ATC — 원본 번들: atcs/collected-product/p2-수집상품-아마존.atc.yml
-# spec(실행) 미구현. 사용자가 별도 작성 예정.
-
-title: 상품 코드 50개 초과 검색
-priority: P2
-inputs: {}
-steps:
-  - id: tc352
-    do: 상품 코드 50개 초과 검색

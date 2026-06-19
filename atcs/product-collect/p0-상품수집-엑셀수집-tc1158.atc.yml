@@ -1,0 +1,11 @@
+# 개별 분리 ATC — 원본 번들: atcs/product-collect/p0-상품수집-엑셀수집.atc.yml
+# 카테고리: 일반 / 상품수집 / 엑셀수집 / 수정 업로드
+# spec(실행) 미구현. 사용자가 별도 작성 예정.
+
+title: HTMNL 수집
+priority: P0
+description: 일반 / 상품수집 / 엑셀수집 / 수정 업로드
+inputs: {}
+steps:
+  - id: tc1158_수정-업로드
+    do: HTMNL 수집
