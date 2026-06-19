@@ -313,7 +313,7 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
 
     return (
       <div className="catalog-panel">
-        {/* Row 1: 검색 + 카테고리 4단 (캐스케이딩) */}
+        {/* Row 1: 검색 입력 + 검색 버튼 */}
         <div className="catalog-panel__filter-row">
           <InputGroup
             className="catalog-panel__search"
@@ -329,6 +329,10 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
           <Button intent="success" icon="search">
             검색
           </Button>
+        </div>
+
+        {/* Row 2: 카테고리 4단 (캐스케이딩) */}
+        <div className="catalog-panel__filter-row catalog-panel__filter-row--cats">
           <HTMLSelect
             value={catTop}
             onChange={(e): void => {
@@ -387,8 +391,8 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
           </HTMLSelect>
         </div>
 
-        {/* Row 2: 우선순위 + 해구대/위탁 + 페이지크기 + 카운트 */}
-        <div className="catalog-panel__filter-row">
+        {/* Row 3: 우선순위 + 해구대/위탁 + 페이지크기 + 카운트 */}
+        <div className="catalog-panel__filter-row catalog-panel__filter-row--last">
           <HTMLSelect
             value={priorityFilter}
             onChange={(e): void =>

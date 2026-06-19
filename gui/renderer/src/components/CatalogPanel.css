@@ -146,12 +146,20 @@
   gap: 8px;
   padding: 8px 12px;
 }
-.catalog-panel__filter-row:last-of-type {
+.catalog-panel__filter-row--last {
   border-bottom: 1px solid var(--border);
 }
 .catalog-panel__search {
   flex: 1 1 180px;
   min-width: 140px;
+}
+/* 카테고리 4단은 한 행에서 균등 분배 */
+.catalog-panel__filter-row--cats .bp6-html-select {
+  flex: 1 1 120px;
+  min-width: 100px;
+}
+.catalog-panel__filter-row--cats .bp6-html-select select {
+  width: 100%;
 }
 .catalog-panel__count {
   margin-left: auto;
