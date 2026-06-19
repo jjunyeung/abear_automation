@@ -119,7 +119,12 @@ function mostFrequent(values: string[]): string | null {
  * ATC 의 step.id (tc<N>) 들을 엑셀 카테고리 맵에 매핑해 대표 카테고리 산출.
  * 단일 TC 면 정확, 번들이면 최빈 Main/Category. Sub-category 는 균일할 때만.
  */
-function categoryOf(atc: ATC): { categoryTop: string | null; category: string | null; categorySub: string | null } {
+function categoryOf(atc: ATC): {
+  categoryTop: string | null;
+  category: string | null;
+  categorySub: string | null;
+  categoryFn: string | null;
+} {
   const map = categoryMap();
   const recs: TcCategory[] = [];
   for (const s of atc.steps) {
@@ -128,12 +133,16 @@ function categoryOf(atc: ATC): { categoryTop: string | null; category: string | 
     const rec = map[m[1]];
     if (rec) recs.push(rec);
   }
-  if (recs.length === 0) return { categoryTop: null, category: null, categorySub: null };
+  if (recs.length === 0) {
+    return { categoryTop: null, category: null, categorySub: null, categoryFn: null };
+  }
   const subs = new Set(recs.map((r) => r.sub).filter(Boolean));
+  const fns = new Set(recs.map((r) => r.fn).filter(Boolean));
   return {
     categoryTop: mostFrequent(recs.map((r) => r.category)),
     category: mostFrequent(recs.map((r) => r.main)),
     categorySub: subs.size === 1 ? [...subs][0] : null,
+    categoryFn: fns.size === 1 ? [...fns][0] : null,
   };
 }
 
@@ -235,6 +244,7 @@ function buildItem(atcPath: string, domain: Domain): CatalogItem | null {
     categoryTop: cat.categoryTop,
     category: cat.category,
     categorySub: cat.categorySub,
+    categoryFn: cat.categoryFn,
   };
 }
 

@@ -138,6 +138,28 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* 이미지 스펙 필터 바 — 검색 + 카테고리 4단 / 우선순위 + 해구대위탁 + 페이지크기 + 카운트 */
+.catalog-panel__filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.catalog-panel__filter-row:last-of-type {
+  border-bottom: 1px solid var(--border);
+}
+.catalog-panel__search {
+  flex: 1 1 180px;
+  min-width: 140px;
+}
+.catalog-panel__count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
 /* 행 하단 카테고리 breadcrumb */
 .catalog-panel__category {
   font-size: 11px;

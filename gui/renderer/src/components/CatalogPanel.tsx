@@ -26,11 +26,18 @@ import {
   type Intent,
 } from '@blueprintjs/core';
 import { forwardRef, useMemo, useState, type JSX } from 'react';
-import type { CatalogItem, Domain } from '../../../shared/ipc';
+import type { CatalogItem } from '../../../shared/ipc';
 import './CatalogPanel.css';
 
-// 필터/그룹 기준 — 우선순위(기존) vs 카테고리(엑셀 Category 트리).
-type FilterMode = 'priority' | 'category';
+// 해구대/위탁 = 엑셀 중분류(Sub-category) 값 (업로드 대분류 하위). 전체면 미적용.
+type BizType = 'all' | '해구대' | '위탁';
+const BIZ_TYPES: readonly { key: BizType; label: string }[] = [
+  { key: 'all', label: '전체' },
+  { key: '해구대', label: '해구대' },
+  { key: '위탁', label: '위탁' },
+] as const;
+const PAGE_SIZES: readonly number[] = [50, 100, 200, 500, Number.POSITIVE_INFINITY] as const;
+const pageSizeLabel = (n: number): string => (Number.isFinite(n) ? `${n}개` : '전체');
 
 /**
  * 카테고리 — 엑셀 TC export 에서 박제된 catalog 필드(tc-categories.json 경유) 사용.
@@ -90,19 +97,6 @@ function matchesPriority(item: CatalogItem, filter: PriorityFilter): boolean {
   if (filter === 'none') return p === null;
   return p === filter;
 }
-
-const DOMAIN_ORDER: readonly Domain[] = [
-  'collected-product',
-  'product-collect',
-  'registered-product',
-  'delivery-agency',
-  'base-setting',
-  'upload',
-  'order-mgmt',
-  'windly-shell',
-  'smartstore-customs-tax',
-  'e2e',
-] as const;
 
 interface CatalogPanelProps {
   items: CatalogItem[];
@@ -210,21 +204,6 @@ interface CatalogGroup {
   items: CatalogItem[];
 }
 
-function groupByDomain(items: CatalogItem[]): CatalogGroup[] {
-  const groups = new Map<Domain, CatalogItem[]>();
-  for (const item of items) {
-    const arr = groups.get(item.domain);
-    if (arr) arr.push(item);
-    else groups.set(item.domain, [item]);
-  }
-  const out: CatalogGroup[] = [];
-  for (const d of DOMAIN_ORDER) {
-    const arr = groups.get(d);
-    if (arr && arr.length > 0) out.push({ key: d, label: d.toUpperCase(), items: arr });
-  }
-  return out;
-}
-
 function groupByCategory(items: CatalogItem[]): CatalogGroup[] {
   const groups = new Map<string, CatalogItem[]>();
   for (const item of items) {
@@ -254,134 +233,200 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
     }: CatalogPanelProps,
     searchInputRef,
   ): JSX.Element {
-    const [filterMode, setFilterMode] = useState<FilterMode>('priority');
+    const [catTop, setCatTop] = useState<string>('all'); // 카테고리 (B)
+    const [catMain, setCatMain] = useState<string>('all'); // 대분류 (C)
+    const [catSub, setCatSub] = useState<string>('all'); // 중분류 (D)
+    const [catFn, setCatFn] = useState<string>('all'); // 소분류 (E)
     const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
-    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [bizType, setBizType] = useState<BizType>('all');
+    const [pageSize, setPageSize] = useState<number>(50);
 
-    // 카테고리 모드용 — 현재 검색어 적용된 항목들의 distinct 카테고리 목록.
-    const categoryOptions = useMemo(() => {
-      const set = new Set<string>();
-      for (const item of items) {
-        if (matchesQuery(item, query.trim())) set.add(categoryGroupOf(item));
-      }
-      return [...set].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-    }, [items, query]);
+    // 검색어 적용된 베이스 (카테고리 옵션 산출 기준).
+    const base = useMemo(
+      () => items.filter((i) => matchesQuery(i, query.trim())),
+      [items, query],
+    );
+    const distinctSorted = (arr: (string | null)[]): string[] => {
+      const s = new Set<string>();
+      for (const v of arr) if (v) s.add(v);
+      return [...s].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    };
+    // 캐스케이딩 옵션 — 상위 선택을 반영해 하위 후보 좁힘.
+    const topOptions = useMemo(() => distinctSorted(base.map((i) => i.categoryTop)), [base]);
+    const mainOptions = useMemo(
+      () =>
+        distinctSorted(
+          base
+            .filter((i) => catTop === 'all' || i.categoryTop === catTop)
+            .map((i) => i.category),
+        ),
+      [base, catTop],
+    );
+    const subOptions = useMemo(
+      () =>
+        distinctSorted(
+          base
+            .filter(
+              (i) =>
+                (catTop === 'all' || i.categoryTop === catTop) &&
+                (catMain === 'all' || i.category === catMain),
+            )
+            .map((i) => i.categorySub),
+        ),
+      [base, catTop, catMain],
+    );
+    const fnOptions = useMemo(
+      () =>
+        distinctSorted(
+          base
+            .filter(
+              (i) =>
+                (catTop === 'all' || i.categoryTop === catTop) &&
+                (catMain === 'all' || i.category === catMain) &&
+                (catSub === 'all' || i.categorySub === catSub),
+            )
+            .map((i) => i.categoryFn),
+        ),
+      [base, catTop, catMain, catSub],
+    );
 
     const filtered = useMemo(
       () =>
-        items.filter((item) => {
-          if (!matchesQuery(item, query.trim())) return false;
-          if (filterMode === 'priority') return matchesPriority(item, priorityFilter);
-          return categoryFilter === 'all' || categoryGroupOf(item) === categoryFilter;
-        }),
-      [items, query, filterMode, priorityFilter, categoryFilter],
+        base.filter(
+          (i) =>
+            (catTop === 'all' || i.categoryTop === catTop) &&
+            (catMain === 'all' || i.category === catMain) &&
+            (catSub === 'all' || i.categorySub === catSub) &&
+            (catFn === 'all' || i.categoryFn === catFn) &&
+            matchesPriority(i, priorityFilter) &&
+            (bizType === 'all' || i.categorySub === bizType),
+        ),
+      [base, catTop, catMain, catSub, catFn, priorityFilter, bizType],
     );
-    const grouped = useMemo(
-      () => (filterMode === 'category' ? groupByCategory(filtered) : groupByDomain(filtered)),
-      [filtered, filterMode],
+    const displayed = useMemo(
+      () => (pageSize >= filtered.length ? filtered : filtered.slice(0, pageSize)),
+      [filtered, pageSize],
     );
+    const grouped = useMemo(() => groupByCategory(displayed), [displayed]);
     const totalCount = filtered.length;
     const selectedCount = batchSelected.size;
 
-    // 각 priority 별 전체 카운트 (현재 검색어 적용된 상태에서). filter 칩에 숫자 함께 노출.
-    const priorityCounts = useMemo(() => {
-      const base = items.filter((item) => matchesQuery(item, query.trim()));
-      const counts: Record<PriorityFilter, number> = {
-        all: base.length,
-        P0: 0,
-        P1: 0,
-        P2: 0,
-        none: 0,
-      };
-      for (const item of base) {
-        const p = priorityOf(item);
-        if (p === null) counts.none += 1;
-        else counts[p] += 1;
-      }
-      return counts;
-    }, [items, query]);
-
     return (
       <div className="catalog-panel">
-        {/* Header — 검색 + 카운트 */}
-        <div className="catalog-panel__header">
+        {/* Row 1: 검색 + 카테고리 4단 (캐스케이딩) */}
+        <div className="catalog-panel__filter-row">
           <InputGroup
+            className="catalog-panel__search"
             inputRef={searchInputRef}
             leftIcon="search"
             type="search"
-            placeholder="검색 — Cmd+/"
+            placeholder="테스트 케이스 이름 검색 — Cmd+/"
             value={query}
             onChange={(e): void => onQueryChange(e.target.value)}
             spellCheck={false}
             autoComplete="off"
-            fill
           />
-          <Tag minimal>{totalCount}</Tag>
+          <Button intent="success" icon="search">
+            검색
+          </Button>
+          <HTMLSelect
+            value={catTop}
+            onChange={(e): void => {
+              setCatTop(e.currentTarget.value);
+              setCatMain('all');
+              setCatSub('all');
+              setCatFn('all');
+            }}
+          >
+            <option value="all">모든 카테고리</option>
+            {topOptions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </HTMLSelect>
+          <HTMLSelect
+            value={catMain}
+            onChange={(e): void => {
+              setCatMain(e.currentTarget.value);
+              setCatSub('all');
+              setCatFn('all');
+            }}
+          >
+            <option value="all">모든 대분류</option>
+            {mainOptions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </HTMLSelect>
+          <HTMLSelect
+            value={catSub}
+            onChange={(e): void => {
+              setCatSub(e.currentTarget.value);
+              setCatFn('all');
+            }}
+          >
+            <option value="all">모든 중분류</option>
+            {subOptions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </HTMLSelect>
+          <HTMLSelect
+            value={catFn}
+            onChange={(e): void => setCatFn(e.currentTarget.value)}
+          >
+            <option value="all">모든 소분류</option>
+            {fnOptions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </HTMLSelect>
         </div>
 
-        {/* 필터 기준 토글 — 우선순위 vs 카테고리 */}
-        <div className="catalog-panel__filter-mode">
+        {/* Row 2: 우선순위 + 해구대/위탁 + 페이지크기 + 카운트 */}
+        <div className="catalog-panel__filter-row">
+          <HTMLSelect
+            value={priorityFilter}
+            onChange={(e): void =>
+              setPriorityFilter(e.currentTarget.value as PriorityFilter)
+            }
+          >
+            {PRIORITY_FILTER_ORDER.map((p) => (
+              <option key={p} value={p}>
+                {p === 'all' ? '모든 우선순위' : PRIORITY_FILTER_LABEL[p]}
+              </option>
+            ))}
+          </HTMLSelect>
           <ButtonGroup>
-            <Button
-              small
-              active={filterMode === 'priority'}
-              icon="sort"
-              onClick={(): void => setFilterMode('priority')}
-            >
-              우선순위
-            </Button>
-            <Button
-              small
-              active={filterMode === 'category'}
-              icon="folder-close"
-              onClick={(): void => setFilterMode('category')}
-            >
-              카테고리
-            </Button>
+            {BIZ_TYPES.map((b) => (
+              <Button
+                key={b.key}
+                small
+                active={bizType === b.key}
+                onClick={(): void => setBizType(b.key)}
+              >
+                {b.label}
+              </Button>
+            ))}
           </ButtonGroup>
+          <HTMLSelect
+            value={String(pageSize)}
+            onChange={(e): void => setPageSize(Number(e.currentTarget.value))}
+          >
+            {PAGE_SIZES.map((n) => (
+              <option key={String(n)} value={String(n)}>
+                {pageSizeLabel(n)}
+              </option>
+            ))}
+          </HTMLSelect>
+          <span className="catalog-panel__count">
+            {totalCount} / {items.length} 개
+          </span>
         </div>
-
-        {/* 필터 본체 — 모드에 따라 우선순위 칩 또는 카테고리 셀렉트 */}
-        {filterMode === 'priority' ? (
-          <div className="catalog-panel__priority-filter">
-            <ButtonGroup>
-              {PRIORITY_FILTER_ORDER.map((p) => {
-                const active = priorityFilter === p;
-                return (
-                  <Button
-                    key={p}
-                    small
-                    active={active}
-                    intent={
-                      active && p !== 'all' && p !== 'none'
-                        ? priorityIntent(p)
-                        : undefined
-                    }
-                    onClick={(): void => setPriorityFilter(p)}
-                    title={`${PRIORITY_FILTER_LABEL[p]} (${priorityCounts[p]})`}
-                  >
-                    {PRIORITY_FILTER_LABEL[p]} {priorityCounts[p]}
-                  </Button>
-                );
-              })}
-            </ButtonGroup>
-          </div>
-        ) : (
-          <div className="catalog-panel__category-filter">
-            <HTMLSelect
-              fill
-              value={categoryFilter}
-              onChange={(e): void => setCategoryFilter(e.currentTarget.value)}
-            >
-              <option value="all">전체 카테고리 ({categoryOptions.length})</option>
-              {categoryOptions.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </HTMLSelect>
-          </div>
-        )}
 
         {/* Bulk actions floating bar — ≥1 선택 시 표시 */}
         <div
