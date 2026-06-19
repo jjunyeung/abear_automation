@@ -242,7 +242,8 @@ function buildItem(atcPath: string, domain: Domain): CatalogItem | null {
     queuePosition: null,
     staleMismatches,
     categoryTop: cat.categoryTop,
-    category: cat.category,
+    // 대분류 fallback = 도메인 (엑셀 카테고리 없는 e2e/시맨틱 ATC 도 대분류 드롭다운에서 필터 가능).
+    category: cat.category ?? domain,
     categorySub: cat.categorySub,
     categoryFn: cat.categoryFn,
   };
