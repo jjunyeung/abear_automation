@@ -74,6 +74,7 @@ function statusBadge(json: ReporterFileShape | null): string {
   if (json === null) return '⚠ 불명';
   const overall = json.overall_status;
   if (overall === 'success' || overall === 'passed') return '✅ 성공';
+  if (overall === 'skipped') return '⏭️ 미실행';
   if (overall === 'failed') return '❌ 실패';
   return `· ${overall ?? '불명'}`;
 }

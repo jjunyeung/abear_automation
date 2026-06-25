@@ -69,7 +69,7 @@ interface StepResult {
 interface RunResult {
   atc_title: string;
   steps: StepResult[];
-  overall: 'success' | 'failed';
+  overall: 'success' | 'failed' | 'skipped';
   inputs_used: Record<string, unknown>;
   /**
    * spec.ts 가 `emitOutput()` 으로 채운 값들. 같은 batch 의 뒤 TC 가
@@ -86,12 +86,33 @@ interface CollectedAtc {
   result: RunResult;
 }
 
+/** ATC overall → 리포트 뱃지. skipped 는 '미실행'(외부/환경 요인, 실패 아님). */
+function overallBadge(overall: 'success' | 'failed' | 'skipped'): string {
+  if (overall === 'success') return '✅ 성공';
+  if (overall === 'skipped') return '⏭️ 미실행';
+  return '❌ 실패';
+}
+
+/**
+ * 한 runId 의 여러 ATC overall 을 집계. failed 우선, 그 다음 skipped, 모두 success 면 success.
+ * (Playwright 의 result.status 대신 이 값을 json overall_status 로 박아 배치 리포트가
+ *  '미실행'을 실패와 분리해 읽게 한다.)
+ */
+function aggregateAtcOverall(
+  atcs: CollectedAtc[],
+): 'success' | 'failed' | 'skipped' | null {
+  if (atcs.length === 0) return null;
+  if (atcs.some((c) => c.result.overall === 'failed')) return 'failed';
+  if (atcs.some((c) => c.result.overall === 'skipped')) return 'skipped';
+  return 'success';
+}
+
 /** Type guard for an unknown JSON payload claiming to be a `RunResult`. */
 function isRunResult(value: unknown): value is RunResult {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   if (typeof v.atc_title !== 'string') return false;
-  if (v.overall !== 'success' && v.overall !== 'failed') return false;
+  if (v.overall !== 'success' && v.overall !== 'failed' && v.overall !== 'skipped') return false;
   if (!Array.isArray(v.steps)) return false;
   if (typeof v.inputs_used !== 'object' || v.inputs_used === null) return false;
   for (const raw of v.steps) {
@@ -177,9 +198,7 @@ class ATCReporter implements Reporter {
         // 같은 batch 의 뒤 TC 가 이 줄로 자동 주입 받음 (inputs.<name>.from === 'previous').
         lines.push(`- 출력: \`${JSON.stringify(outputs)}\``);
       }
-      lines.push(
-        `- 결과: ${item.result.overall === 'success' ? '✅ 성공' : '❌ 실패'}`,
-      );
+      lines.push(`- 결과: ${overallBadge(item.result.overall)}`);
       lines.push('');
       lines.push('### 단계별');
       for (const s of item.result.steps) {
@@ -256,7 +275,10 @@ class ATCReporter implements Reporter {
           run_id: this.runId,
           started_at: this.startedAt.toISOString(),
           ended_at: new Date().toISOString(),
-          overall_status: result.status,
+          // Playwright 의 result.status 대신 ATC overall 집계를 박는다 — 미실행(skipped)
+          // TC 는 spec expect 가 실패해 result.status='failed' 가 되지만, 배치 리포트는
+          // 이 overall_status 로 '미실행'을 실패와 분리해 읽어야 하기 때문.
+          overall_status: aggregateAtcOverall(this.collected) ?? result.status,
           atcs: this.collected,
         },
         null,

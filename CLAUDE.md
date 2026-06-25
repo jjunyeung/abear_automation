@@ -37,7 +37,7 @@
 - **on_error** = ATC step에서 매칭되면 실행할 복구 후보 목록.
 - **runId** = `result_YYYY-MM-DD_HH-MM-SS` 형식의 실행 식별자 (D6).
 - **ErrorKey** = `lib/errors.ts`에 등록된 복구 가능한 에러 키 유니온.
-- **unhandled** = 등록되지 않은 에러. 자동 복구 시도 없이 리포트로만 기록 (D11).
+- **unhandled** = `recoveries/<error_key>.ts` 파일조차 없는 에러. 자동 복구 불가, 리포트로만 기록 (D11). (반대로 복구 파일이 있으면 `on_error` 미명시여도 자동 복구를 탄다 — D5/D11 개정.)
 
 ---
 
@@ -61,13 +61,13 @@
 | D2  | 패키지 매니저 = `npm` 단독                                                              |
 | D3  | ATC DSL = YAML + 구조적 step (느슨, Claude가 정규화). 고정 키 6개: title/description?/inputs/outputs?/steps/expected (description 은 GUI 표시용 메모, 실행 무영향. outputs 는 spec.ts 의 `emitOutput()` 으로 채워 GUI 큐의 같은 batch 안 뒤 TC 의 `inputs.<name>.from: previous` 자리에 자동 주입 — 사용자 직접 입력값이 우선). |
 | D4  | 복구 후 재개 = **실패 step부터** (ATC 작성자가 `on_recovery.restart_from`으로 override 가능) |
-| D5  | 복구 등록 = `recoveries/<id>.ts` + ATC step의 `on_error: [<id>, ...]` 명시              |
+| D5  | 복구 등록 = `recoveries/<id>.ts` 생성. **`recoveries/` 디렉토리 = 전역 자동복구 허용목록** — 복구 파일이 있는 error_key 는 어느 ATC step 에서 나든 `on_error` 미명시여도 자동 복구를 탄다. `on_error: [<id>, ...]` 는 우선순위 명시용(선택). 같은 (step, error_key) 는 1회만 복구(D12), 재발 시 unhandled. |
 | D6  | 리포트 = `reports/runs/{runId}/` 안 `.md` + `.json` + Playwright html                   |
 | D7  | 윈들리 Chrome 확장 = 필수, headed Chromium 강제 (UI ATC에 한해). 확장은 `lib/test-fixture.ts` 의 `chromium.launchPersistentContext` 로 로드 (MV3 service worker 등록 보장). userDataDir = `.playwright-userdata/` (gitignored, 로그인 세션 유지). |
 | D8  | ATC 입력 = schema-only 선언, 실행 시 주입. **우선순위: CLI 인자 > fixture > prompt**    |
 | D9  | Playwright 프로젝트 = 도메인별 다중 (`windly-collect` / `error-check` / `fix` / `upload` / `e2e`) |
 | D10 | CI/CD = scope 외, **로컬 전용**                                                         |
-| D11 | unhandled 에러 = 즉시 실패 + 리포트 'unhandled' 기록, **자동 복구 시도 X**              |
+| D11 | `recoveries/<error_key>.ts` 가 **없는** 에러만 unhandled = 즉시 실패 + 리포트 기록. 복구 파일이 있으면 자동 복구 시도(D5 개정). 복구 1회 실패/재발 시에도 unhandled 처리. |
 | D12 | 복구 자체 실패 = **1회만** 시도, 본 ATC도 실패 (재귀 복구 없음)                          |
 | D13 | TC 간 값 전달 = GUI 큐 안에서만. 출력 쪽 = `outputs:` 선언 + spec 의 `emitOutput()` 호출. 입력 쪽 = `inputs.<name>.from: previous`. 같은 batch (= 한 번의 "전체 실행") 내 직전 TC 의 output 이 빈 칸에만 자동 채워짐. 사용자가 큐 뷰에서 직접 입력하면 항상 그 값이 우선. 단일 실행/스케줄 spawn 등 batch 가 아닌 경로에서는 자동 주입 X. |
 
@@ -183,16 +183,17 @@ reporters/atc-reporter  → reports/runs/{runId}/{runId}.md + .json
 
 ## (i) 새 종류 unhandled 에러 발견 시 운영 워크플로우 (KG1)
 
-unhandled 에러는 자동 복구 시도 없이 리포트에만 기록된다 (D11). 발견 후 절차:
+unhandled 에러(= `recoveries/<error_key>.ts` 파일이 없는 에러)는 자동 복구 없이 리포트에만 기록된다 (D11). 발견 후 절차:
 
 1. `reports/runs/<runId>/<runId>.md` 의 **🚨 Unhandled 에러 요약** 섹션에서 `error_key`, `last_step_id`, `screenshot_path` 확인.
-2. 이 에러가 **반복적**이라면 (스크린샷·타이밍 문제 아닌 진짜 새 케이스):
+2. 이 에러가 **반복적 + 복구 가능**이라면 (스크린샷·타이밍 문제 아닌 진짜 새 케이스):
    - `/recovery-new <error_key>` 실행 → `recoveries/<error_key>.ts` 스캐폴드.
    - 실제 윈들리 자동화 코드로 본문 채우기 (Playwright 액션, 검증 포함).
    - `lib/errors.ts` 의 `KnownErrorKey` 유니온에 새 키 추가.
-   - 영향받는 ATC step 의 `on_error` 배열에 `'<error_key>'` 등록.
-3. 다시 `npm run atc -- <같은 ATC>` 실행 → unhandled가 사라지고 정상 복구 경로로 동작하는지 확인.
-4. **일회성 환경 문제** (네트워크 일시 단절, 윈들리 서버 점검 등) 이면 recoveries 추가 없이 재실행만.
+   - **`on_error` 등록은 불필요** — 파일을 만들면 runner 가 전역 자동복구로 어느 TC 에서든 그 키를 잡는다 (D5/D11 개정). 특정 step 만 한정하거나 `on_recovery.restart_from` 을 쓰려면 그때만 `on_error` 명시.
+3. 다시 `npm run atc -- <같은 ATC>` 실행 → unhandled가 사라지고 자동 복구 경로로 동작하는지 확인.
+4. **복구 불가** (플랜 사용량 초과 `upload_quota_exceeded`, 수집 실패 `collect_failed` 등 외부 요인) 이면 복구 파일을 **만들지 않는다** — 그대로 명확한 error_key 로 실패 보고되게 둔다.
+5. **일회성 환경 문제** (네트워크 일시 단절, 윈들리 서버 점검 등) 이면 recoveries 추가 없이 재실행만.
 
 ---
 

@@ -643,11 +643,69 @@ function stepScrollOptionContainersFn(): boolean {
   return moved;
 }
 
+/**
+ * 모든 옵션그룹의 윈들리 "A-Z" 버튼을 눌러 옵션값을 알파벳(A,B,C…)으로 일괄 정규화.
+ * (#4 옵션 A-Z 정규화 TC 의 apply_a_z 패턴을 그룹 전체로 확장.)
+ *  - 각 "A-Z" 버튼 클릭 → .anchored-modal 의 icon-only sub 버튼 클릭 → 적용.
+ *  - 다음 그룹 처리 전 모달이 남지 않도록 Escape 로 정리.
+ *  - 멱등(이미 A-Z 면 동일 결과)이라 재실행 안전.
+ * @returns A-Z 를 적용한 그룹 수.
+ */
+async function applyAZToAllGroups(page: Page): Promise<number> {
+  const azBtns = page.getByRole('button', { name: /^A-Z$/ });
+  const count = await azBtns.count();
+  logger.info(`[apply_a_z] A-Z 버튼 ${count}개 발견`);
+  if (count === 0) return 0;
+  let applied = 0;
+  for (let i = 0; i < count; i += 1) {
+    const btn = azBtns.nth(i);
+    if ((await btn.count()) === 0) continue;
+    await btn.scrollIntoViewIfNeeded().catch(() => undefined);
+    await btn.click().catch(() => undefined);
+    await page.waitForTimeout(700);
+    const subSel = await page.evaluate((idx: number) => {
+      const modals = Array.from(document.querySelectorAll('.anchored-modal')) as HTMLElement[];
+      for (const modal of modals) {
+        const mr = modal.getBoundingClientRect();
+        if (mr.width === 0 || mr.height === 0) continue;
+        const btns = Array.from(modal.querySelectorAll('button')) as HTMLButtonElement[];
+        for (const b of btns) {
+          const br = b.getBoundingClientRect();
+          if (br.width === 0 || br.height === 0) continue;
+          if ((b.textContent ?? '').trim().length > 0) continue;
+          if (b.querySelector('svg') === null) continue;
+          const uniq = `__atc_az_${idx}`;
+          b.setAttribute('data-atc-az', uniq);
+          return `[data-atc-az="${uniq}"]`;
+        }
+      }
+      return '';
+    }, i);
+    if (subSel === '') {
+      logger.info(`[apply_a_z] 그룹 ${i + 1} 모달 sub 버튼 미발견 — skip`);
+      await page.keyboard.press('Escape').catch(() => undefined);
+      continue;
+    }
+    await page.locator(subSel).first().click({ timeout: 5_000 }).catch(() => undefined);
+    await page.waitForTimeout(1_500);
+    await page
+      .evaluate((sel: string) => document.querySelector(sel)?.removeAttribute('data-atc-az'), subSel)
+      .catch(() => undefined);
+    await page.keyboard.press('Escape').catch(() => undefined);
+    await page.waitForTimeout(300);
+    applied += 1;
+    logger.info(`[apply_a_z] 그룹 ${i + 1} A-Z 적용`);
+  }
+  return applied;
+}
+
 async function fillGroups(page: Page): Promise<void> {
   // 1) 그룹명을 "그룹 N" 중립 라벨로 — 오염 라벨이 타 속성 검사를 유발하지 않도록 (가상화 영향 적은 헤더).
   await renameGroupsSequential(page);
-  // 2) 옵션값 전역 수정 — 가상화로 숨은 옵션까지 전수 수집해 그룹 전역 고유성 보장.
-  //    race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
+  // 2) 옵션명 A-Z 정규화 — 윈들리 "A-Z" 버튼으로 옵션값을 알파벳 일괄 정규화 (모든 그룹).
+  await applyAZToAllGroups(page);
+  // 3) 옵션값 전역 보정 — A-Z 후에도 남는 쿠팡 단위형식 위반/중복/빈값을 그룹 전역 고유값으로 교체.
+  //    가상화로 숨은 옵션까지 전수 수집. race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
   for (let round = 0; round < 5; round += 1) {
     const fixes = await fixOptionValues(page);
     if (fixes === 0) break;
@@ -877,9 +935,18 @@ const errorCheckStep: StepHandler = async (page) => {
       diagnostics.push(`${tabName}[${labels.join(', ') || '필드 미특정'}]`);
     }
     const tail = outOfScopeRed.length > 0 ? ` (스코프 외 red 무시: ${outOfScopeRed.join(', ')})` : '';
+    // 빨간 탭을 탭별 복구 key 로 반환 → runner 전역 자동복구가 recoveries/tab_<탭>_error 를
+    // 자동 시도 (복구 성공 시 이 step 재실행으로 재검증, 실패 시 '복구 후 재발' unhandled).
+    // 매핑 안 되는 탭(이론상 없음)은 generic error_check_failed 로 폴백.
+    const SCOPE_TAB_TO_KEY: Record<string, ErrorKey> = {
+      옵션: 'tab_option_error',
+      판매가: 'tab_price_error',
+    };
+    const firstRed = inScopeRed[0];
+    const recoveryKey: ErrorKey = SCOPE_TAB_TO_KEY[firstRed] ?? ('error_check_failed' as ErrorKey);
     return {
       ok: false as const,
-      error_key: 'error_check_failed' as ErrorKey,
+      error_key: recoveryKey,
       message: `에러체크 빨간 에러 탭(옵션/판매가) ${inScopeRed.length}건: ${diagnostics.join(' / ') || inScopeRed.join(', ')}${tail}`,
     };
   }

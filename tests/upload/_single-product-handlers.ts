@@ -14,6 +14,7 @@ import {
   openFirstSearchResult,
   searchByProductCode,
 } from '../../lib/windly-actions';
+import { detectUploadBlockReason, dismissBlockModal } from '../../lib/upload-actions';
 
 const openCollectedListStep: StepHandler = async (page, _inputs) => {
   await goToCollectedProducts(page);
@@ -103,6 +104,16 @@ const triggerUploadStep: StepHandler = async (page, _inputs) => {
     await confirmBtn.waitFor({ state: 'visible', timeout: 10_000 });
     await confirmBtn.click({ timeout: 8_000 });
   } catch {
+    // "업로드 하기" 가 안 보이면, 윈들리 차단 모달(사용량 초과/에러 미해결) 때문인지 먼저 확인.
+    const blocked = await detectUploadBlockReason(page);
+    if (blocked !== null) {
+      await dismissBlockModal(page);
+      return {
+        ok: false as const,
+        error_key: blocked.error_key as ErrorKey,
+        message: blocked.message,
+      };
+    }
     return {
       ok: false as const,
       error_key: 'upload_confirm_btn_not_found' as ErrorKey,

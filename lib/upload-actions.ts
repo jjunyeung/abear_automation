@@ -15,6 +15,42 @@ export type UploadTriggerResult =
   | { ok: false; error_key: string; message: string };
 
 /**
+ * "업로드 하기" 버튼이 안 보일 때, 그 사유가 윈들리 차단 모달 때문인지 판별.
+ *
+ * 케이스(2026-06-24 라이브 정찰): 플랜 "등록상품수" 사용량을 모두 소진하면 업로드
+ *   버튼 클릭 시 "업로드 하기" 모달 대신 "사용량 초과 안내" 모달이 떠서, 단순
+ *   "버튼 미발견" 으로 오분류됐다. 차단 사유를 명확한 error_key 로 분리한다.
+ *
+ * @returns 차단 모달이면 { error_key, message }, 아니면 null (= 진짜 버튼 미발견/셀렉터 문제).
+ */
+export async function detectUploadBlockReason(
+  page: Page,
+): Promise<{ error_key: string; message: string } | null> {
+  const reason = await page.evaluate(() => {
+    const norm = (s: string | null): string => (s ?? '').replace(/\s+/g, ' ').trim();
+    const dialog = document.querySelector('[role="dialog"]');
+    const text = dialog ? norm(dialog.textContent) : norm(document.body.textContent);
+    if (/사용량 초과 안내|사용량을 모두 소진|플랜의 사용량/.test(text)) {
+      return { error_key: 'upload_quota_exceeded', message: '플랜 사용량 초과 — 등록상품수 소진으로 업로드 차단' };
+    }
+    if (/상품 에러를 먼저 해결|에러를 먼저 해결/.test(text)) {
+      return { error_key: 'upload_blocked_by_error', message: '상품 에러 미해결 — 에러체크 통과 후 업로드 가능' };
+    }
+    return null;
+  });
+  return reason;
+}
+
+/** 차단/안내 모달의 "닫기" 버튼을 눌러 모달을 정리 (없으면 silently skip). */
+export async function dismissBlockModal(page: Page): Promise<void> {
+  const closeBtn = page.getByRole('button', { name: /^닫기$/ }).first();
+  if ((await closeBtn.count()) > 0 && (await closeBtn.isVisible().catch(() => false))) {
+    await closeBtn.click({ timeout: 5_000 }).catch(() => undefined);
+  }
+  await page.waitForTimeout(500);
+}
+
+/**
  * 상품 상세에서 업로드 트리거.
  *
  * 흐름:
@@ -69,6 +105,12 @@ export async function triggerUploadFromDetail(page: Page): Promise<UploadTrigger
     await confirmBtn.waitFor({ state: 'visible', timeout: 10_000 });
     await confirmBtn.click({ timeout: 8_000 });
   } catch {
+    // "업로드 하기" 가 안 보이면, 윈들리 차단 모달(사용량 초과/에러 미해결) 때문인지 먼저 확인.
+    const blocked = await detectUploadBlockReason(page);
+    if (blocked !== null) {
+      await dismissBlockModal(page);
+      return { ok: false, error_key: blocked.error_key, message: blocked.message };
+    }
     return {
       ok: false,
       error_key: 'upload_confirm_btn_not_found',

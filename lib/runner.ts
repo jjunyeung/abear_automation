@@ -55,11 +55,21 @@ export interface StepResult {
   message?: string;
 }
 
+/**
+ * "미실행(blocked)" 으로 분류할 error_key 목록 — 코드 회귀가 아니라 외부/환경 요인이라
+ * 자동화로 진행 자체가 불가능한 케이스. 이 키로 끝나면 실패가 아니라 `overall: 'skipped'`
+ * 로 보고해 스케줄 리포트에서 진짜 회귀 실패와 분리한다 (스케줄 빨강 노이즈 제거).
+ *  - upload_quota_exceeded: 플랜 등록상품수 사용량 소진 (사람이 플랜/슬롯 정리해야 함)
+ *  - collect_failed: 외부 소스(타오바오 등) 수집 실패
+ * 새 외부요인 키는 여기에만 추가하면 소비자(reporter/배치)는 overall==='skipped' 만 본다.
+ */
+const NOT_EXECUTED_KEYS = new Set<string>(['upload_quota_exceeded', 'collect_failed']);
+
 /** Aggregate result returned by `runATC()`. */
 export interface RunResult {
   atc_title: string;
   steps: StepResult[];
-  overall: 'success' | 'failed';
+  overall: 'success' | 'failed' | 'skipped';
   inputs_used: Record<string, unknown>;
   /**
    * spec.ts 가 `emitOutput()` 으로 채운 "다음 TC 가 받아갈" 값들. 빈 객체면
@@ -112,6 +122,10 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
   // 로 한 번에 읽어 RunResult.outputs 로 옮긴다.
   resetEmittedOutputs();
 
+  // 같은 (step_id, error_key) 로 복구를 이미 시도했는지 추적 — D12(복구 1회) 보장 +
+  // 복구 후 재개했는데 같은 에러가 또 나는 무한루프 방지.
+  const attemptedRecoveries = new Set<string>();
+
   let i = 0;
   while (i < atc.steps.length) {
     const step = atc.steps[i];
@@ -157,28 +171,53 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
       continue;
     }
 
-    // ── 에러 발생 — D5 매칭 ────────────────────────────────────────────────
+    // ── 에러 발생 — D5 매칭 + 전역 자동복구 ────────────────────────────────
     const ekey = outcome.error_key;
     const candidates = step.on_error ?? [];
-    const matched = candidates.find((c) => c === String(ekey));
+    const recoveryAttemptKey = `${step.id}:${String(ekey)}`;
+    const alreadyAttempted = attemptedRecoveries.has(recoveryAttemptKey);
 
-    // D11: 매칭 없음 OR 매칭은 있지만 registry에 미존재 → unhandled
-    if (matched === undefined || !registry.has(matched)) {
+    // 1순위: step.on_error 에 명시된 복구. 없으면 전역 fallback —
+    // recoveries/ 에 해당 error_key 파일이 있으면 on_error 미명시여도 자동 복구 시도.
+    // (recoveries/ 디렉토리 자체가 "자동복구 허용목록" — 복구 파일을 만들어 넣으면 어느
+    //  TC 에서 에러가 나든 자동으로 복구를 탄다. 복구 불가 케이스는 파일을 안 만들면 그대로 실패.)
+    let matched: string | undefined = candidates.find((c) => c === String(ekey));
+    if (matched === undefined && !alreadyAttempted && registry.has(String(ekey))) {
+      matched = String(ekey);
+      logger.warn(
+        `⚠ on_error 미명시지만 recoveries/${String(ekey)} 존재 → 전역 자동 복구 시도`,
+      );
+    }
+
+    // D11: 복구 대상 없음(매칭X + 파일X) OR 이미 1회 복구함(D12) OR registry 미존재 → unhandled
+    if (matched === undefined || alreadyAttempted || !registry.has(matched)) {
       const handlerMessage =
         typeof outcome.message === 'string' && outcome.message.length > 0
           ? outcome.message
           : undefined;
+      // 외부/환경 요인(NOT_EXECUTED_KEYS)은 실패가 아니라 '미실행(skipped)' 으로 분리.
+      const isNotExecuted = NOT_EXECUTED_KEYS.has(String(ekey));
+      // 복구를 1회 시도했는데 같은 에러가 또 난 경우(D12)와 애초에 복구가 없는 경우를 구분.
+      const prefix = isNotExecuted
+        ? `미실행 (${String(ekey)})`
+        : alreadyAttempted
+          ? `복구 후 재발 (${String(ekey)})`
+          : `unhandled (${String(ekey)})`;
       const message =
-        handlerMessage !== undefined
-          ? `unhandled (${String(ekey)}): ${handlerMessage}`
-          : `unhandled error: ${String(ekey)}`;
+        handlerMessage !== undefined ? `${prefix}: ${handlerMessage}` : prefix;
       results.push({
         step_id: step.id,
-        status: 'unhandled',
+        status: isNotExecuted ? 'skipped' : 'unhandled',
         duration_ms: Date.now() - start,
         error_key: ekey,
         message,
       });
+      if (isNotExecuted) {
+        logger.warn(
+          `⏭ 미실행 '${String(ekey)}' at step '${step.id}' (외부/환경 요인 — 실패 아님)${handlerMessage !== undefined ? `: ${handlerMessage}` : ''}`,
+        );
+        return { atc_title: atc.title, steps: results, overall: 'skipped', inputs_used: inputs, outputs: getEmittedOutputs() };
+      }
       logger.error(
         `✗ unhandled error '${String(ekey)}' at step '${step.id}'${handlerMessage !== undefined ? `: ${handlerMessage}` : ''}`,
       );
@@ -207,6 +246,9 @@ export async function runATC(opts: RunOptions): Promise<RunResult> {
       last_step_id: step.id,
       screenshot_path: '',
     };
+
+    // 복구 시도 기록 — 복구 후 같은 step 재개 시 동일 에러가 또 나면 두 번째엔 unhandled (D12).
+    attemptedRecoveries.add(recoveryAttemptKey);
 
     try {
       logger.warn(`⚠ recovery '${matched}' 시작...`);

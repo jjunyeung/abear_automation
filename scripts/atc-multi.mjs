@@ -326,7 +326,14 @@ if (botToken && targetChannel) {
   process.stderr.write('[atc-multi] SLACK_BOT_TOKEN/SLACK_TARGET_CHANNEL 또는 SLACK_WEBHOOK_URL 미설정 — Slack 알림 skip\n');
 }
 
-const anyFailed = childOutcomes.some((o) => o.exitCode !== 0);
+// 미실행(skipped: 플랜 사용량 초과·수집 실패 등 외부 요인)은 실패가 아니므로 exit code 에서 제외.
+// 각 자식의 report json overall_status 로 판정 (skipped TC 는 spec expect 가 실패해 exitCode!=0
+// 이지만 overall='skipped' 라 진짜 회귀 실패와 구분된다).
+const anyFailed = childOutcomes.some((o) => {
+  const report = readReportJson(o.reportJsonPath);
+  const overall = report?.overall_status ?? (o.exitCode === 0 ? 'success' : 'failed');
+  return overall === 'failed';
+});
 process.exit(anyFailed ? 1 : 0);
 
 // ───────────────────────────────────────────────────────────────
@@ -378,14 +385,17 @@ function appendScheduleRunEntry(repoRoot, scheduleId, outcomes) {
     };
   });
 
-  const anyFail = outcomes.some((o) => o.exitCode !== 0);
+  // overall 기반 집계 — 미실행(skipped)은 실패로 치지 않는다. failed 있으면 failed,
+  // 없고 skipped 있으면 skipped, 전부 success 면 success.
+  const anyFail = runs.some((r) => r.overall === 'failed');
+  const anySkipped = runs.some((r) => r.overall === 'skipped');
   const entry = {
     scheduleId,
     firedAt: outcomes[0]?.runId
       ? runIdToIsoBestEffort(outcomes[0].runId)
       : new Date().toISOString(),
     completedAt: new Date().toISOString(),
-    overall: anyFail ? 'failed' : 'success',
+    overall: anyFail ? 'failed' : anySkipped ? 'skipped' : 'success',
     runs,
   };
 
@@ -497,9 +507,11 @@ function buildMergedMd(outcomes) {
     const badge =
       overall === 'success' || overall === 'passed'
         ? '✅ 성공'
-        : overall === 'failed'
-          ? '❌ 실패'
-          : `· ${overall}`;
+        : overall === 'skipped'
+          ? '⏭️ 미실행'
+          : overall === 'failed'
+            ? '❌ 실패'
+            : `· ${overall}`;
     lines.push(`${i + 1}. ${title} — \`${o.runId ?? '?'}\` ${badge}`);
   });
   lines.push('');
@@ -512,9 +524,11 @@ function buildMergedMd(outcomes) {
     const badge =
       overall === 'success' || overall === 'passed'
         ? '✅ 성공'
-        : overall === 'failed'
-          ? '❌ 실패'
-          : `· ${overall}`;
+        : overall === 'skipped'
+          ? '⏭️ 미실행'
+          : overall === 'failed'
+            ? '❌ 실패'
+            : `· ${overall}`;
     lines.push(`## #${i + 1}. ${title}  ${badge}`);
     lines.push('');
     lines.push(`runId: \`${o.runId ?? '?'}\``);
