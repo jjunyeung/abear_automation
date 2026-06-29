@@ -21,8 +21,10 @@
  *   - `fullyParallel: false` + `workers: 1` — persistent context 는 userDataDir
  *     에 lock 을 잡으므로 병렬 실행 시 충돌. 또한 윈들리 확장이 단일 브라우저
  *     프로필에 바인딩됨.
- *   - `retries: 0` because retry is the responsibility of the recovery flows
- *     defined in `recoveries/<error_key>.ts` (D12 — single attempt).
+ *   - `retries: 0` — Playwright 레벨 재시도는 끈다. step 에러 복구는
+ *     `recoveries/<error_key>.ts` (D12 — single attempt) 가, TC 전체 실패 시
+ *     재시도는 스케줄 무인 실행에 한해 `scripts/atc-multi.mjs` 가 담당한다
+ *     (overall='failed' 만 1회 재실행, 미실행 skipped 는 제외).
  *   - `use.trace` / `use.screenshot` 는 fixture 가 직접 읽어서 적용한다
  *     (Playwright 기본 fixture 우회로 인해 자동 주입 안됨).
  */

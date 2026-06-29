@@ -1,0 +1,40 @@
+/**
+ * 리스트에 등록된 상품 있을 때 — 개별 TC tc220_⑥ mirror spec.
+ * 번들 spec(tests/product-collect/p2-상품수집-도매매.spec.ts) 의 진입+reachable 동작을 복제한 얕은 spec.
+ * 실제 액션 자동화는 별도 deepen 작업 (번들도 noop skip).
+ */
+
+import { join } from 'path';
+import { expect, test } from '../../lib/test-fixture';
+import { loadATC } from '../../lib/atc-loader';
+import { runATC, type StepHandler, type StepHandlers } from '../../lib/runner';
+import type { ErrorKey } from '../../lib/errors';
+
+const ATC_PATH = join(__dirname, '..', '..', 'atcs', "product-collect", "p2-상품수집-도매매-tc220.atc.yml");
+const URL = "https://app.windly.cc/view3/product-import";
+
+const verifyPageReachable: StepHandler = async (page) => {
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+  await page.waitForTimeout(1_000);
+  const length = await page.evaluate(() => document.body.innerText.length);
+  if (length < 10) {
+    return { ok: false as const, error_key: 'page_blank' as ErrorKey, message: `page body length ${length}` };
+  }
+  return { ok: true as const };
+};
+
+const handlers: StepHandlers = {
+  "tc220_⑥": verifyPageReachable,
+};
+
+test("리스트에 등록된 상품 있을 때 — tc220_⑥ 진입+reachable mirror", async ({ page }) => {
+  test.setTimeout(2 * 60_000);
+  const atc = loadATC(ATC_PATH);
+  const result = await runATC({ atc, page, inputs: {}, handlers });
+  await test.info().attach('atc-result', {
+    body: JSON.stringify(result),
+    contentType: 'application/json',
+  });
+  expect(result.overall, JSON.stringify(result.steps, null, 2)).toBe('success');
+});

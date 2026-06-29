@@ -1,0 +1,6 @@
+[
+  "logout_if_logged_in",
+  "open_login_page",
+  "click_google_oauth",
+  "wait_back_to_home"
+]

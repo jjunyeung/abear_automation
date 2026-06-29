@@ -258,17 +258,32 @@ for (let i = 0; i < tasks.length; i += 1) {
   // WINDLY_RUN_ID 를 미리 주입 — atc.mjs 가 이 값을 우선 사용 (없으면 자체 생성).
   // 이렇게 해야 atc-multi 가 자식 결과 JSON 의 경로를 미리 알 수 있음.
   const childEnv = { ...process.env, WINDLY_RUN_ID: runId };
-  const result = spawnSync('node', args, { stdio: 'inherit', env: childEnv });
-  const reportJsonPath = path.join(repoRoot, 'reports', 'runs', runId, `${runId}.json`);
+  let result = spawnSync('node', args, { stdio: 'inherit', env: childEnv });
+  let usedRunId = runId;
+  let reportJsonPath = path.join(repoRoot, 'reports', 'runs', runId, `${runId}.json`);
+
+  // 진짜 실패(overall='failed')만 1회 재시도 — 일시적 실패(타이밍/race) 흡수.
+  // 미실행(skipped: 사용량 초과·수집 실패 등 외부 요인)/성공은 재시도하지 않는다.
+  if (overallOfOutcome(reportJsonPath, result.status) === 'failed') {
+    const retryRunId = `${runId}_retry1`;
+    process.stderr.write(
+      `[atc-multi] ${i + 1}/${tasks.length} 실패 → 1회 재시도 (runId=${retryRunId})\n`,
+    );
+    const retryEnv = { ...process.env, WINDLY_RUN_ID: retryRunId };
+    result = spawnSync('node', args, { stdio: 'inherit', env: retryEnv });
+    usedRunId = retryRunId;
+    reportJsonPath = path.join(repoRoot, 'reports', 'runs', retryRunId, `${retryRunId}.json`);
+  }
+
   childOutcomes.push({
     task: t,
-    runId,
+    runId: usedRunId,
     exitCode: result.status ?? 1,
     reportJsonPath,
   });
-  if (result.status !== 0) {
+  if (overallOfOutcome(reportJsonPath, result.status) === 'failed') {
     process.stderr.write(
-      `[atc-multi] ${i + 1}/${tasks.length} 실패 (exit=${result.status}) — 계속 진행\n`,
+      `[atc-multi] ${i + 1}/${tasks.length} 최종 실패 (재시도 후) — 계속 진행\n`,
     );
   }
   // 다음 task 의 from:previous 를 위해 outputs 머지 (실패해도 시도 — 일부 step
@@ -329,11 +344,9 @@ if (botToken && targetChannel) {
 // 미실행(skipped: 플랜 사용량 초과·수집 실패 등 외부 요인)은 실패가 아니므로 exit code 에서 제외.
 // 각 자식의 report json overall_status 로 판정 (skipped TC 는 spec expect 가 실패해 exitCode!=0
 // 이지만 overall='skipped' 라 진짜 회귀 실패와 구분된다).
-const anyFailed = childOutcomes.some((o) => {
-  const report = readReportJson(o.reportJsonPath);
-  const overall = report?.overall_status ?? (o.exitCode === 0 ? 'success' : 'failed');
-  return overall === 'failed';
-});
+const anyFailed = childOutcomes.some(
+  (o) => overallOfOutcome(o.reportJsonPath, o.exitCode) === 'failed',
+);
 process.exit(anyFailed ? 1 : 0);
 
 // ───────────────────────────────────────────────────────────────
@@ -443,6 +456,15 @@ function readReportJson(jsonPath) {
   } catch {
     return null;
   }
+}
+
+/**
+ * 한 task 의 ATC overall 판정. report json 의 overall_status 우선, 없으면 exitCode.
+ * 'success' | 'failed' | 'skipped'(미실행). 재시도/집계가 공유한다.
+ */
+function overallOfOutcome(jsonPath, exitStatus) {
+  const rep = readReportJson(jsonPath);
+  return rep?.overall_status ?? (exitStatus === 0 ? 'success' : 'failed');
 }
 
 function shortTitleFor(outcome, report) {

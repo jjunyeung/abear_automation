@@ -103,20 +103,23 @@ const openUploadSettingsTabStep: StepHandler = async (page) => {
   return { ok: true as const };
 };
 
+// "수정할 부분 없음" → 미실행(skipped). ESM 모드는 수집 시점부터 보통 이미 설정돼 있어
+// 옵션설정 버튼이 없거나 매칭 섹션이 안 뜨는(= 매칭할 게 없는) 상품이 다수. 손댈 게 없으면
+// 실패가 아니라 미실행으로 분류 (error_key 가 NOT_EXECUTED_KEYS — lib/runner.ts).
 const openEsmOptionModalStep: StepHandler = async (page) => {
   const r = await openEsmOptionModal(page);
   if (r === 'absent') {
     return {
       ok: false as const,
       error_key: 'esm_option_setting_absent' as ErrorKey,
-      message: 'ESM 2.0 옵션설정 버튼 미발견 — ESM 미대상이거나 추천옵션 모드가 아님',
+      message: 'ESM 2.0 옵션설정 버튼 미발견 — 수정할 ESM 설정 없음 (미실행)',
     };
   }
   if (r === 'not-opened') {
     return {
       ok: false as const,
       error_key: 'esm_option_modal_not_opened' as ErrorKey,
-      message: 'ESM 2.0 옵션설정 모달이 열리지 않음 (매칭 섹션 미노출)',
+      message: 'ESM 2.0 옵션설정 매칭 섹션 미노출 — 이미 설정됨/수정할 부분 없음 (미실행)',
     };
   }
   return { ok: true as const };
@@ -132,6 +135,14 @@ const matchEsmOptionsStep: StepHandler = async (page) => {
       ok: false as const,
       error_key: 'esm_match_section_missing' as ErrorKey,
       message: msg,
+    };
+  }
+  // 매칭할 칩이 0개 = 이미 전부 매칭됨 = 수정할 부분 없음 → 미실행(skipped).
+  if (selected === 0) {
+    return {
+      ok: false as const,
+      error_key: 'esm_nothing_to_fix' as ErrorKey,
+      message: '매칭할 윈들리 옵션 칩 0개 — 이미 매칭됨/수정할 부분 없음 (미실행)',
     };
   }
   logger.info(`[match_esm_options] 윈들리 칩 선택 ${selected}건`);

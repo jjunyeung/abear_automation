@@ -935,7 +935,10 @@ function App(): JSX.Element {
           </div>
 
           <div className="app-shell__right-body">
-            {rightTab === 'live' ? (
+            {/* RunView 는 항상 마운트 유지 — report 탭으로 전환돼도 언마운트하지 않는다.
+             * atc:log / atc:done 은 one-shot IPC 라 언마운트 후 재마운트하면 done 을 놓쳐
+             * "진행 중" 에 멈춘다. display 로만 숨겨 step/done 스트림 상태를 보존. */}
+            <div style={{ display: rightTab === 'live' ? 'contents' : 'none' }}>
               <ErrorBoundary label="Live (RunView)">
                 {/* 활성 큐들을 collapsible TC 그룹으로. 각 그룹은 자체로 step 스트림 구독. */}
                 <RunView
@@ -944,7 +947,8 @@ function App(): JSX.Element {
                   queueIdToAtcPath={queueIdToAtcPath}
                 />
               </ErrorBoundary>
-            ) : (
+            </div>
+            {rightTab === 'report' && (
               <ErrorBoundary label="Report (ReportPanel)">
                 <ReportPanel
                   runId={currentRunId}

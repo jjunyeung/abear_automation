@@ -1,0 +1,9 @@
+[
+  "open_registered_list",
+  "select_only_first_card",
+  "open_delete_modal",
+  "check_only_market",
+  "confirm_delete",
+  "verify_modal_closed",
+  "verify_loading_indicator"
+]

@@ -1,0 +1,9 @@
+[
+  "open_collect_menu",
+  "open_url_collect",
+  "submit_url",
+  "wait_completion",
+  "close_modal_goto_collected",
+  "wait_first_card_ready",
+  "enter_product_detail"
+]

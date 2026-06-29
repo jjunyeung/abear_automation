@@ -13,7 +13,6 @@
 
 import {
   Button,
-  ButtonGroup,
   Checkbox,
   HTMLSelect,
   HTMLTable,
@@ -30,14 +29,6 @@ import type { CatalogItem } from '../../../shared/ipc';
 import './CatalogPanel.css';
 
 // 해구대/위탁 = 엑셀 중분류(Sub-category) 값 (업로드 대분류 하위). 전체면 미적용.
-type BizType = 'all' | '해구대' | '위탁';
-const BIZ_TYPES: readonly { key: BizType; label: string }[] = [
-  { key: 'all', label: '전체' },
-  { key: '해구대', label: '해구대' },
-  { key: '위탁', label: '위탁' },
-] as const;
-const PAGE_SIZES: readonly number[] = [50, 100, 200, 500, Number.POSITIVE_INFINITY] as const;
-const pageSizeLabel = (n: number): string => (Number.isFinite(n) ? `${n}개` : '전체');
 
 /**
  * 카테고리 — 엑셀 TC export 에서 박제된 catalog 필드(tc-categories.json 경유) 사용.
@@ -234,12 +225,7 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
     searchInputRef,
   ): JSX.Element {
     const [catTop, setCatTop] = useState<string>('all'); // 카테고리 (B)
-    const [catMain, setCatMain] = useState<string>('all'); // 대분류 (C)
-    const [catSub, setCatSub] = useState<string>('all'); // 중분류 (D)
-    const [catFn, setCatFn] = useState<string>('all'); // 소분류 (E)
     const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
-    const [bizType, setBizType] = useState<BizType>('all');
-    const [pageSize, setPageSize] = useState<number>(50);
 
     // 검색어 적용된 베이스 (카테고리 옵션 산출 기준).
     const base = useMemo(
@@ -251,64 +237,18 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
       for (const v of arr) if (v) s.add(v);
       return [...s].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     };
-    // 캐스케이딩 옵션 — 상위 선택을 반영해 하위 후보 좁힘.
     const topOptions = useMemo(() => distinctSorted(base.map((i) => i.categoryTop)), [base]);
-    const mainOptions = useMemo(
-      () =>
-        distinctSorted(
-          base
-            .filter((i) => catTop === 'all' || i.categoryTop === catTop)
-            .map((i) => i.category),
-        ),
-      [base, catTop],
-    );
-    const subOptions = useMemo(
-      () =>
-        distinctSorted(
-          base
-            .filter(
-              (i) =>
-                (catTop === 'all' || i.categoryTop === catTop) &&
-                (catMain === 'all' || i.category === catMain),
-            )
-            .map((i) => i.categorySub),
-        ),
-      [base, catTop, catMain],
-    );
-    const fnOptions = useMemo(
-      () =>
-        distinctSorted(
-          base
-            .filter(
-              (i) =>
-                (catTop === 'all' || i.categoryTop === catTop) &&
-                (catMain === 'all' || i.category === catMain) &&
-                (catSub === 'all' || i.categorySub === catSub),
-            )
-            .map((i) => i.categoryFn),
-        ),
-      [base, catTop, catMain, catSub],
-    );
 
     const filtered = useMemo(
       () =>
         base.filter(
           (i) =>
             (catTop === 'all' || i.categoryTop === catTop) &&
-            (catMain === 'all' || i.category === catMain) &&
-            (catSub === 'all' || i.categorySub === catSub) &&
-            (catFn === 'all' || i.categoryFn === catFn) &&
-            matchesPriority(i, priorityFilter) &&
-            (bizType === 'all' || i.categorySub === bizType),
+            matchesPriority(i, priorityFilter),
         ),
-      [base, catTop, catMain, catSub, catFn, priorityFilter, bizType],
+      [base, catTop, priorityFilter],
     );
-    const displayed = useMemo(
-      () => (pageSize >= filtered.length ? filtered : filtered.slice(0, pageSize)),
-      [filtered, pageSize],
-    );
-    const grouped = useMemo(() => groupByCategory(displayed), [displayed]);
-    const totalCount = filtered.length;
+    const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
     const selectedCount = batchSelected.size;
 
     return (
@@ -331,16 +271,11 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
           </Button>
         </div>
 
-        {/* Row 2: 카테고리 4단 (캐스케이딩) */}
-        <div className="catalog-panel__filter-row catalog-panel__filter-row--cats">
+        {/* Row 2: 카테고리 + 우선순위 + 페이지크기 + 카운트 */}
+        <div className="catalog-panel__filter-row catalog-panel__filter-row--last">
           <HTMLSelect
             value={catTop}
-            onChange={(e): void => {
-              setCatTop(e.currentTarget.value);
-              setCatMain('all');
-              setCatSub('all');
-              setCatFn('all');
-            }}
+            onChange={(e): void => setCatTop(e.currentTarget.value)}
           >
             <option value="all">모든 카테고리</option>
             {topOptions.map((c) => (
@@ -349,50 +284,6 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
               </option>
             ))}
           </HTMLSelect>
-          <HTMLSelect
-            value={catMain}
-            onChange={(e): void => {
-              setCatMain(e.currentTarget.value);
-              setCatSub('all');
-              setCatFn('all');
-            }}
-          >
-            <option value="all">모든 대분류</option>
-            {mainOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </HTMLSelect>
-          <HTMLSelect
-            value={catSub}
-            onChange={(e): void => {
-              setCatSub(e.currentTarget.value);
-              setCatFn('all');
-            }}
-          >
-            <option value="all">모든 중분류</option>
-            {subOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </HTMLSelect>
-          <HTMLSelect
-            value={catFn}
-            onChange={(e): void => setCatFn(e.currentTarget.value)}
-          >
-            <option value="all">모든 소분류</option>
-            {fnOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </HTMLSelect>
-        </div>
-
-        {/* Row 3: 우선순위 + 해구대/위탁 + 페이지크기 + 카운트 */}
-        <div className="catalog-panel__filter-row catalog-panel__filter-row--last">
           <HTMLSelect
             value={priorityFilter}
             onChange={(e): void =>
@@ -405,31 +296,9 @@ export const CatalogPanel = forwardRef<HTMLInputElement, CatalogPanelProps>(
               </option>
             ))}
           </HTMLSelect>
-          <ButtonGroup>
-            {BIZ_TYPES.map((b) => (
-              <Button
-                key={b.key}
-                small
-                active={bizType === b.key}
-                onClick={(): void => setBizType(b.key)}
-              >
-                {b.label}
-              </Button>
-            ))}
-          </ButtonGroup>
-          <HTMLSelect
-            value={String(pageSize)}
-            onChange={(e): void => setPageSize(Number(e.currentTarget.value))}
-          >
-            {PAGE_SIZES.map((n) => (
-              <option key={String(n)} value={String(n)}>
-                {pageSizeLabel(n)}
-              </option>
-            ))}
-          </HTMLSelect>
-          <span className="catalog-panel__count">
-            {totalCount} / {items.length} 개
-          </span>
+          {selectedCount > 0 && (
+            <span className="catalog-panel__count">{selectedCount}개 선택됨</span>
+          )}
         </div>
 
         {/* Bulk actions floating bar — ≥1 선택 시 표시 */}

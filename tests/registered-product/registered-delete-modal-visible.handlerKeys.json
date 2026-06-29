@@ -1,0 +1,7 @@
+[
+  "open_registered_list",
+  "select_first_product",
+  "click_delete_button",
+  "verify_delete_modal",
+  "close_modal"
+]

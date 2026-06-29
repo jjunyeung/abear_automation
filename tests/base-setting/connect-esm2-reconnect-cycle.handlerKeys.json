@@ -1,0 +1,11 @@
+[
+  "enter_esm2_connect",
+  "guard_same_account",
+  "open_reset_modal",
+  "fill_reason_and_reset",
+  "verify_disconnected",
+  "fill_and_connect",
+  "verify_connect_complete_modal",
+  "close_complete_modal",
+  "verify_reconnected"
+]

@@ -61,9 +61,25 @@ export interface StepResult {
  * 로 보고해 스케줄 리포트에서 진짜 회귀 실패와 분리한다 (스케줄 빨강 노이즈 제거).
  *  - upload_quota_exceeded: 플랜 등록상품수 사용량 소진 (사람이 플랜/슬롯 정리해야 함)
  *  - collect_failed: 외부 소스(타오바오 등) 수집 실패
+ *  - missing_input: from:previous 입력이 없어(단독/스케줄 재시도 실행 시 앞 TC outputs 미주입)
+ *    TC 가 실제로 실행되지 못한 경우. retry 가 입력 없이 "안 돈" 것이라 실패가 아니라 미실행.
+ *  - no_ready_card: URL 수집 후 "수집중"→ProductCard swap 타이밍 race 로 첫 카드 미노출.
+ *    재실행하면 통과하는 일시 환경 요인 — 스케줄에서 재시도 대신 미실행 처리.
+ *  - esm_option_setting_absent / esm_option_modal_not_opened / esm_nothing_to_fix:
+ *    ESM 추천옵션 매칭 TC 의 "수정할 부분 없음" 케이스. ESM 모드는 수집 시점부터 보통
+ *    이미 잘 설정돼 있어 매칭할 옵션이 없는 상품이 다수 — 손댈 게 없으면 실패가 아니라 미실행.
+ *    (매칭할 칩이 있어 수정을 시도한 뒤의 생성/저장/에러체크 실패는 그대로 failed.)
  * 새 외부요인 키는 여기에만 추가하면 소비자(reporter/배치)는 overall==='skipped' 만 본다.
  */
-const NOT_EXECUTED_KEYS = new Set<string>(['upload_quota_exceeded', 'collect_failed']);
+const NOT_EXECUTED_KEYS = new Set<string>([
+  'upload_quota_exceeded',
+  'collect_failed',
+  'missing_input',
+  'no_ready_card',
+  'esm_option_setting_absent',
+  'esm_option_modal_not_opened',
+  'esm_nothing_to_fix',
+]);
 
 /** Aggregate result returned by `runATC()`. */
 export interface RunResult {

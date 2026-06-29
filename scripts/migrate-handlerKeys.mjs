@@ -139,6 +139,57 @@ function resolveImportPath(sourceFile, identifierName, specFilePath) {
   return null;
 }
 
+/** 파일 안에서 `const <name> = <init>` 의 initializer 노드를 반환 (kind 무관). 없으면 null. */
+function findConstInitializer(sourceFile, identifierName) {
+  let found = null;
+  function visit(node) {
+    if (found !== null) return;
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        if (
+          ts.isIdentifier(decl.name) &&
+          decl.name.text === identifierName &&
+          decl.initializer !== undefined
+        ) {
+          found = decl.initializer;
+          return;
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return found;
+}
+
+/**
+ * factory 이름으로 return object literal 의 키를 추출.
+ * 같은 파일에 정의됐으면 그대로, import 됐으면 해당 모듈을 열어 찾는다.
+ */
+function resolveFactoryKeysByName(factoryName, sf, filePath) {
+  const importedFrom = resolveImportPath(sf, factoryName, filePath);
+  if (importedFrom === null) {
+    const literal = findFactoryReturnObjectLiteral(sf, factoryName);
+    if (literal === null) {
+      throw new Error(`Factory ${factoryName}() not imported and not defined in ${filePath}`);
+    }
+    return extractKeysFromObjectLiteral(literal);
+  }
+  const factorySrc = readFileSync(importedFrom, 'utf8');
+  const factorySf = ts.createSourceFile(
+    importedFrom,
+    factorySrc,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  const literal = findFactoryReturnObjectLiteral(factorySf, factoryName);
+  if (literal === null) {
+    throw new Error(`Factory ${factoryName}() return-object-literal not found in ${importedFrom}`);
+  }
+  return extractKeysFromObjectLiteral(literal);
+}
+
 /** 메인 추출: spec.ts → step.id 배열. */
 function extractHandlerKeysForSpec(specPath) {
   const src = readFileSync(specPath, 'utf8');
@@ -189,15 +240,46 @@ function extractHandlerKeysForSpec(specPath) {
     return extractKeysFromObjectLiteral(handlersArg);
   }
 
-  // 2b) Identifier (shorthand 또는 명시) — 같은 파일의 const 정의 찾기.
+  // 2b) Identifier (shorthand 또는 명시) — const 정의를 추적.
   if (ts.isIdentifier(handlersArg)) {
-    const literal = findHandlersConstObjectLiteral(sf, handlersArg.text);
-    if (literal === null) {
-      throw new Error(
-        `Identifier '${handlersArg.text}' used as handlers but no const ${handlersArg.text} = { ... } in ${specPath}`,
-      );
+    const name = handlersArg.text;
+
+    // 2b-1) 같은 파일 const = object literal.
+    const literal = findHandlersConstObjectLiteral(sf, name);
+    if (literal !== null) {
+      return extractKeysFromObjectLiteral(literal);
     }
-    return extractKeysFromObjectLiteral(literal);
+
+    // 2b-2) 같은 파일 const = factory 호출 (e.g. const handlers = buildReconnectHandlers({...})).
+    const init = findConstInitializer(sf, name);
+    if (init !== null && ts.isCallExpression(init) && ts.isIdentifier(init.expression)) {
+      return resolveFactoryKeysByName(init.expression.text, sf, specPath);
+    }
+
+    // 2b-3) import 된 식별자 — 모듈을 열어 export const = object literal / factory 추적.
+    const importedFrom = resolveImportPath(sf, name, specPath);
+    if (importedFrom !== null) {
+      const modSrc = readFileSync(importedFrom, 'utf8');
+      const modSf = ts.createSourceFile(
+        importedFrom,
+        modSrc,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TS,
+      );
+      const modLit = findHandlersConstObjectLiteral(modSf, name);
+      if (modLit !== null) {
+        return extractKeysFromObjectLiteral(modLit);
+      }
+      const modInit = findConstInitializer(modSf, name);
+      if (modInit !== null && ts.isCallExpression(modInit) && ts.isIdentifier(modInit.expression)) {
+        return resolveFactoryKeysByName(modInit.expression.text, modSf, importedFrom);
+      }
+    }
+
+    throw new Error(
+      `Identifier '${name}' used as handlers but no resolvable const/import in ${specPath}`,
+    );
   }
 
   // 2c) CallExpression — factory. e.g. makeCollectHandlers()
@@ -206,33 +288,7 @@ function extractHandlerKeysForSpec(specPath) {
     if (!ts.isIdentifier(callee)) {
       throw new Error(`Non-identifier factory in ${specPath}`);
     }
-    const factoryName = callee.text;
-    const importedFrom = resolveImportPath(sf, factoryName, specPath);
-    if (importedFrom === null) {
-      // 같은 파일 안에 정의된 factory 일 수도.
-      const literal = findFactoryReturnObjectLiteral(sf, factoryName);
-      if (literal === null) {
-        throw new Error(
-          `Factory ${factoryName}() not imported and not defined in ${specPath}`,
-        );
-      }
-      return extractKeysFromObjectLiteral(literal);
-    }
-    const factorySrc = readFileSync(importedFrom, 'utf8');
-    const factorySf = ts.createSourceFile(
-      importedFrom,
-      factorySrc,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TS,
-    );
-    const literal = findFactoryReturnObjectLiteral(factorySf, factoryName);
-    if (literal === null) {
-      throw new Error(
-        `Factory ${factoryName}() return-object-literal not found in ${importedFrom}`,
-      );
-    }
-    return extractKeysFromObjectLiteral(literal);
+    return resolveFactoryKeysByName(callee.text, sf, specPath);
   }
 
   throw new Error(
