@@ -454,88 +454,119 @@ interface CollectedGroup {
  * 옵션 id(option_input_<id>)로 dedup 하므로 mount/unmount 와 무관하게 전수 확보.
  */
 async function collectAllOptions(page: Page): Promise<CollectedGroup[]> {
-  await page.evaluate(scrollOptionContainersToTopFn).catch(() => undefined);
-  await page.waitForTimeout(400);
-  const acc = new Map<string, { order: number; units: string[]; options: Map<string, string> }>();
-  let orderSeq = 0;
-  for (let s = 0; s < 40; s += 1) {
-    const snap = await page.evaluate(() => {
-      const norm = (x: string | null): string => (x ?? '').trim();
-      const yOf = (el: Element): number => el.getBoundingClientRect().y;
-      const nameInputs = (
-        Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
-      ).filter((i) => {
-        const c = i.getAttribute('class') ?? '';
-        return /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
-      });
-      const gMeta = nameInputs.map((ni) => ({
-        key: (ni.getAttribute('class') ?? '').match(/option-group-([^\s]+)/)?.[1] ?? '',
-        y: yOf(ni),
-      }));
-      const keyByY = (y: number): string => {
-        let k = gMeta[0]?.key ?? '';
-        for (const g of gMeta) if (g.y <= y) k = g.key;
-        return k;
-      };
-      const unitsByKey: Record<string, string[]> = {};
-      const leaves = Array.from(document.querySelectorAll('*')).filter((e) => e.children.length === 0);
-      for (let i = 0; i < leaves.length; i += 1) {
-        if (norm(leaves[i].textContent) !== '입력 가능한 옵션') continue;
-        for (let j = i + 1; j < Math.min(i + 5, leaves.length); j += 1) {
-          const t = norm(leaves[j].textContent);
-          if (t.length > 0) {
-            unitsByKey[keyByY(yOf(leaves[i]))] = t
-              .split(',')
-              .map((u) => u.trim())
-              .filter((u) => u.length > 0);
-            break;
-          }
+  // 그룹 키를 DOM 순서로 확보 (name input).
+  const keys = await page.evaluate(() => {
+    const isNI = (el: Element): boolean => {
+      const c = el.getAttribute('class') ?? '';
+      return (
+        el.tagName === 'INPUT' &&
+        /(^|\s)option-group-[0-9a-f]/.test(c) &&
+        !c.includes('option-group-active')
+      );
+    };
+    return (Array.from(document.querySelectorAll('input')) as HTMLInputElement[])
+      .filter(isNI)
+      .map((ni) => (ni.getAttribute('class') ?? '').match(/option-group-([^\s]+)/)?.[1] ?? '')
+      .filter((k) => k.length > 0);
+  });
+
+  const groups: CollectedGroup[] = [];
+  for (const key of keys) {
+    // 옵션 행은 viewport 기준 IntersectionObserver 로 가상화된다(sesame SortableOptionWithIntersection).
+    // window/컨테이너 스크롤만으론 화면 밖 그룹(수량 등)이 viewport 에 안 들어와 영영 렌더 안 됨.
+    // 그룹 헤더를 scrollIntoViewIfNeeded 로 viewport 에 넣어(=Playwright 가 올바른 스크롤 컨테이너 처리)
+    // 렌더를 트리거한 뒤, 이 그룹 컨테이너를 내부 스크롤하며 `option_input_<key>:` 를 전수 수집.
+    await page
+      .locator(`input[class*="option-group-${key}"]`)
+      .first()
+      .scrollIntoViewIfNeeded()
+      .catch(() => undefined);
+    await page.evaluate(bringGroupToTopFn, key).catch(() => undefined);
+    await page.waitForTimeout(600);
+    await page.evaluate(scrollOneGroupContainerToTopFn, key).catch(() => undefined);
+    await page.waitForTimeout(300);
+
+    const optMap = new Map<string, string>();
+    for (let s = 0; s < 25; s += 1) {
+      // 그룹2(추가된 그룹) 옵션은 className 이 `option_input_<uuid>`(그룹 접두사 없음)이고,
+      // 그룹1(원본 수집) 은 `option_input_<groupId>:<uuid>` 다. 접두사에 의존하지 말고 **그룹 카드
+      // DOM 소속** 으로 옵션을 수집한다 (name input → 카드 → 카드 안 option_input).
+      const snap = await page.evaluate((k: string) => {
+        const norm = (x: string | null): string => (x ?? '').trim();
+        const isNI = (el: Element): boolean => {
+          const c = el.getAttribute('class') ?? '';
+          return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+        };
+        const ni = Array.from(document.querySelectorAll('input')).find((i) =>
+          (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${k}`),
+        );
+        let card: Element | null = ni?.parentElement ?? null;
+        for (let up = 0; up < 14 && card !== null; up += 1) {
+          const parent: Element | null = card.parentElement;
+          if (parent && Array.from(parent.querySelectorAll('input')).filter(isNI).length > 1) break;
+          card = parent;
         }
-      }
-      const opts = (
-        Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
-      ).filter((i) => /(^|\s)option_input_/.test(i.getAttribute('class') ?? ''));
-      const optList = opts.map((i) => ({
-        id: (i.getAttribute('class') ?? '').match(/option_input_(\S+)/)?.[1] ?? '',
-        value: norm(i.value),
-        groupKey: keyByY(yOf(i)),
-      }));
-      return { groupKeys: gMeta.map((g) => g.key), unitsByKey, optList };
-    });
-    for (const k of snap.groupKeys) {
-      if (k.length > 0 && !acc.has(k)) acc.set(k, { order: orderSeq++, units: [], options: new Map() });
+        if (card === null) return [] as Array<{ id: string; value: string }>;
+        return (Array.from(card.querySelectorAll('input')) as HTMLInputElement[])
+          .filter((i) => /(^|\s)option_input_/.test(i.getAttribute('class') ?? ''))
+          .map((i) => ({
+            id: (i.getAttribute('class') ?? '').match(/option_input_([^\s]+)/)?.[1] ?? '',
+            value: norm(i.value),
+          }));
+      }, key);
+      for (const o of snap) if (o.id.length > 0) optMap.set(o.id, o.value);
+      const moved = await page.evaluate(stepScrollOneGroupContainerFn, key);
+      await page.waitForTimeout(250);
+      if (!moved) break;
     }
-    for (const [k, u] of Object.entries(snap.unitsByKey)) {
-      const g = acc.get(k);
-      if (g && u.length > 0) g.units = u;
-    }
-    for (const o of snap.optList) {
-      const g = acc.get(o.groupKey);
-      if (g && o.id.length > 0) g.options.set(o.id, o.value);
-    }
-    const moved = await page.evaluate(stepScrollOptionContainersFn);
-    await page.waitForTimeout(500);
-    if (!moved) break;
-  }
-  return [...acc.entries()]
-    .sort((a, b) => a[1].order - b[1].order)
-    .map(([key, g]) => ({
+    groups.push({
       key,
-      units: g.units,
-      options: [...g.options.entries()].map(([id, value]) => ({ id, value })),
-    }));
+      units: [],
+      options: [...optMap.entries()].map(([id, value]) => ({ id, value })),
+    });
+  }
+
+  // 단위(입력 가능한 옵션)는 그룹 카드 DOM 구간 기반으로 권위있게 읽는다(keyByY 미의존).
+  const unitMap = await page.evaluate(readGroupUnitsFn);
+  for (const g of groups) {
+    if (unitMap[g.key] !== undefined) g.units = unitMap[g.key];
+  }
+  return groups;
 }
 
 /** 가상화된 옵션 input(option_input_<id>)을 렌더될 때까지 스크롤로 찾아 value 로 채운다. */
-async function scrollAndFillOption(page: Page, id: string, value: string): Promise<boolean> {
+async function scrollAndFillOption(page: Page, groupKey: string, id: string, value: string): Promise<boolean> {
   const sel = `input[class*="option_input_${id}"]`;
-  for (let s = 0; s < 40; s += 1) {
+  // 옵션 행은 viewport 기준 가상화 — 그룹 key 로 그룹 헤더를 먼저 viewport 상단에 넣어야 그 그룹 옵션
+  // 컨테이너가 렌더된다(그룹2 옵션 id 는 그룹 접두사가 없어 id 로 그룹 추론 불가 → key 명시 필수).
+  const gk = groupKey;
+  if (gk.length > 0) {
+    await page
+      .locator(`input[class*="option-group-${gk}"]`)
+      .first()
+      .scrollIntoViewIfNeeded()
+      .catch(() => undefined);
+    await page.evaluate(bringGroupToTopFn, gk).catch(() => undefined);
+    await page.waitForTimeout(400);
+    await page.evaluate(scrollOneGroupContainerToTopFn, gk).catch(() => undefined);
+    await page.waitForTimeout(200);
+  }
+  for (let s = 0; s < 20; s += 1) {
     if ((await page.locator(sel).count()) > 0) break;
-    const moved = await page.evaluate(stepScrollOptionContainersFn);
-    await page.waitForTimeout(350);
+    let moved: boolean;
+    if (gk.length > 0) {
+      moved = await page.evaluate(stepScrollOneGroupContainerFn, gk);
+    } else {
+      moved = await page.evaluate(stepScrollOptionContainersFn);
+    }
+    await page.waitForTimeout(250);
     if (!moved) {
-      await page.evaluate(scrollOptionContainersToTopFn).catch(() => undefined);
-      await page.waitForTimeout(300);
+      if (gk.length > 0) {
+        await page.evaluate(scrollOneGroupContainerToTopFn, gk).catch(() => undefined);
+      } else {
+        await page.evaluate(scrollOptionContainersToTopFn).catch(() => undefined);
+      }
+      await page.waitForTimeout(250);
     }
   }
   const loc = page.locator(sel).first();
@@ -547,7 +578,7 @@ async function scrollAndFillOption(page: Page, id: string, value: string): Promi
   await loc.click();
   await loc.fill(value);
   await loc.press('Tab');
-  await page.waitForTimeout(2_500);
+  await page.waitForTimeout(1_200);
   logger.info(`[fill] 옵션 → ${value}`);
   return true;
 }
@@ -591,25 +622,41 @@ async function fixOptionValues(page: Page): Promise<number> {
       fixes.push({ id: opt.id, value });
     }
     for (const f of fixes) {
-      const ok = await scrollAndFillOption(page, f.id, f.value);
+      const ok = await scrollAndFillOption(page, g.key, f.id, f.value);
       if (ok) applied += 1;
     }
   }
   return applied;
 }
 
-/** 브라우저 컨텍스트 실행용 — option_input_ 의 overflow 스크롤 컨테이너들을 맨 위로. */
+/**
+ * 브라우저 컨텍스트 실행용 — 옵션 리스트 스크롤 컨테이너(sesame OptionListContainer, overflow:auto
+ * max-height:480px)를 맨 위로. 기존엔 이미 렌더된 option_input 에서 조상을 거슬러 컨테이너를 찾아,
+ * 가상화로 아무 행도 안 뜬 그룹(화면 밖 수량 그룹 등)의 컨테이너를 못 찾는 닭-달걀 문제가 있었다.
+ * name input → 그룹 카드 → 카드 안 overflow 스크롤 div 로 렌더 여부와 무관하게 찾는다.
+ */
 function scrollOptionContainersToTopFn(): void {
-  const opts = Array.from(document.querySelectorAll('input[class*="option_input_"]')) as HTMLElement[];
+  const isGroupNameInput = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+  };
+  const nameInputs = Array.from(document.querySelectorAll('input')).filter(isGroupNameInput);
   const containers = new Set<HTMLElement>();
-  for (const o of opts) {
-    let el: HTMLElement | null = o.parentElement;
-    while (el !== null) {
-      if (el.scrollHeight > el.clientHeight + 5 && getComputedStyle(el).overflowY !== 'visible') {
-        containers.add(el);
-        break;
-      }
-      el = el.parentElement;
+  for (const ni of nameInputs) {
+    let card: Element | null = ni.parentElement;
+    for (let up = 0; up < 14 && card !== null; up += 1) {
+      const parent: Element | null = card.parentElement;
+      if (parent && Array.from(parent.querySelectorAll('input')).filter(isGroupNameInput).length > 1) break;
+      card = parent;
+    }
+    if (card === null) continue;
+    // getComputedStyle 을 카드 전 descendant 에 부르면 매우 느리다(타임아웃). 먼저 값싼
+    // scrollHeight>clientHeight 로 스크롤 가능 후보만 추린 뒤, 그 소수에만 getComputedStyle 로
+    // overflow:auto/scroll(진짜 OptionListContainer) 을 확인 — 정확성(그룹2 컨테이너 포착)+속도 둘 다.
+    for (const d of Array.from(card.querySelectorAll('*')) as HTMLElement[]) {
+      if (d.scrollHeight <= d.clientHeight + 5) continue;
+      const oy = getComputedStyle(d).overflowY;
+      if (oy === 'auto' || oy === 'scroll') containers.add(d);
     }
   }
   containers.forEach((c) => {
@@ -619,16 +666,27 @@ function scrollOptionContainersToTopFn(): void {
 
 /** 브라우저 컨텍스트 실행용 — 옵션 컨테이너 + 윈도우를 한 스텝 내림. 더 못 내려가면 false. */
 function stepScrollOptionContainersFn(): boolean {
-  const opts = Array.from(document.querySelectorAll('input[class*="option_input_"]')) as HTMLElement[];
+  const isGroupNameInput = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+  };
+  const nameInputs = Array.from(document.querySelectorAll('input')).filter(isGroupNameInput);
   const containers = new Set<HTMLElement>();
-  for (const o of opts) {
-    let el: HTMLElement | null = o.parentElement;
-    while (el !== null) {
-      if (el.scrollHeight > el.clientHeight + 5 && getComputedStyle(el).overflowY !== 'visible') {
-        containers.add(el);
-        break;
-      }
-      el = el.parentElement;
+  for (const ni of nameInputs) {
+    let card: Element | null = ni.parentElement;
+    for (let up = 0; up < 14 && card !== null; up += 1) {
+      const parent: Element | null = card.parentElement;
+      if (parent && Array.from(parent.querySelectorAll('input')).filter(isGroupNameInput).length > 1) break;
+      card = parent;
+    }
+    if (card === null) continue;
+    // getComputedStyle 을 카드 전 descendant 에 부르면 매우 느리다(타임아웃). 먼저 값싼
+    // scrollHeight>clientHeight 로 스크롤 가능 후보만 추린 뒤, 그 소수에만 getComputedStyle 로
+    // overflow:auto/scroll(진짜 OptionListContainer) 을 확인 — 정확성(그룹2 컨테이너 포착)+속도 둘 다.
+    for (const d of Array.from(card.querySelectorAll('*')) as HTMLElement[]) {
+      if (d.scrollHeight <= d.clientHeight + 5) continue;
+      const oy = getComputedStyle(d).overflowY;
+      if (oy === 'auto' || oy === 'scroll') containers.add(d);
     }
   }
   let moved = false;
@@ -641,6 +699,138 @@ function stepScrollOptionContainersFn(): boolean {
   window.scrollBy(0, Math.round(window.innerHeight * 0.6));
   if (window.scrollY !== wy) moved = true;
   return moved;
+}
+
+/**
+ * 브라우저 컨텍스트 실행용 — key 그룹 헤더(name input)를 viewport **상단** 으로 끌어온다.
+ * scrollIntoViewIfNeeded 는 헤더를 viewport 하단 가장자리에 정렬해 그 아래 480px 옵션 컨테이너가 화면
+ * 밖에 남아 가상화 행이 안 뜬다. ni 의 모든 조상 스크롤 컨테이너 + 윈도우를 조정해 ni 를 top~120px 에 둔다.
+ */
+function bringGroupToTopFn(key: string): void {
+  const isNI = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+  };
+  const ni = Array.from(document.querySelectorAll('input')).find((i) =>
+    (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
+  );
+  if (!ni) return;
+  let el: Element | null = (ni as HTMLElement).parentElement;
+  while (el !== null) {
+    const cs = getComputedStyle(el);
+    if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 5) {
+      const niTop = ni.getBoundingClientRect().top;
+      const elTop = el.getBoundingClientRect().top;
+      el.scrollTop += niTop - elTop - 20;
+    }
+    el = el.parentElement;
+  }
+  window.scrollBy(0, ni.getBoundingClientRect().top - 120);
+}
+
+/** 브라우저 컨텍스트 실행용 — key 그룹의 옵션 리스트 스크롤 컨테이너만 맨 위로. */
+function scrollOneGroupContainerToTopFn(key: string): void {
+  const isNI = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+  };
+  const ni = Array.from(document.querySelectorAll('input')).find((i) =>
+    (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
+  );
+  if (!ni) return;
+  let card: Element | null = ni.parentElement;
+  for (let up = 0; up < 14 && card !== null; up += 1) {
+    const parent: Element | null = card.parentElement;
+    if (parent && Array.from(parent.querySelectorAll('input')).filter(isNI).length > 1) break;
+    card = parent;
+  }
+  if (card === null) return;
+  // prefilter(scrollHeight>clientHeight) 없이 overflow 만으로 감지 — 아직 행이 안 뜬(=스크롤 불가)
+  // 컨테이너도 잡아야 bootstrap 된다(스크롤→viewport 진입→행 렌더→다음 스텝 스크롤 가능). per-group 이라 스캔 범위 작음.
+  for (const d of Array.from(card.querySelectorAll('*')) as HTMLElement[]) {
+    const oy = getComputedStyle(d).overflowY;
+    if (oy === 'auto' || oy === 'scroll') d.scrollTop = 0;
+  }
+}
+
+/** 브라우저 컨텍스트 실행용 — key 그룹의 옵션 리스트 컨테이너를 한 스텝 내림. 더 못 내려가면 false. */
+function stepScrollOneGroupContainerFn(key: string): boolean {
+  const isNI = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+  };
+  const ni = Array.from(document.querySelectorAll('input')).find((i) =>
+    (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
+  );
+  if (!ni) return false;
+  let card: Element | null = ni.parentElement;
+  for (let up = 0; up < 14 && card !== null; up += 1) {
+    const parent: Element | null = card.parentElement;
+    if (parent && Array.from(parent.querySelectorAll('input')).filter(isNI).length > 1) break;
+    card = parent;
+  }
+  if (card === null) return false;
+  let moved = false;
+  for (const d of Array.from(card.querySelectorAll('*')) as HTMLElement[]) {
+    const oy = getComputedStyle(d).overflowY;
+    if (oy !== 'auto' && oy !== 'scroll') continue;
+    const before = d.scrollTop;
+    d.scrollTop = Math.min(d.scrollTop + Math.max(d.clientHeight * 0.6, 120), d.scrollHeight);
+    if (d.scrollTop !== before) moved = true;
+  }
+  return moved;
+}
+
+/**
+ * 브라우저 컨텍스트 실행용 — 각 옵션그룹 카드의 "입력 가능한 옵션" 단위(개/박스/세트 등)를 그룹 key 별로 읽는다.
+ * 전역 y좌표(keyByY)에 의존하면 가상화·스크롤 타이밍 때문에 수량 그룹의 단위를 통째로 놓쳐(units=[]) 옵션값이
+ * 알파벳으로 남는 문제가 있었다. 대신 각 그룹 name input 에서 조상으로 올라가되 다른 그룹 name input 을
+ * 포함하기 직전(= 그 그룹 카드)에서만 라벨을 찾아 자기 카드의 단위만 정확히 귀속한다.
+ */
+function readGroupUnitsFn(): Record<string, string[]> {
+  const norm = (s: string | null): string => (s ?? '').trim();
+  const isGroupNameInput = (el: Element): boolean => {
+    const c = el.getAttribute('class') ?? '';
+    return (
+      el.tagName === 'INPUT' &&
+      /(^|\s)option-group-[0-9a-f]/.test(c) &&
+      !c.includes('option-group-active')
+    );
+  };
+  const nameInputs = Array.from(document.querySelectorAll('input')).filter(isGroupNameInput);
+  const out: Record<string, string[]> = {};
+  for (const ni of nameInputs) {
+    const key = (ni.getAttribute('class') ?? '').match(/option-group-([^\s]+)/)?.[1] ?? '';
+    if (key.length === 0) continue;
+    let el: Element | null = ni.parentElement;
+    let units: string[] = [];
+    for (let up = 0; up < 10 && el !== null; up += 1) {
+      if (Array.from(el.querySelectorAll('input')).filter(isGroupNameInput).length > 1) break;
+      const label = Array.from(el.querySelectorAll('*')).find(
+        (e) => e.children.length === 0 && norm(e.textContent) === '입력 가능한 옵션',
+      );
+      if (label) {
+        const parent = label.parentElement;
+        const sibLeaves = parent
+          ? Array.from(parent.querySelectorAll('*')).filter((e) => e.children.length === 0)
+          : [];
+        for (let j = sibLeaves.indexOf(label) + 1; j > 0 && j < sibLeaves.length; j += 1) {
+          const t = norm(sibLeaves[j].textContent);
+          if (t.length > 0) {
+            units = t
+              .split(',')
+              .map((u) => u.trim())
+              .filter((u) => u.length > 0);
+            break;
+          }
+        }
+        break;
+      }
+      el = el.parentElement;
+    }
+    out[key] = units;
+  }
+  return out;
 }
 
 /**
@@ -706,11 +896,11 @@ async function fillGroups(page: Page): Promise<void> {
   await applyAZToAllGroups(page);
   // 3) 옵션값 전역 보정 — A-Z 후에도 남는 쿠팡 단위형식 위반/중복/빈값을 그룹 전역 고유값으로 교체.
   //    가상화로 숨은 옵션까지 전수 수집. race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
-  for (let round = 0; round < 5; round += 1) {
+  for (let round = 0; round < 3; round += 1) {
     const fixes = await fixOptionValues(page);
     if (fixes === 0) break;
     logger.info(`[fill] 옵션값 라운드 ${round + 1}: ${fixes}건 수정 — 재수집/재검사`);
-    await page.waitForTimeout(3_000);
+    await page.waitForTimeout(1_500);
   }
 }
 
