@@ -131,13 +131,16 @@ export type WaitUploadResult =
   | { ok: false; error_key: string; message: string; result: UploadResult };
 
 /**
- * 업로드 진행 모달의 "성공" / "실패" leaf-text 가 안정화될 때까지 polling.
+ * 업로드 완료를 두 신호로 감지 — (a) 진행 모달의 마켓별 "성공"/"실패" leaf-text,
+ * (b) 우하단 토스트("업로드 완료/성공/실패").
  *
- * - 안정화 = total (성공+실패) 변화 없고 spinning 0 인 cycle 3회 (≈ 9초).
- * - timeoutMs 안에 안정화 안 되면 fail.
- * - 안정화 후 success ≥ 1 이면 ok, 모두 fail 이면 fail.
+ * - 안정화 = total (성공+실패) 변화 없고 spinning 0 인 cycle 3회.
+ * - 토스트 성공/실패가 뜨면 즉시 break.
+ * - 진행 모달이 결과 행을 안 남기고 토스트만 띄우는 최신 UI 케이스를 (b) 가 커버한다
+ *   (2026-07 batch #11 upload_timeout 원인: text-only 감지가 토스트를 놓침).
+ * - timeoutMs 안에 두 신호 모두 미검출이면 upload_timeout.
  *
- * 모달 close 는 호출자가 알아서 (수집상품으로 가기 / 확인 / 닫기 등).
+ * 모달 close 는 호출자가 closeUploadResultModal 로 처리.
  */
 export async function waitUploadComplete(
   page: Page,
@@ -145,7 +148,16 @@ export async function waitUploadComplete(
 ): Promise<WaitUploadResult> {
   const timeoutMs = opts.timeoutMs ?? 240_000;
 
-  const measure = async (): Promise<{ success: number; fail: number; spinning: number }> => {
+  type Snapshot = {
+    success: number;
+    fail: number;
+    spinning: number;
+    toastSuccess: boolean;
+    toastFail: boolean;
+    toastText: string;
+  };
+
+  const measure = async (): Promise<Snapshot> => {
     return page.evaluate(() => {
       let success = 0;
       let fail = 0;
@@ -168,17 +180,48 @@ export async function waitUploadComplete(
         const r = el.getBoundingClientRect();
         if (r.width >= 6 && r.width <= 64) spinning += 1;
       }
-      return { success, fail, spinning };
+      // 우하단 토스트 — 진행 모달이 결과 행을 안 남기는 최신 UI 대비.
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let toastText = '';
+      let toastSuccess = false;
+      let toastFail = false;
+      for (const el of all) {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        if (r.x < vw * 0.5) continue;
+        if (r.y < vh * 0.7) continue;
+        const cs = window.getComputedStyle(el as HTMLElement);
+        if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+        const txt = (el.textContent ?? '').trim();
+        if (txt.length === 0 || txt.length > 80) continue;
+        if (/업로드\s*(완료|성공)/.test(txt)) {
+          toastSuccess = true;
+          toastText = txt;
+        } else if (/업로드\s*(실패|에러)|업로드.*확인\s*필요/.test(txt)) {
+          toastFail = true;
+          toastText = txt;
+        }
+      }
+      return { success, fail, spinning, toastSuccess, toastFail, toastText };
     });
   };
 
-  await page.waitForTimeout(5_000);
+  await page.waitForTimeout(3_000);
   const start = Date.now();
   let stableTicks = 0;
   let lastTotal = -1;
-  let last = { success: 0, fail: 0, spinning: 0 };
+  let last: Snapshot = {
+    success: 0,
+    fail: 0,
+    spinning: 0,
+    toastSuccess: false,
+    toastFail: false,
+    toastText: '',
+  };
   while (Date.now() - start < timeoutMs) {
     const cur = await measure();
+    last = cur;
     const total = cur.success + cur.fail;
     if (total === lastTotal && total > 0 && cur.spinning === 0) {
       stableTicks += 1;
@@ -186,20 +229,15 @@ export async function waitUploadComplete(
       stableTicks = 0;
     }
     lastTotal = total;
-    last = cur;
     if (stableTicks >= 3) break;
-    await page.waitForTimeout(3_000);
+    if (cur.toastSuccess || cur.toastFail) break;
+    await page.waitForTimeout(2_000);
   }
 
-  if (last.success === 0 && last.fail === 0) {
-    return {
-      ok: false,
-      error_key: 'upload_timeout',
-      message: `${Math.round(timeoutMs / 1000)}초 안에 모달의 성공/실패 텍스트 검출 실패`,
-      result: { success: 0, fail: 0 },
-    };
+  if (last.success > 0) {
+    return { ok: true, result: { success: last.success, fail: last.fail } };
   }
-  if (last.success === 0) {
+  if (last.fail > 0 && last.success === 0) {
     return {
       ok: false,
       error_key: 'upload_failed',
@@ -207,13 +245,31 @@ export async function waitUploadComplete(
       result: { success: 0, fail: last.fail },
     };
   }
-  return { ok: true, result: { success: last.success, fail: last.fail } };
+  if (last.toastSuccess) {
+    return { ok: true, result: { success: 0, fail: 0 } };
+  }
+  if (last.toastFail) {
+    return {
+      ok: false,
+      error_key: 'upload_failed',
+      message: `토스트(실패): ${last.toastText}`,
+      result: { success: 0, fail: 0 },
+    };
+  }
+  return {
+    ok: false,
+    error_key: 'upload_timeout',
+    message: `${Math.round(timeoutMs / 1000)}초 안에 진행 모달/토스트 모두 미검출`,
+    result: { success: 0, fail: 0 },
+  };
 }
 
 /** 업로드 결과 모달의 close 버튼 클릭 시도 (없으면 silently skip). */
 export async function closeUploadResultModal(page: Page): Promise<void> {
   const closeBtn = page
-    .getByRole('button', { name: /수집상품\s*메뉴로\s*가기|^확인$|^닫기$/ })
+    .getByRole('button', {
+      name: /수집상품\s*메뉴로\s*가기|등록상품\s*메뉴로\s*가기|^확인$|^닫기$/,
+    })
     .first();
   if (
     (await closeBtn.count()) > 0 &&

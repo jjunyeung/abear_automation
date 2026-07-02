@@ -14,7 +14,12 @@ import {
   openFirstSearchResult,
   searchByProductCode,
 } from '../../lib/windly-actions';
-import { detectUploadBlockReason, dismissBlockModal } from '../../lib/upload-actions';
+import {
+  closeUploadResultModal,
+  detectUploadBlockReason,
+  dismissBlockModal,
+  waitUploadComplete,
+} from '../../lib/upload-actions';
 
 const openCollectedListStep: StepHandler = async (page, _inputs) => {
   await goToCollectedProducts(page);
@@ -126,76 +131,16 @@ const triggerUploadStep: StepHandler = async (page, _inputs) => {
 };
 
 const waitUploadCompleteStep: StepHandler = async (page, _inputs) => {
-  const measure = async (): Promise<{ success: number; fail: number; spinning: number }> => {
-    return page.evaluate(() => {
-      let success = 0;
-      let fail = 0;
-      let spinning = 0;
-      const all = Array.from(document.querySelectorAll('*'));
-      for (const el of all) {
-        if (el.children.length > 0) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) continue;
-        const cs = window.getComputedStyle(el as HTMLElement);
-        if (cs.visibility === 'hidden' || cs.display === 'none') continue;
-        const txt = (el.textContent ?? '').trim();
-        if (txt === '성공') success += 1;
-        else if (txt === '실패') fail += 1;
-      }
-      for (const el of all) {
-        const cs = window.getComputedStyle(el as HTMLElement);
-        const anim = cs.animationName ?? '';
-        if (!/spin|rotate|loading/i.test(anim)) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width >= 6 && r.width <= 64) spinning += 1;
-      }
-      return { success, fail, spinning };
-    });
+  // 감지 로직은 lib/upload-actions.ts::waitUploadComplete 단일 소스 (모달 성공/실패 행 +
+  // 우하단 토스트 둘 다). 이전엔 여기 인라인 복사본이 토스트를 못 잡아 upload_timeout 오탐.
+  const r = await waitUploadComplete(page, { timeoutMs: 240_000 });
+  await closeUploadResultModal(page);
+  if (r.ok) return { ok: true as const };
+  return {
+    ok: false as const,
+    error_key: r.error_key as ErrorKey,
+    message: r.message,
   };
-
-  await page.waitForTimeout(5_000);
-  const start = Date.now();
-  let stableTicks = 0;
-  let lastTotal = -1;
-  let last = { success: 0, fail: 0, spinning: 0 };
-  while (Date.now() - start < 240_000) {
-    const cur = await measure();
-    const total = cur.success + cur.fail;
-    if (total === lastTotal && total > 0 && cur.spinning === 0) {
-      stableTicks += 1;
-    } else {
-      stableTicks = 0;
-    }
-    lastTotal = total;
-    last = cur;
-    if (stableTicks >= 3) break;
-    await page.waitForTimeout(3_000);
-  }
-
-  if (last.success === 0 && last.fail === 0) {
-    return {
-      ok: false as const,
-      error_key: 'upload_timeout' as ErrorKey,
-      message: '240초 안에 성공/실패 텍스트 검출 실패',
-    };
-  }
-
-  const closeBtn = page
-    .getByRole('button', { name: /수집상품\s*메뉴로\s*가기|^확인$|^닫기$/ })
-    .first();
-  if ((await closeBtn.count()) > 0 && (await closeBtn.isVisible().catch(() => false))) {
-    await closeBtn.click({ timeout: 5_000 }).catch(() => undefined);
-  }
-  await page.waitForTimeout(800);
-
-  if (last.success === 0) {
-    return {
-      ok: false as const,
-      error_key: 'upload_failed' as ErrorKey,
-      message: `모든 마켓 실패 (성공 0 / 실패 ${last.fail})`,
-    };
-  }
-  return { ok: true as const };
 };
 
 const openRegisteredListStep: StepHandler = async (page, _inputs) => {

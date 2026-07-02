@@ -11,6 +11,7 @@ import type { Page } from '@playwright/test';
 import type { StepHandler } from '../../lib/runner';
 import type { ErrorKey } from '../../lib/errors';
 import { logger } from '../../lib/logger';
+import { closeUploadResultModal, waitUploadComplete } from '../../lib/upload-actions';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 상품명 수정 (기본 + 마켓별 일괄)
@@ -334,127 +335,19 @@ export const confirmUploadModalStep: StepHandler = async (page, _inputs) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const waitUploadCompleteStep: StepHandler = async (page, _inputs) => {
-  type Snapshot = {
-    success: number;
-    fail: number;
-    spinning: number;
-    toastSuccess: boolean;
-    toastFail: boolean;
-    toastText: string;
-  };
-
-  const measure = async (): Promise<Snapshot> => {
-    return page.evaluate(() => {
-      let success = 0;
-      let fail = 0;
-      let spinning = 0;
-      const all = Array.from(document.querySelectorAll('*'));
-      for (const el of all) {
-        if (el.children.length > 0) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) continue;
-        const cs = window.getComputedStyle(el as HTMLElement);
-        if (cs.visibility === 'hidden' || cs.display === 'none') continue;
-        const txt = (el.textContent ?? '').trim();
-        if (txt === '성공') success += 1;
-        else if (txt === '실패') fail += 1;
-      }
-      for (const el of all) {
-        const cs = window.getComputedStyle(el as HTMLElement);
-        const anim = cs.animationName ?? '';
-        if (!/spin|rotate|loading/i.test(anim)) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width >= 6 && r.width <= 64) spinning += 1;
-      }
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      let toastText = '';
-      let toastSuccess = false;
-      let toastFail = false;
-      for (const el of all) {
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) continue;
-        if (r.x < vw * 0.5) continue;
-        if (r.y < vh * 0.7) continue;
-        const cs = window.getComputedStyle(el as HTMLElement);
-        if (cs.visibility === 'hidden' || cs.display === 'none') continue;
-        const txt = (el.textContent ?? '').trim();
-        if (txt.length === 0 || txt.length > 80) continue;
-        if (/업로드\s*(완료|성공)/.test(txt)) {
-          toastSuccess = true;
-          toastText = txt;
-        } else if (/업로드\s*(실패|에러)|업로드.*확인\s*필요/.test(txt)) {
-          toastFail = true;
-          toastText = txt;
-        }
-      }
-      return { success, fail, spinning, toastSuccess, toastFail, toastText };
-    });
-  };
-
-  await page.waitForTimeout(3_000);
-  const start = Date.now();
-  let stableTicks = 0;
-  let lastTotal = -1;
-  let last: Snapshot = {
-    success: 0,
-    fail: 0,
-    spinning: 0,
-    toastSuccess: false,
-    toastFail: false,
-    toastText: '',
-  };
-  while (Date.now() - start < 180_000) {
-    const cur = await measure();
-    last = cur;
-    const total = cur.success + cur.fail;
-    if (total === lastTotal && total > 0 && cur.spinning === 0) {
-      stableTicks += 1;
-    } else {
-      stableTicks = 0;
-    }
-    lastTotal = total;
-    if (stableTicks >= 3) break;
-    if (cur.toastSuccess || cur.toastFail) break;
-    await page.waitForTimeout(2_000);
-  }
+  // 감지 로직은 lib/upload-actions.ts::waitUploadComplete 단일 소스 (모달 성공/실패 행 +
+  // 우하단 토스트 둘 다). 이전엔 이 파일과 upload/_single-product-handlers 에 각각 인라인
+  // 복사본이 있어 후자에 토스트 감지가 빠졌었다 (batch #11 upload_timeout 오탐 원인).
+  const r = await waitUploadComplete(page, { timeoutMs: 180_000 });
   logger.info(
-    `[wait_upload_complete] success=${last.success} fail=${last.fail} ` +
-      `toast="${last.toastText}" toastSuccess=${last.toastSuccess} toastFail=${last.toastFail}`,
+    `[wait_upload_complete] ok=${r.ok} success=${r.result.success} fail=${r.result.fail}`,
   );
-
-  const closeBtn = page
-    .getByRole('button', {
-      name: /수집상품\s*메뉴로\s*가기|등록상품\s*메뉴로\s*가기|^확인$|^닫기$/,
-    })
-    .first();
-  if (
-    (await closeBtn.count()) > 0 &&
-    (await closeBtn.isVisible().catch(() => false))
-  ) {
-    await closeBtn.click({ timeout: 5_000 }).catch(() => undefined);
-  }
-
-  if (last.success > 0) return { ok: true as const };
-  if (last.fail > 0 && last.success === 0) {
-    return {
-      ok: false as const,
-      error_key: 'upload_failed' as ErrorKey,
-      message: `모든 마켓 실패 (성공 0 / 실패 ${last.fail})`,
-    };
-  }
-  if (last.toastSuccess) return { ok: true as const };
-  if (last.toastFail) {
-    return {
-      ok: false as const,
-      error_key: 'upload_failed' as ErrorKey,
-      message: `토스트(실패): ${last.toastText}`,
-    };
-  }
+  await closeUploadResultModal(page);
+  if (r.ok) return { ok: true as const };
   return {
     ok: false as const,
-    error_key: 'upload_timeout' as ErrorKey,
-    message: '180초 안에 진행 모달/토스트 모두 미검출',
+    error_key: r.error_key as ErrorKey,
+    message: r.message,
   };
 };
 
