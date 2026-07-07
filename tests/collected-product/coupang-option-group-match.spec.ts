@@ -22,7 +22,7 @@ const ATC_PATH = join(
   'coupang-option-group-match.atc.yml',
 );
 
-test('쿠팡 추천 옵션그룹명 매칭 (그룹수 맞춤 + 이름 매칭 + 옵션가 기준 선택)', async ({ page }) => {
+test('쿠팡 필수 옵션그룹명 매칭 (태그 매칭 + 필수 추가영역 + 옵션가 기준 선택)', async ({ page }) => {
   test.setTimeout(10 * 60_000);
   const atc = loadATC(ATC_PATH);
   const inputs: Record<string, unknown> = {

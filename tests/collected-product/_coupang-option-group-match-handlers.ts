@@ -7,16 +7,19 @@
  * 쿠팡 카테고리의 mandatory attributes(추천 옵션그룹) 개수에 맞추고 이름을
  * 매칭한 뒤, 옵션가 기준(base SKU)을 선택한다. 업로드는 다음 TC 가 진행.
  *
- * 매칭 전략(2026-06 개정): 의미 추론(색상/수량 자동 판별) 대신 결정적 순서 매칭.
- *   1) 그룹 수를 추천 수에 맞춤 (부족 → 추가 / 초과 → 미매칭 삭제)
- *   2) 추천 태그를 순서대로 클릭 — 첫 추천 → 그룹1, 둘째 추천 → 그룹2 (assignByOrder)
- *   3) 그룹명을 "그룹 N" 중립 라벨로 변경 (renameGroupsSequential) — 라벨기반 오검사 차단
- *   4) 옵션값을 단위형식·고유성 기준 자동보정 (fixOptionValues)
+ * 매칭 전략(2026-07 UI 개정):
+ *   쿠팡이 "추천"을 "필수"로 강제. 사용 토글이 사라져 매칭 행이 상시 노출됨.
+ *   그룹 add/delete 로 개수를 맞추던 방식도 폐기 — 부족분은 별도 "쿠팡 필수 옵션그룹 추가"
+ *   영역이 자동으로 뜨고, 거기에 옵션값(아무 숫자)만 넣으면 된다.
+ *   1) 매칭 행 렌더 대기 (쿠팡 카테고리 fetch race). 없으면 쿠팡 미타겟/필수 없음.
+ *   2) 필수 태그를 그룹에 매칭 — 윈들리 자동매칭(info)은 유지, 미선택 그룹만 남는 이름을 채움.
+ *   3) "쿠팡 필수 옵션그룹 추가" 영역이 있으면(필수 수 > 내 그룹 수) 옵션값에 아무 숫자 입력.
+ *   4) 실제 그룹 옵션값을 A-Z 정규화 + 단위형식·고유성 자동보정 (fixOptionValues).
  *
  * sesame UI 출처:
- *   - OptionTab.tsx: "옵션그룹 추가" 버튼, deleteOptionGroups(모달 "옵션 그룹 삭제")
- *   - ActiveOptionToggle.tsx: Toggle label "쿠팡의 추천 옵션그룹명 사용" (input[type=checkbox])
- *   - OptionGroup.tsx: 그룹별 "쿠팡의 추천 옵션그룹명" 행 + 추천 Tag(div, class info|default)
+ *   - OptionGroup.tsx: 그룹별 "쿠팡 필수 옵션그룹명 매칭" 행 + 필수 Tag(div, class info|default)
+ *     (info = 선택/매칭됨, default = 미선택)
+ *   - "쿠팡 필수 옵션그룹 추가": 미충족 필수명 + 옵션값 input(placeholder="옵션을 입력하세요")
  *   - SalesPriceTable: "옵션가 기준" 컬럼 = input[type=radio]
  */
 
@@ -37,10 +40,17 @@ import {
 import { emitOutput } from '../../lib/atc-output';
 import { logger } from '../../lib/logger';
 
-const RECOMMEND_TOGGLE_LABEL = '쿠팡의 추천 옵션그룹명 사용';
-const RECOMMEND_SECTION_TEXT = '쿠팡의 추천 옵션그룹명';
-const ADD_GROUP_BUTTON = '옵션그룹 추가';
-const DELETE_GROUP_CONFIRM = '옵션 그룹 삭제';
+// 2026-07 UI 개정: 토글 폐기(무조건 필수). 그룹별 매칭 행 라벨이 아래로 바뀜.
+const MANDATORY_MATCH_LABEL = '쿠팡 필수 옵션그룹명 매칭';
+// "쿠팡 필수 옵션그룹 추가" 영역의 옵션값 input placeholder.
+// 필수명 타입에 따라 placeholder 가 다르다:
+//   - 문자형(사이즈 등) = "옵션을 입력하세요"
+//   - 숫자+단위형(개당 수량/수량 등) = "숫자를 입력하세요" (단위 radio 는 첫 항목 기본 선택돼 있음)
+// 둘 다 아무 숫자를 넣으면 됨. 일반 옵션행(옵션명을 입력하세요)과는 placeholder 로 구분된다.
+const ADD_SECTION_OPTION_PLACEHOLDERS = ['옵션을 입력하세요', '숫자를 입력하세요'] as const;
+const ADD_SECTION_INPUT_SELECTOR = ADD_SECTION_OPTION_PLACEHOLDERS.map(
+  (p) => `input[placeholder="${p}"]`,
+).join(', ');
 
 /**
  * 추천 옵션그룹명 중 "(택N)" 묶음은 택일 — 같은 N 은 첫 항목만 채택, prefix 없는 건 전부 유지.
@@ -144,62 +154,29 @@ const openOptionTabStep: StepHandler = async (page) => {
   return { ok: true as const };
 };
 
-/** 그룹별 추천 옵션그룹명 행이 노출돼 있으면 토글 ON 상태. */
-async function isRecommendSectionVisible(page: Page): Promise<boolean> {
+/** 그룹별 "쿠팡 필수 옵션그룹명 매칭" 행이 렌더돼 있으면 true. */
+async function isMandatorySectionVisible(page: Page): Promise<boolean> {
   return page.evaluate((sectionText: string) => {
     return Array.from(document.querySelectorAll('*')).some(
       (el) =>
         el.children.length === 0 &&
         (el.textContent ?? '').trim() === sectionText,
     );
-  }, RECOMMEND_SECTION_TEXT);
+  }, MANDATORY_MATCH_LABEL);
 }
 
-const ensureRecommendToggleOnStep: StepHandler = async (page) => {
-  // 추천 섹션/토글은 쿠팡 카테고리·마켓 데이터 fetch 후 렌더되므로 즉시 체크하면
-  // race 로 "미노출" 오판한다 (특히 세션 만료 배너 등으로 fetch 가 느릴 때).
-  // 섹션 ON 또는 토글 라벨이 뜰 때까지 최대 ~12초 폴링.
-  let sectionVisible = false;
+/**
+ * 필수 옵션그룹명 매칭 행 렌더 대기. 쿠팡 카테고리·마켓 데이터 fetch 후 렌더되므로
+ * 즉시 읽으면 race 로 "미노출" 오판한다. 최대 ~12초 폴링.
+ * @returns 렌더됐으면 true. 끝까지 안 뜨면 false(= 쿠팡 미타겟 / 필수 없음).
+ */
+async function waitForMandatorySection(page: Page): Promise<boolean> {
   for (let i = 0; i < 12; i += 1) {
-    sectionVisible = await isRecommendSectionVisible(page);
-    if (sectionVisible) break;
-    const toggleSeen = await page
-      .locator('label', { hasText: RECOMMEND_TOGGLE_LABEL })
-      .count();
-    if (toggleSeen > 0) break;
+    if (await isMandatorySectionVisible(page)) return true;
     await page.waitForTimeout(1_000);
   }
-
-  // 이미 켜져 있으면 통과.
-  if (sectionVisible) {
-    logger.info('[ensure_recommend_toggle_on] 이미 ON');
-    return { ok: true as const };
-  }
-
-  // 토글 label "쿠팡의 추천 옵션그룹명 사용" 이 있는 <label> 안의 checkbox 클릭.
-  const toggleLabel = page.locator('label', { hasText: RECOMMEND_TOGGLE_LABEL }).first();
-  if ((await toggleLabel.count()) === 0) {
-    return {
-      ok: false as const,
-      error_key: 'coupang_recommend_toggle_absent' as ErrorKey,
-      message:
-        '쿠팡의 추천 옵션그룹명 사용 토글 미노출 — 쿠팡이 업로드 대상이 아니거나 카테고리에 추천 옵션그룹이 없음',
-    };
-  }
-  await toggleLabel.scrollIntoViewIfNeeded().catch(() => undefined);
-  await toggleLabel.click();
-  await page.waitForTimeout(2_000);
-
-  if (!(await isRecommendSectionVisible(page))) {
-    return {
-      ok: false as const,
-      error_key: 'coupang_recommend_toggle_failed' as ErrorKey,
-      message: '토글 클릭 후에도 추천 옵션그룹명 행이 노출되지 않음',
-    };
-  }
-  logger.info('[ensure_recommend_toggle_on] 토글 ON 완료');
-  return { ok: true as const };
-};
+  return false;
+}
 
 interface MatchState {
   groupCount: number;
@@ -244,68 +221,41 @@ async function readMatchState(page: Page): Promise<MatchState> {
       }
     }
     return { groupCount, recommendedNames: names };
-  }, RECOMMEND_SECTION_TEXT);
-}
-
-/** "옵션그룹 추가" 버튼 클릭 후 반영 대기. */
-async function addOneGroup(page: Page): Promise<boolean> {
-  const btn = page.getByRole('button', { name: ADD_GROUP_BUTTON }).first();
-  if ((await btn.count()) === 0 || (await btn.isDisabled().catch(() => true))) {
-    return false;
-  }
-  await btn.click();
-  await page.waitForTimeout(2_500); // onUpdateProduct(네트워크) + 새 그룹 렌더
-  return true;
+  }, MANDATORY_MATCH_LABEL);
 }
 
 /**
- * gi 번째 옵션그룹의 삭제 버튼(헤더의 빨간 icon-only 버튼) → 모달 "옵션 그룹 삭제" 확인.
- * 그룹 삭제 버튼은 color="red" 라 빨간색으로, 옵션 행의 회색 remove 버튼과 구분된다.
- * 빨간 삭제 버튼들의 DOM 순서 = 그룹 순서이므로 gi 로 정확히 타깃.
+ * "쿠팡 필수 옵션그룹 추가" 영역의 옵션값 input 을 아무 숫자로 채운다.
+ * 이 영역은 필수 수 > 내 옵션그룹 수 일 때만 렌더되며(윈들리가 미충족 필수명을 자동 표시),
+ * 값 input 은 placeholder "옵션을 입력하세요"(문자형) / "숫자를 입력하세요"(숫자+단위형) 로
+ * 일반 옵션행("옵션명을 입력하세요")과 구분된다. 단위 radio 는 첫 항목이 기본 선택돼 있어 건드리지 않는다.
+ * 이미 숫자가 들어있으면 유지(멱등). 여러 개면 전부 채운다.
+ * @returns 새로 채운 input 수.
  */
-async function deleteGroupAtIndex(page: Page, gi: number): Promise<boolean> {
-  const marked = await page.evaluate((targetIdx: number) => {
-    const norm = (s: string | null): string => (s ?? '').trim();
-    const isRed = (rgb: string): boolean => {
-      const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-      if (m === null) return false;
-      return Number(m[1]) >= 180 && Number(m[2]) <= 110 && Number(m[3]) <= 110;
-    };
-    const redBtns = Array.from(document.querySelectorAll('button')).filter((b) => {
-      if (norm(b.textContent).length > 0) return false;
-      const r = b.getBoundingClientRect();
-      if (r.x < 250 || r.y < 130 || r.width === 0) return false; // 사이드바/상단 툴바 제외
-      if (b.querySelector('svg') === null) return false;
-      const els = [b, ...Array.from(b.querySelectorAll('*'))];
-      return els.some((el) => {
-        const cs = window.getComputedStyle(el);
-        return (
-          isRed(cs.color) ||
-          isRed(cs.fill ?? '') ||
-          isRed(cs.stroke ?? '') ||
-          isRed(cs.borderTopColor)
-        );
-      });
-    });
-    if (targetIdx >= redBtns.length) return 0;
-    redBtns[targetIdx].setAttribute('data-atc', 'del-group');
-    return 1;
-  }, gi);
-  if (marked === 0) return false;
-
-  await page.locator('[data-atc="del-group"]').first().click();
-  const confirm = page.getByRole('button', { name: DELETE_GROUP_CONFIRM }).first();
-  try {
-    await confirm.waitFor({ state: 'visible', timeout: 8_000 });
-  } catch {
-    return false;
+async function fillMandatoryAddSection(page: Page): Promise<number> {
+  const inputs = page.locator(ADD_SECTION_INPUT_SELECTOR);
+  const count = await inputs.count();
+  if (count === 0) {
+    logger.info('[add_section] "쿠팡 필수 옵션그룹 추가" 영역 없음 — skip');
+    return 0;
   }
-  await confirm.click();
-  await page.waitForTimeout(2_500);
-  await page
-    .evaluate(() => document.querySelector('[data-atc="del-group"]')?.removeAttribute('data-atc'))
-    .catch(() => undefined);
-  return true;
+  let filled = 0;
+  for (let i = 0; i < count; i += 1) {
+    const inp = inputs.nth(i);
+    const cur = (await inp.inputValue().catch(() => '')).trim();
+    if (/^\d+$/.test(cur)) {
+      logger.info(`[add_section] ${i + 1}번째 이미 숫자(${cur}) — 유지`);
+      continue;
+    }
+    await inp.scrollIntoViewIfNeeded().catch(() => undefined);
+    await inp.click();
+    await inp.fill(String(i + 1)); // 아무 숫자면 됨
+    await inp.press('Tab');
+    await page.waitForTimeout(1_500);
+    filled += 1;
+    logger.info(`[add_section] ${i + 1}번째 옵션값 → ${i + 1}`);
+  }
+  return filled;
 }
 
 /**
@@ -335,7 +285,7 @@ async function readGroupMatches(page: Page): Promise<string[]> {
       }
       return '';
     });
-  }, RECOMMEND_SECTION_TEXT);
+  }, MANDATORY_MATCH_LABEL);
 }
 
 /** rowIndex 그룹의 추천 행에서 text===name 인 default Tag 를 클릭해 매칭. */
@@ -365,7 +315,7 @@ async function clickTagInRow(page: Page, rowIndex: number, name: string): Promis
       }
       return 0;
     },
-    { sectionText: RECOMMEND_SECTION_TEXT, rowIndex, name },
+    { sectionText: MANDATORY_MATCH_LABEL, rowIndex, name },
   );
   if (marked === 2) return true; // 이미 매칭
   if (marked !== 1) return false;
@@ -378,68 +328,33 @@ async function clickTagInRow(page: Page, rowIndex: number, name: string): Promis
 }
 
 /**
- * 순서 기반 매칭: i 번째 옵션그룹의 추천 행에서 i 번째 추천명(effectiveNames[i]) 태그를 클릭.
- * 의미(색상/수량 추론) 무관하게 "첫 추천 → 그룹1, 둘째 추천 → 그룹2" 1:1 결정적 매칭.
- * 이미 i 번째가 effectiveNames[i] 로 매칭된 그룹은 건너뛴다. 어긋난 그룹만 재클릭.
- * @returns 0..target-1 그룹이 effectiveNames[i] 로 순서대로 매칭된 그룹 수.
+ * 비파괴 매칭: 윈들리 자동매칭(그룹명 기준 info 선택)은 그대로 두고, 아직 아무 필수명도
+ * 선택 안 된 그룹만 "아직 안 쓰인" 필수명으로 채운다.
+ *   - 색상 그룹이 이미 '색상'으로 자동 매칭돼 있으면 건드리지 않는다(의미 보존).
+ *   - 미선택 그룹은 남는 필수명을 순서대로 배정.
+ *   - 남는 필수명이 없으면(그룹 수 > 필수 수) 그 초과 그룹은 그대로 둔다(추가 삭제 없음).
+ * @returns { matched: 실제 그룹 중 매칭된 수, groups: 전체 실제 그룹 수 }.
  */
-async function assignByOrder(page: Page, effectiveNames: string[]): Promise<number> {
-  const target = effectiveNames.length;
-  for (let guard = 0; guard < target * 3 + 2; guard += 1) {
+async function assignUnmatchedGroups(
+  page: Page,
+  effectiveNames: string[],
+): Promise<{ matched: number; groups: number }> {
+  for (let guard = 0; guard < effectiveNames.length * 2 + 4; guard += 1) {
     const matches = await readGroupMatches(page);
-    // i 번째 그룹이 i 번째 추천명으로 매칭 안 된 첫 위치를 찾아 그 행의 태그를 클릭.
-    const wrongRow = effectiveNames.findIndex((want, i) => matches[i] !== want);
-    if (wrongRow < 0) break; // 0..target-1 전부 순서대로 매칭됨
-    const ok = await clickTagInRow(page, wrongRow, effectiveNames[wrongRow]);
+    const used = new Set(matches.filter((m) => m.length > 0));
+    const unmatchedIdx = matches.findIndex((m) => m.length === 0);
+    if (unmatchedIdx < 0) break; // 실제 그룹 전부 매칭됨
+    const name = effectiveNames.find((n) => !used.has(n));
+    if (name === undefined) break; // 남는 필수명 없음 (그룹 수 > 필수 수)
+    const ok = await clickTagInRow(page, unmatchedIdx, name);
     if (!ok) {
-      logger.info(
-        `[match-order] 그룹 ${wrongRow + 1} 에 "${effectiveNames[wrongRow]}" 순서 매칭 실패 (비활성/미발견)`,
-      );
+      logger.info(`[match] 그룹 ${unmatchedIdx + 1} → "${name}" 매칭 실패 (비활성/미발견)`);
       break;
     }
-    logger.info(`[match-order] 그룹 ${wrongRow + 1} → ${effectiveNames[wrongRow]} 매칭`);
+    logger.info(`[match] 그룹 ${unmatchedIdx + 1} → ${name} 매칭`);
   }
   const final = await readGroupMatches(page);
-  return effectiveNames.filter((want, i) => final[i] === want).length;
-}
-
-/**
- * 그룹명 순차 변경: 모든 옵션그룹 라벨을 DOM 순서대로 "그룹 1", "그룹 2", ... 로 직접 입력.
- *  - "그룹 N" 은 어떤 추천속성명과도 겹치지 않는 중립 라벨이라, 잔여/오염 라벨이 다른 속성으로
- *    오검사되는 문제(예: 라벨 "개당 중량" → 수량 그룹 "1개"에 g/kg 검사 → red)를 원천 차단한다.
- *  - 실제 쿠팡 업로드 속성은 추천 태그 매칭(assignByOrder)이 정하므로 라벨은 그룹 식별용으로만.
- *  - 라벨은 그룹 헤더라 가상화 영향이 적다. 재렌더 robust 하게 한 번에 하나씩 변경.
- */
-async function renameGroupsSequential(page: Page): Promise<void> {
-  for (let guard = 0; guard < 12; guard += 1) {
-    const target = await page.evaluate(() => {
-      const norm = (s: string | null): string => (s ?? '').trim();
-      const nameInputs = (
-        Array.from(document.querySelectorAll('input')) as HTMLInputElement[]
-      ).filter((inp) => {
-        const cls = inp.getAttribute('class') ?? '';
-        return /(^|\s)option-group-[0-9a-f]/.test(cls) && !cls.includes('option-group-active');
-      });
-      for (let gi = 0; gi < nameInputs.length; gi += 1) {
-        const want = `그룹 ${gi + 1}`;
-        if (norm(nameInputs[gi].value) !== want) {
-          nameInputs[gi].setAttribute('data-atc-fill', '1');
-          return { gi, value: want };
-        }
-      }
-      return null;
-    });
-    if (target === null) break;
-    const loc = page.locator('[data-atc-fill]').first();
-    await loc.click();
-    await loc.fill(target.value);
-    await loc.press('Tab');
-    await page.waitForTimeout(2_500);
-    await page.evaluate(() =>
-      document.querySelector('[data-atc-fill]')?.removeAttribute('data-atc-fill'),
-    );
-    logger.info(`[rename] 그룹 ${target.gi + 1} name → ${target.value}`);
-  }
+  return { matched: final.filter((m) => m.length > 0).length, groups: final.length };
 }
 
 interface CollectedGroup {
@@ -460,7 +375,7 @@ async function collectAllOptions(page: Page): Promise<CollectedGroup[]> {
       const c = el.getAttribute('class') ?? '';
       return (
         el.tagName === 'INPUT' &&
-        /(^|\s)option-group-[0-9a-f]/.test(c) &&
+        /(^|\s)option-group-[\w-]/.test(c) &&
         !c.includes('option-group-active')
       );
     };
@@ -495,7 +410,7 @@ async function collectAllOptions(page: Page): Promise<CollectedGroup[]> {
         const norm = (x: string | null): string => (x ?? '').trim();
         const isNI = (el: Element): boolean => {
           const c = el.getAttribute('class') ?? '';
-          return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+          return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
         };
         const ni = Array.from(document.querySelectorAll('input')).find((i) =>
           (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${k}`),
@@ -638,7 +553,7 @@ async function fixOptionValues(page: Page): Promise<number> {
 function scrollOptionContainersToTopFn(): void {
   const isGroupNameInput = (el: Element): boolean => {
     const c = el.getAttribute('class') ?? '';
-    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
   };
   const nameInputs = Array.from(document.querySelectorAll('input')).filter(isGroupNameInput);
   const containers = new Set<HTMLElement>();
@@ -668,7 +583,7 @@ function scrollOptionContainersToTopFn(): void {
 function stepScrollOptionContainersFn(): boolean {
   const isGroupNameInput = (el: Element): boolean => {
     const c = el.getAttribute('class') ?? '';
-    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
   };
   const nameInputs = Array.from(document.querySelectorAll('input')).filter(isGroupNameInput);
   const containers = new Set<HTMLElement>();
@@ -709,7 +624,7 @@ function stepScrollOptionContainersFn(): boolean {
 function bringGroupToTopFn(key: string): void {
   const isNI = (el: Element): boolean => {
     const c = el.getAttribute('class') ?? '';
-    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
   };
   const ni = Array.from(document.querySelectorAll('input')).find((i) =>
     (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
@@ -732,7 +647,7 @@ function bringGroupToTopFn(key: string): void {
 function scrollOneGroupContainerToTopFn(key: string): void {
   const isNI = (el: Element): boolean => {
     const c = el.getAttribute('class') ?? '';
-    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
   };
   const ni = Array.from(document.querySelectorAll('input')).find((i) =>
     (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
@@ -757,7 +672,7 @@ function scrollOneGroupContainerToTopFn(key: string): void {
 function stepScrollOneGroupContainerFn(key: string): boolean {
   const isNI = (el: Element): boolean => {
     const c = el.getAttribute('class') ?? '';
-    return el.tagName === 'INPUT' && /(^|\s)option-group-[0-9a-f]/.test(c) && !c.includes('option-group-active');
+    return el.tagName === 'INPUT' && /(^|\s)option-group-[\w-]/.test(c) && !c.includes('option-group-active');
   };
   const ni = Array.from(document.querySelectorAll('input')).find((i) =>
     (i.getAttribute('class') ?? '').split(/\s+/).includes(`option-group-${key}`),
@@ -793,7 +708,7 @@ function readGroupUnitsFn(): Record<string, string[]> {
     const c = el.getAttribute('class') ?? '';
     return (
       el.tagName === 'INPUT' &&
-      /(^|\s)option-group-[0-9a-f]/.test(c) &&
+      /(^|\s)option-group-[\w-]/.test(c) &&
       !c.includes('option-group-active')
     );
   };
@@ -890,11 +805,11 @@ async function applyAZToAllGroups(page: Page): Promise<number> {
 }
 
 async function fillGroups(page: Page): Promise<void> {
-  // 1) 그룹명을 "그룹 N" 중립 라벨로 — 오염 라벨이 타 속성 검사를 유발하지 않도록 (가상화 영향 적은 헤더).
-  await renameGroupsSequential(page);
-  // 2) 옵션명 A-Z 정규화 — 윈들리 "A-Z" 버튼으로 옵션값을 알파벳 일괄 정규화 (모든 그룹).
+  // 2026-07: 그룹명 "그룹 N" 리네임 폐기 — 매칭이 라벨이 아니라 태그(info) 기준으로 바뀌어
+  // 라벨 오검사 위험이 없고, 리네임이 윈들리 자동매칭(그룹명 기준)을 되레 깰 수 있음.
+  // 1) 옵션명 A-Z 정규화 — 윈들리 "A-Z" 버튼으로 옵션값을 알파벳 일괄 정규화 (모든 그룹).
   await applyAZToAllGroups(page);
-  // 3) 옵션값 전역 보정 — A-Z 후에도 남는 쿠팡 단위형식 위반/중복/빈값을 그룹 전역 고유값으로 교체.
+  // 2) 옵션값 전역 보정 — A-Z 후에도 남는 쿠팡 단위형식 위반/중복/빈값을 그룹 전역 고유값으로 교체.
   //    가상화로 숨은 옵션까지 전수 수집. race(stale 클로저 revert)로 되살아날 수 있어 0건 수렴까지 반복.
   for (let round = 0; round < 3; round += 1) {
     const fixes = await fixOptionValues(page);
@@ -905,20 +820,30 @@ async function fillGroups(page: Page): Promise<void> {
 }
 
 const matchOptionGroupsStep: StepHandler = async (page) => {
+  // 0) 필수 매칭 행 렌더 대기 (쿠팡 카테고리 fetch race).
+  if (!(await waitForMandatorySection(page))) {
+    return {
+      ok: false as const,
+      error_key: 'coupang_mandatory_section_absent' as ErrorKey,
+      message:
+        '쿠팡 필수 옵션그룹명 매칭 행 미노출 — 쿠팡이 업로드 대상이 아니거나 카테고리에 필수 옵션그룹이 없음',
+    };
+  }
+
   const state = await readMatchState(page);
   logger.info(
-    `[match_option_groups] 현재 그룹=${state.groupCount}, 추천=${state.recommendedNames.length} [${state.recommendedNames.join(', ')}]`,
+    `[match_option_groups] 현재 그룹=${state.groupCount}, 필수=${state.recommendedNames.length} [${state.recommendedNames.join(', ')}]`,
   );
 
   if (state.recommendedNames.length === 0) {
     return {
       ok: false as const,
-      error_key: 'no_recommended_option_groups' as ErrorKey,
-      message: '추천 옵션그룹명을 읽지 못함 (토글 OFF 또는 카테고리 추천 없음)',
+      error_key: 'no_mandatory_option_groups' as ErrorKey,
+      message: '필수 옵션그룹명을 읽지 못함 (카테고리 필수 없음)',
     };
   }
 
-  // "(택N)" 묶음은 택일 — 같은 N 은 하나만 매칭하면 됨 (groupNumber 단위 필수, 윈들리 validateOption).
+  // "(택N)" 묶음은 택일 — 같은 N 은 하나만 매칭하면 됨 (윈들리 validateOption).
   const effectiveNames = collapseChooseOneNames(state.recommendedNames);
   if (effectiveNames.length !== state.recommendedNames.length) {
     logger.info(
@@ -926,66 +851,24 @@ const matchOptionGroupsStep: StepHandler = async (page) => {
     );
   }
 
-  const target = effectiveNames.length;
-
-  // 1) 부족하면 먼저 추가 (빈 그룹). 초과분은 매칭 후 삭제 — 위치가 아니라 미매칭 그룹을 지움.
-  let addGuard = 0;
-  while ((await readMatchState(page)).groupCount < target && addGuard < 6) {
-    addGuard += 1;
-    const cur = (await readMatchState(page)).groupCount;
-    const ok = await addOneGroup(page);
-    if (!ok) {
-      return {
-        ok: false as const,
-        error_key: 'add_option_group_failed' as ErrorKey,
-        message: `옵션그룹 추가 실패 (현재 ${cur}, 목표 ${target}) — 업로드된 상품이거나 3개 초과`,
-      };
-    }
-    logger.info(`[match_option_groups] 옵션그룹 추가 (${cur} → ${cur + 1})`);
-  }
-
-  // 2) 순서 매칭 — i 번째 추천명을 i 번째 그룹에 1:1 결정적 매칭 (첫 추천→그룹1, 둘째→그룹2).
-  //    (택N) 택일이 적용된 effectiveNames 순서가 곧 그룹 순서.
-  const covered = await assignByOrder(page, effectiveNames);
-  if (covered < target) {
+  // 1) 태그 매칭 (비파괴) — 그룹 add/delete 없음. 윈들리 자동매칭 유지 + 미선택 그룹만 채움.
+  const { matched, groups } = await assignUnmatchedGroups(page, effectiveNames);
+  if (matched < groups) {
     return {
       ok: false as const,
       error_key: 'option_group_match_incomplete' as ErrorKey,
-      message: `매칭 미완료: 추천 ${target}개 중 ${covered}개만 매칭됨 (그룹 부족/Tag 비활성)`,
+      message: `매칭 미완료: 실제 옵션그룹 ${groups}개 중 ${matched}개만 필수명 매칭됨 (필수 수 부족/Tag 비활성)`,
     };
   }
-  logger.info(`[match_option_groups] 매칭 완료 ${covered}/${target}`);
+  logger.info(`[match_option_groups] 실제 그룹 매칭 완료 ${matched}/${groups}`);
 
-  // 3) 초과분 삭제 — 매칭 안 된(남는) 그룹을 지워 개수를 추천 수에 맞춘다.
-  let delGuard = 0;
-  while ((await readMatchState(page)).groupCount > target && delGuard < 6) {
-    delGuard += 1;
-    const matches = await readGroupMatches(page);
-    // 미매칭 그룹 또는 effectiveNames 에 없는 매칭(예: 택N 에서 안 고른 개당중량, 잔여 그룹) 우선 삭제.
-    let gi = matches.findIndex((m) => m.length === 0 || !effectiveNames.includes(m));
-    if (gi < 0) gi = matches.length - 1; // fallback: 마지막
-    const beforeCount = matches.length;
-    const ok = await deleteGroupAtIndex(page, gi);
-    if (!ok) {
-      return {
-        ok: false as const,
-        error_key: 'delete_option_group_failed' as ErrorKey,
-        message: `초과(미매칭) 옵션그룹 삭제 실패 — 그룹 ${gi + 1}`,
-      };
-    }
-    logger.info(`[match_option_groups] 미매칭 옵션그룹 삭제 (그룹 ${gi + 1}, ${beforeCount} → ${beforeCount - 1})`);
+  // 2) "쿠팡 필수 옵션그룹 추가" 영역이 있으면(필수 수 > 내 그룹 수) 옵션값에 아무 숫자 입력.
+  const addFilled = await fillMandatoryAddSection(page);
+  if (addFilled > 0) {
+    logger.info(`[match_option_groups] 필수 옵션그룹 추가 영역 ${addFilled}건 채움`);
   }
 
-  const afterCount = (await readMatchState(page)).groupCount;
-  if (afterCount !== target) {
-    return {
-      ok: false as const,
-      error_key: 'option_group_count_mismatch' as ErrorKey,
-      message: `개수 맞춤 실패: 현재 ${afterCount}, 목표 ${target}`,
-    };
-  }
-
-  // 4) 그룹명(빈 라벨만) + 옵션값(고유·단위형식·비파괴) 채우기.
+  // 3) 실제 그룹 옵션값 A-Z 정규화 + 고유·단위형식 보정.
   await fillGroups(page);
 
   return { ok: true as const };
@@ -1153,7 +1036,6 @@ export const coupangOptionGroupMatchHandlers: StepHandlers = {
   open_collected_list: openCollectedListStep,
   open_target_product: openTargetProductStep,
   open_option_tab: openOptionTabStep,
-  ensure_recommend_toggle_on: ensureRecommendToggleOnStep,
   match_option_groups: matchOptionGroupsStep,
   select_base_sku: selectBaseSkuStep,
   error_check: errorCheckStep,
