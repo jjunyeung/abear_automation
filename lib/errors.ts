@@ -33,7 +33,9 @@ export type KnownErrorKey =
   | 'tab_option_error'
   | 'tab_attribute_error'
   | 'tab_detail_error'
-  | 'esm_recommend_option_unmatched';
+  | 'esm_recommend_option_unmatched'
+  | 'upload_confirm_btn_not_found'
+  | 'collect_failed';
 
 /**
  * Effective error key type. Accepts any known key and any future string while

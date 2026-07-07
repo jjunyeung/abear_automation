@@ -20,6 +20,8 @@ steps:
     do: 재업로드 트리거 (등록상품 상세의 업로드 버튼).
   - id: confirm_upload_modal
     do: 유의사항 모달 → "업로드 하기" 클릭.
+    on_recovery:
+      restart_from: wait_upload_complete
   - id: wait_upload_complete
     do: 업로드 완료 대기 (성공 ≥1).
   - id: verify_new_name_visible

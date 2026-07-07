@@ -65,8 +65,9 @@ for (const f of todayBatches) {
   const totalMatch = body.match(/묶음\s*실행\s*리포트\s*\((\d+)건\)/);
   const total = totalMatch ? parseInt(totalMatch[1], 10) : 0;
   // 목차 line 별 PASS/FAIL.
-  const tocLines = body.split('\n').filter((l) => /^\d+\.\s+.+—\s+`result_[\d\-_]+`/.test(l));
-  let pass = 0, fail = 0;
+  // runId 에는 `_retryN` 처럼 알파벳 suffix 가 붙을 수 있어 `\w` 로 매칭 (숫자만 잡으면 재시도 줄이 누락됨).
+  const tocLines = body.split('\n').filter((l) => /^\d+\.\s+.+—\s+`result_[\w\-]+`/.test(l));
+  let pass = 0, fail = 0, skip = 0;
   const failed = [];
   for (const line of tocLines) {
     if (line.includes('✅')) pass += 1;
@@ -74,15 +75,16 @@ for (const f of todayBatches) {
       fail += 1;
       const m = line.match(/\d+\.\s+(.+?)\s+—/);
       if (m) failed.push(m[1]);
-    }
+    } else if (line.includes('⏭️')) skip += 1;
   }
-  batches.push({ file: f, total, pass, fail, failed, body });
+  batches.push({ file: f, total, pass, fail, skip, failed, body });
 }
 
 // ── 통합 요약 md 작성 ────────────────────────────────────────────────────────
 const totalAtc = batches.reduce((s, b) => s + b.total, 0);
 const totalPass = batches.reduce((s, b) => s + b.pass, 0);
 const totalFail = batches.reduce((s, b) => s + b.fail, 0);
+const totalSkip = batches.reduce((s, b) => s + b.skip, 0);
 const allFailed = batches.flatMap((b) => b.failed);
 
 const summary = [];
@@ -92,6 +94,7 @@ summary.push(`- 총 batch: **${batches.length}**`);
 summary.push(`- 총 ATC: **${totalAtc}**`);
 summary.push(`- ✅ PASS: **${totalPass}**`);
 summary.push(`- ❌ FAIL: **${totalFail}**`);
+summary.push(`- ⏭️ 미실행: **${totalSkip}**`);
 summary.push('');
 if (allFailed.length > 0) {
   summary.push(`## 실패 ATC (${allFailed.length}건)`);
@@ -133,7 +136,8 @@ if (dryRun) {
 // ── Slack 발송 ───────────────────────────────────────────────────────────────
 const allOk = totalFail === 0;
 const headerEmoji = allOk ? ':large_green_circle:' : ':red_circle:';
-const headerText = `${headerEmoji} *일일 다이제스트 ${targetDate}* — ${totalPass}/${totalAtc} 성공 (${batches.length} batch)`;
+const skipSuffix = totalSkip > 0 ? `, ⏭️ ${totalSkip} 미실행` : '';
+const headerText = `${headerEmoji} *일일 다이제스트 ${targetDate}* — ${totalPass}/${totalAtc} 성공${skipSuffix} (${batches.length} batch)`;
 
 const trimmedMd = digestMd.length > 7500
   ? digestMd.slice(0, 7400) + '\n\n... (잘림 — 전체는 reports/digests/digest-' + targetDate + '.md)'

@@ -17,6 +17,7 @@
 
 import type { Locator, Page } from '@playwright/test';
 import { logger } from './logger';
+import { readRedFieldLocations } from './error-check-actions';
 
 export interface TabError {
   /** 원본 에러 메시지. */
@@ -274,12 +275,42 @@ export async function fixTabErrors(page: Page): Promise<number> {
   await page.waitForTimeout(800);
 
   // 1) 인라인 over-limit 카운터 fix.
-  const counterFixed = await fixOverLimitCounters(page);
+  let counterFixed = await fixOverLimitCounters(page);
 
   // 2) 빨간 배너 메시지 fix.
-  const errors = await readBannerErrors(page);
+  let errors = await readBannerErrors(page);
+
+  // 배너/카운터가 하나도 안 잡히면 — 렌더 지연일 수 있으니 한 번 더 기다렸다 재수집.
   if (errors.length === 0 && counterFixed === 0) {
-    throw new Error('[fixTabErrors] 에러 배너 + over-limit 카운터 모두 없음');
+    await page.waitForTimeout(1_200);
+    counterFixed = await fixOverLimitCounters(page);
+    errors = await readBannerErrors(page);
+  }
+
+  // 재수집 후에도 이 fixer 가 인식하는 수정 대상(배너/카운터)이 없다.
+  // 예전엔 여기서 throw 해서 recovery 를 하드 실패시켰는데, 그게 오탐의 원인이었다.
+  // "탭이 빨강인데 배너/카운터 패턴이 아님" 은 두 갈래이고 둘 다 throw 가 아니라 0 반환이 옳다:
+  //   (a) dot 이 stale/오분류 — 실제로는 깨끗함 → recovery 는 no-op 성공해야 함
+  //       (runner 가 실패 step 재실행 → 에러체크 재판정 → green 이면 통과).
+  //   (b) 진짜 에러지만 자동수정 불가 패턴 — recovery no-op 후 재실행 시 같은 에러 재발 →
+  //       runner 가 D12 로 "복구 후 재발" 을 명확히 보고 (throw 의 "모두 없음" 보다 정확).
+  // 판정을 재검증(=탭 status 실측)에 위임하고, 진단 가시성만 로그로 남긴다.
+  if (errors.length === 0 && counterFixed === 0) {
+    const redFields = await readRedFieldLocations(page).catch(() => []);
+    if (redFields.length > 0) {
+      logger.warn(
+        `[fixTabErrors] 빨간 필드 ${redFields.length}개 있으나 자동수정 배너/카운터 패턴 아님 ` +
+          `(수동 패턴 필요): ${redFields
+            .map((f) => f.label || f.tag)
+            .slice(0, 4)
+            .join(', ')}`,
+      );
+    } else {
+      logger.info(
+        '[fixTabErrors] 고칠 배너/카운터/빨간필드 없음 — no-op 반환 (탭 status 재검증에 위임)',
+      );
+    }
+    return 0;
   }
   if (errors.length > 0) {
     logger.info(`[fixTabErrors] 배너 에러 ${errors.length}건: ${JSON.stringify(errors)}`);

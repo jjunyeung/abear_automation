@@ -34,6 +34,8 @@ steps:
 
   - id: trigger_upload
     do: 상품 상세에서 업로드 트리거 (업로드 마켓 영역 또는 업로드 버튼/아이콘 클릭). 업로드 확인 모달이 뜨면 진행 옵션 확정
+    on_recovery:
+      restart_from: wait_upload_complete
 
   - id: wait_upload_complete
     do: 업로드 진행이 끝나고 성공 메시지 또는 상태 표시가 나타날 때까지 대기 (최대 180초)

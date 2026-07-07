@@ -46,6 +46,8 @@ steps:
 
   - id: confirm_upload_modal
     do: 상품 업로드 유의사항 확인 모달이 뜨면 업로드 성공 쪽 버튼(업로드 하기/수정 업로드/확인/계속/진행 등) 클릭
+    on_recovery:
+      restart_from: wait_upload_complete
 
   - id: wait_upload_complete
     do: 업로드 진행 모달의 성공/실패 텍스트 안정화 또는 우하단 토스트가 검출될 때까지 대기. 토스트가 실패 메시지면 fail, 성공이면 pass. 진행 모달이 있는 경우 1개 이상 마켓 성공이어야 pass.
